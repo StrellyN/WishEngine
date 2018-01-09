@@ -141,6 +141,16 @@ namespace WishEngine{
         Already tested with rendering only and ~3200 objects are still manageable, but collision checking is shit.
         It also takes a lot of time to load the level (since you are creating tons of objects), look into that.
         Maybe differentiate between objects and tiles? fml
+
+        08/01/2018
+        To fix the clipping problem, for each collision check, reset the objects x, y, px and py, and save the new positions
+        to a vector and after all the checks, stick with the value thats further away from the original X or Y.
+        The new positions, include the sliding, so if you can slide with a collision, the new position will be the original
+        X or Y.
+
+        09/01/2018
+        Clipping has been solved but there's still a problem with getting stuck, I still haven't figured out why it happens tho.
+        IT HAS BEEN FIXED :D
     **/
     void CollisionSystem::update(double dt){
         std::vector<GameObject> &objs = ObjectFactory::getObjectFactory()->getObjects();
@@ -153,6 +163,12 @@ namespace WishEngine{
                     hitI = dynamic_cast<HitboxComponent*>(objs[i].getComponent(C_TYPES::HITBOX));
                     hitI->getCollisionList().clear();
                     if(hitI->getCheckForCollisions()){
+                        double auxX = dim1->getX(); //Gets some things needed in case of having to set the object back
+                        double auxY = dim1->getY(); //and checking for sliding
+                        double auxpX = dim1->getpX();
+                        double auxpY = dim1->getpY();
+                        std::vector<double> newXs;
+                        std::vector<double> newYs;
                         for(unsigned j=0; j<objs.size(); j++){
                             if(i != j && objs[j].getEnabled()){ //If they aren't the same Object and the second object is enabled
                                 dim2 = dynamic_cast<DimentionComponent*>(objs[j].getComponent(C_TYPES::DIMENTION)); //seems like this is the reason for the slow
@@ -160,12 +176,10 @@ namespace WishEngine{
                                 if(dim2 != nullptr && dim2->getEnabled()){ //If j has a dimention of course
                                     if(hitJ != nullptr && hitJ->getEnabled()){ //And j has a hitbox
                                         if(checkCollision(objs[i], objs[j])){
-                                            //Check solid collitions
+                                            //Check solid collisions
                                             if((objs[j].hasComponent(C_TYPES::SOLID) && objs[j].getComponent(C_TYPES::SOLID)->getEnabled()) &&
                                                (objs[i].hasComponent(C_TYPES::SOLID) && objs[i].getComponent(C_TYPES::SOLID)->getEnabled())){
                                                  //If a collision happens
-                                                double auxX = dim1->getX(); //Gets some things needed in case of having to set the object back
-                                                double auxY = dim1->getY(); //and checking for sliding
                                                 dim1->setX(dim1->getpX()); //Sets the object to its previous position
                                                 dim1->setY(dim1->getpY());
                                                 double sumX = (auxX - dim1->getX())/10; //Sets the intervals for checking the collision
@@ -176,19 +190,27 @@ namespace WishEngine{
                                                 }
                                                 dim1->setX(dim1->getpX()); //When the collision has happened, send the object back
                                                 dim1->setY(dim1->getpY());
+                                                double safeX = dim1->getX();
+                                                double safeY = dim1->getY();
                                                 //And try to advance in both directions for sliding
                                                 //Checks to advance in the direction paralel
                                                 //to the wall, aka sliding.
                                                 dim1->setX(auxX);
+                                                dim1->setY(auxpY);
                                                 if(checkCollision(objs[i], objs[j])){ //If it can't slide in the x direction
-                                                    dim1->setX(dim1->getpX()); //Set the object back to the safe position
-                                                    dim1->setX(dim1->getX()); //And lock it there for animation.
+                                                    dim1->setX(safeX); //Set the object back to the safe position
+                                                    dim1->setX(safeX); //And lock it there for animation.
                                                 }
+                                                dim1->setY(dim1->getpY());
                                                 dim1->setY(auxY);
+                                                dim1->setX(auxpX);
                                                 if(checkCollision(objs[i], objs[j])){ //The same for the y direction
-                                                    dim1->setY(dim1->getpY());
-                                                    dim1->setY(dim1->getY());
+                                                    dim1->setY(safeY);
+                                                    dim1->setY(safeY);
                                                 }
+                                                dim1->setX(dim1->getpX());
+                                                newXs.push_back(dim1->getX());
+                                                newYs.push_back(dim1->getY());
                                                 //Add j object to i's collision component queue and viceversa
                                                 hitI->addCollisionElement(j, objs[j].getName());
                                                 hitJ->addCollisionElement(i, objs[i].getName());
@@ -199,12 +221,46 @@ namespace WishEngine{
                                                 hitI->addCollisionElement(j, objs[j].getName());
                                             }
                                         }
+                                        //Resetting the original positions for the next collision check
+                                        dim1->setX(auxpX);
+                                        dim1->setX(auxX);
+                                        dim1->setY(auxpY);
+                                        dim1->setY(auxY);
                                     }
                                 }
                                 hitJ = nullptr;
                                 dim2 = nullptr;
                             }
                         }
+                        double newX = auxX, newY = auxY;
+                        for(unsigned s=0; s<newXs.size(); s++){
+                            if(auxX - auxpX > 0){
+                                if(auxX - newXs[s] > auxX - newX){
+                                    newX = newXs[s];
+                                }
+                            }
+                            else{
+                                if(auxX - newXs[s] < auxX - newX){
+                                    newX = newXs[s];
+                                }
+                            }
+                            if(auxY - auxpY > 0){
+                                if(auxY - newYs[s] > auxY - newY){
+                                    newY = newYs[s];
+                                }
+                            }
+                            else{
+                                if(auxY - newYs[s] < auxY - newY){
+                                    newY = newYs[s];
+                                }
+                            }
+                        }
+                        dim1->setX(auxpX);
+                        dim1->setY(auxpY);
+                        dim1->setX(newX);
+                        dim1->setY(newY);
+                        newXs.clear();
+                        newYs.clear();
                     }
                     dim1 = nullptr;
                     hitI = nullptr;
