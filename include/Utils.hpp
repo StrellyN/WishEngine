@@ -176,10 +176,9 @@ namespace WishEngine{
                 }
             }
 
-            template<typename T> //Change it so it copies the file and if the value already exists it replaces it.
-            static void writeToFile(std::string fileName, std::string dataName, T data, bool append){
+            static void writeIntToFile(std::string fileName, std::string dataName, int data, bool append){
                 std::fstream stream;
-                if(append){
+                if(append){ //check for existance and do the copying here
                     stream.open(fileName, std::ios::out | std::ios::app);
                     stream << dataName << " " << data << "\n";
                 }
@@ -190,14 +189,80 @@ namespace WishEngine{
                 stream.close();
             }
 
-            template<typename T> //Change it so you can have spaces, maybe adding an END at the end of each value to know where it ends
-            static T readFromFile(std::string fileName, std::string dataName){
-                T data;
+            static void writeDoubleToFile(std::string fileName, std::string dataName, double data, bool append){
+                std::fstream stream;
+                if(append){ //check for existance and do the copying here
+                    stream.open(fileName, std::ios::out | std::ios::app);
+                    stream << dataName << " " << data << "\n";
+                }
+                else{
+                    stream.open(fileName, std::ios::out);
+                    stream << dataName << " " << data << "\n";
+                }
+                stream.close();
+            }
+
+            static void writeStringToFile(std::string fileName, std::string dataName, std::string data, bool append){
+                std::fstream stream;
+                if(append){ //check for existance and do the copying here
+                    stream.open(fileName, std::ios::out | std::ios::app);
+                    stream << dataName << " " << data << "\n";
+                }
+                else{
+                    stream.open(fileName, std::ios::out);
+                    stream << dataName << " " << data << "\n";
+                }
+                stream.close();
+            }
+
+            static int readIntFromFile(std::string fileName, std::string dataName){
+                int data;
                 std::fstream stream(fileName, std::ios::in);
-                std::string names;
-                while(stream >> names){
+                std::stringstream line;
+                std::string names, aux;
+                while(std::getline(stream, aux)){
+                    line << aux;
+                    line >> names;
                     if(names == dataName){
-                        stream >> data;
+                        line >> data;
+                        break;
+                    }
+                }
+                stream.close();
+                return data;
+            }
+
+            static double readDoubleFromFile(std::string fileName, std::string dataName){
+                double data;
+                std::fstream stream(fileName, std::ios::in);
+                std::stringstream line;
+                std::string names, aux;
+                while(std::getline(stream, aux)){
+                    line << aux;
+                    line >> names;
+                    if(names == dataName){
+                        line >> data;
+                        break;
+                    }
+                }
+                stream.close();
+                return data;
+            }
+
+            static std::string readStringFromFile(std::string fileName, std::string dataName){
+                std::string data;
+                std::fstream stream(fileName, std::ios::in);
+                std::stringstream line;
+                std::string names, aux;
+                while(std::getline(stream, aux)){
+                    line.str(aux);
+                    line >> names;
+                    if(names == dataName){
+                        line >> data;
+                        while(line >> aux){
+                            data += " ";
+                            data += aux;
+                        }
                         break;
                     }
                 }

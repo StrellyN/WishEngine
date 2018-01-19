@@ -28,7 +28,9 @@ namespace WishEngine{
         setType(E_TYPES::ENULL);
         setValue("NULL");
         xPos = 0;
+        xRel = 0;
         yPos = 0;
+        yRel = 0;
         deviceID = -1;
         timeStamp = 0;
         windowID = -1;

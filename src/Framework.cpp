@@ -587,11 +587,22 @@ namespace WishEngine{
                     type = E_TYPES::GAMEPAD_ADDED;
                     ev.setTimeStamp(fEvent.jdevice.timestamp);
                     ev.setDeviceID(fEvent.jdevice.which);
+                    JoystickStruct aux;
+                    aux.pad = SDL_JoystickOpen(fEvent.jdevice.which);
+                    aux.id = SDL_JoystickInstanceID(aux.pad);
+                    joysticks.push_back(aux);
                     break;
                 case SDL_JOYDEVICEREMOVED:
                     type = E_TYPES::GAMEPAD_REMOVED;
                     ev.setTimeStamp(fEvent.jdevice.timestamp);
                     ev.setDeviceID(fEvent.jdevice.which);
+                    for(unsigned i=0; i<joysticks.size(); i++){
+                        if(joysticks[i].id == fEvent.jdevice.which){
+                            SDL_JoystickClose(joysticks[i].pad);
+                            joysticks.erase(joysticks.begin() + i);
+                            break;
+                        }
+                    }
                     break;
                 case SDL_JOYBUTTONDOWN:
                     type = E_TYPES::GAMEPAD_PRESS;
@@ -608,10 +619,34 @@ namespace WishEngine{
                 case SDL_JOYAXISMOTION:
                     type = E_TYPES::GAMEPAD_AXIS; //which axis, direction and value
                     ev.setTimeStamp(fEvent.jaxis.timestamp);
-                    if(!fEvent.jaxis.axis){ //If axis == 0 it's the X axis
+                    if(!fEvent.jaxis.axis){ //If axis != 1 it's the X axis
+                        if(fEvent.jaxis.value < -1000)
+                            ev.setValue("Joystick X Left");
+                        else if(fEvent.jaxis.value > 1000)
+                            ev.setValue("Joystick X Right");
+                        else{
+                            type = E_TYPES::GAMEPAD_RELEASE;
+                            ev.setValue("Joystick X Left");
+                            Event aux;
+                            aux.setType(E_TYPES::GAMEPAD_RELEASE);
+                            aux.setValue("Joystick X Right");
+                            result.push_back(aux);
+                        }
                         ev.setXPos(fEvent.jaxis.value);
                     }
                     else{ //If == 1 it's the Y axis
+                        if(fEvent.jaxis.value < -1000)
+                            ev.setValue("Joystick Y Up");
+                        else if(fEvent.jaxis.value > 1000)
+                            ev.setValue("Joystick Y Down");
+                        else{
+                            type = E_TYPES::GAMEPAD_RELEASE;
+                            ev.setValue("Joystick Y Up");
+                            Event aux;
+                            aux.setType(E_TYPES::GAMEPAD_RELEASE);
+                            aux.setValue("Joystick Y Down");
+                            result.push_back(aux);
+                        }
                         ev.setYPos(fEvent.jaxis.value);
                     }
                     ev.setDeviceID(fEvent.jaxis.which);
@@ -791,6 +826,14 @@ namespace WishEngine{
         window = nullptr;
         renderer = nullptr;
         fEvent = SDL_Event();
+
+        //Joysticks
+        for(unsigned i=0; i<SDL_NumJoysticks(); i++){
+            JoystickStruct aux;
+            aux.pad = SDL_JoystickOpen(i);
+            aux.id = SDL_JoystickInstanceID(aux.pad);
+            joysticks.push_back(aux);
+        }
     }
 
     void Framework::clearData(){
@@ -814,6 +857,10 @@ namespace WishEngine{
     }
 
     void Framework::quit(){
+        for(unsigned i=0; i<joysticks.size(); i++){
+            SDL_JoystickClose(joysticks[i].pad);
+        }
+        joysticks.clear();
         for(std::map<std::string, SDL_Renderer*>::iterator i=renderPool.begin(); i!=renderPool.end(); i++){
             SDL_DestroyRenderer(i->second);
         }

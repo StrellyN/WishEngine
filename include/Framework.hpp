@@ -29,6 +29,10 @@
 #include "Camera.hpp"
 
 namespace WishEngine{
+    typedef struct JoystickStruct{
+        SDL_Joystick *pad;
+        int id;
+    };
     class Framework{
         private:
             //General
@@ -37,6 +41,9 @@ namespace WishEngine{
             SDL_Event fEvent;
             bool frameCapFlag;
             int maxFPS, frameTicks;
+
+            //Joysticks
+            std::vector<JoystickStruct> joysticks;
 
             //Window
             std::map<std::string, SDL_Window*> windowPool;

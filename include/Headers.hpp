@@ -39,6 +39,7 @@ namespace WishEngine{
 #include <vector>
 #include <iterator>
 #include <string>
+#include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sstream>
@@ -46,5 +47,7 @@ namespace WishEngine{
 #include <time.h>
 #include <algorithm>
 #include <fstream>
+#include <cstdint>
+#include <type_traits>
 
 #endif // HEADERS

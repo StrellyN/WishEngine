@@ -11,6 +11,13 @@ the code.
 
 ## Important Stuffs Log
 
+### 19/01/2018
+
+Had to change the file I/O because I can't have it as template methods since C++ won't let me get a whole line spaces included similar to how ">>" gets a single
+data. Now I have a method for each important type, int (you can store bools with this as well), double and string. I guess I could add char as well, but int can
+be used for that right now, I'll think about it.
+Also finished the input detection in the framework and now you can use game pads and stuff!
+
 ### 01/01/2018
 
 This is the first day of the year as well as the first commit for this project, even though I've been working on it for around a month and a half, so 
