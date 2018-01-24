@@ -215,8 +215,98 @@ namespace WishEngine{
                 stream.close();
             }
 
+            static void replaceIntInFile(std::string fileName, std::string dataName, int data){
+                std::fstream stream, copyStream;
+                std::string auxFileName = fileName;
+                auxFileName += "aux";
+                bool found = false;
+                stream.open(fileName, std::ios::in);
+                copyStream.open(auxFileName, std::ios::in | std::ios::app);
+
+                std::stringstream line;
+                std::string aux, name;
+                while(std::getline(stream, aux)){
+                    line << aux;
+                    line >> name;
+                    if(name == dataName){
+                        copyStream << dataName << " " << data << "\n";
+                        found = true;
+                    }
+                    else{
+                        copyStream << aux << "\n";
+                    }
+                }
+                if(!found){
+                    copyStream << dataName << " " << data << "\n";
+                }
+                copyStream.close();
+                stream.close();
+                remove(fileName.c_str());
+                rename(auxFileName.c_str(), fileName.c_str());
+            }
+
+            static void replaceDoubleInFile(std::string fileName, std::string dataName, double data){
+                std::fstream stream, copyStream;
+                std::string auxFileName = fileName;
+                auxFileName += "aux";
+                bool found = false;
+                stream.open(fileName, std::ios::in);
+                copyStream.open(auxFileName, std::ios::in | std::ios::app);
+
+                std::stringstream line;
+                std::string aux, name;
+                while(std::getline(stream, aux)){
+                    line << aux;
+                    line >> name;
+                    if(name == dataName){
+                        copyStream << dataName << " " << data << "\n";
+                        found = true;
+                    }
+                    else{
+                        copyStream << aux << "\n";
+                    }
+                }
+                if(!found){
+                    copyStream << dataName << " " << data << "\n";
+                }
+                copyStream.close();
+                stream.close();
+                remove(fileName.c_str());
+                rename(auxFileName.c_str(), fileName.c_str());
+            }
+
+            static void replaceStringInFile(std::string fileName, std::string dataName, std::string data){
+                std::fstream stream, copyStream;
+                std::string auxFileName = fileName;
+                auxFileName += "aux";
+                bool found = false;
+                stream.open(fileName, std::ios::in);
+                copyStream.open(auxFileName, std::ios::in | std::ios::app);
+
+                std::stringstream line;
+                std::string aux, name;
+                while(std::getline(stream, aux)){
+                    line << aux;
+                    line >> name;
+                    if(name == dataName){
+                        copyStream << dataName << " " << data << "\n";
+                        found = true;
+                    }
+                    else{
+                        copyStream << aux << "\n";
+                    }
+                }
+                if(!found){
+                    copyStream << dataName << " " << data << "\n";
+                }
+                copyStream.close();
+                stream.close();
+                remove(fileName.c_str());
+                rename(auxFileName.c_str(), fileName.c_str());
+            }
+
             static int readIntFromFile(std::string fileName, std::string dataName){
-                int data;
+                int data = -1;
                 std::fstream stream(fileName, std::ios::in);
                 std::stringstream line;
                 std::string names, aux;
@@ -233,7 +323,7 @@ namespace WishEngine{
             }
 
             static double readDoubleFromFile(std::string fileName, std::string dataName){
-                double data;
+                double data = -1;
                 std::fstream stream(fileName, std::ios::in);
                 std::stringstream line;
                 std::string names, aux;
@@ -250,7 +340,7 @@ namespace WishEngine{
             }
 
             static std::string readStringFromFile(std::string fileName, std::string dataName){
-                std::string data;
+                std::string data = "";
                 std::fstream stream(fileName, std::ios::in);
                 std::stringstream line;
                 std::string names, aux;
@@ -268,6 +358,22 @@ namespace WishEngine{
                 }
                 stream.close();
                 return data;
+            }
+
+            static bool dataExistsInFile(std::string fileName, std::string dataName){
+                std::fstream stream(fileName, std::ios::in);
+                std::stringstream line;
+                std::string names, aux;
+                while(std::getline(stream, aux)){
+                    line.str(aux);
+                    line >> names;
+                    if(names == dataName){
+                        stream.close();
+                        return true;
+                    }
+                }
+                stream.close();
+                return false;
             }
     };
 }
