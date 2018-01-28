@@ -34,7 +34,7 @@ the exe folder, run exe.
 **/
 
 namespace WishEngine{
-    ScriptComponent* getScript(std::string name){
+    ScriptComponent* getScript(std::string name, std::string args){
         return nullptr;
     }
 }

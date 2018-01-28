@@ -587,9 +587,11 @@ namespace WishEngine{
                     }
                     if(compName == "SCRIPT"){
                         std::string name;
+                        std::string args;
                         objectStream >> compEnabled;
                         objectStream >> name;
-                        ScriptComponent* newScript = getScript(name);
+                        std::getline(objectStream, args);
+                        ScriptComponent* newScript = getScript(name, args);
                         if(newScript != nullptr){
                             newScript->setEnabled(compEnabled);
                             newObject.addComponent(newScript, name);
@@ -684,9 +686,11 @@ namespace WishEngine{
                     }
                     if(compName == "SCRIPT"){
                         std::string name;
+                        std::string args;
                         objectStream >> compEnabled;
                         objectStream >> name;
-                        ScriptComponent* newScript = getScript(name);
+                        std::getline(objectStream, args);
+                        ScriptComponent* newScript = getScript(name, args);
                         if(newScript != nullptr){
                             newScript->setEnabled(compEnabled);
                             newCamera.addComponent(newScript, name);
@@ -974,9 +978,11 @@ namespace WishEngine{
                         }
                         if(compName == "SCRIPT"){
                             std::string name;
+                            std::string args = "";
                             objectStream >> compEnabled;
                             objectStream >> name;
-                            ScriptComponent* newScript = getScript(name);
+                            std::getline(objectStream, args);
+                            ScriptComponent* newScript = getScript(name, args);
                             if(newScript != nullptr){
                                 newScript->setEnabled(compEnabled);
                                 newObject.addComponent(newScript, name);
@@ -1071,9 +1077,11 @@ namespace WishEngine{
                         }
                         if(compName == "SCRIPT"){
                             std::string name;
+                            std::string args;
                             objectStream >> compEnabled;
                             objectStream >> name;
-                            ScriptComponent* newScript = getScript(name);
+                            std::getline(objectStream, args);
+                            ScriptComponent* newScript = getScript(name, args);
                             if(newScript != nullptr){
                                 newScript->setEnabled(compEnabled);
                                 newCamera.addComponent(newScript, name);

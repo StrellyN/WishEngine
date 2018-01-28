@@ -25,7 +25,7 @@
 #define SCRIPTSHEADERS_H
 
 namespace WishEngine{
-    ScriptComponent* getScript(std::string name);
+    ScriptComponent* getScript(std::string name, std::string args);
 }
 
 #endif // SCRIPTSHEADERS
