@@ -33,7 +33,29 @@ namespace WishEngine{
     }
 
     void NetworkSystem::update(double dt){
-
+        std::vector<GameObject> &objs = ObjectFactory::getObjectFactory()->getObjects();
+        for(unsigned i=0; i<objs.size(); i++){
+            if(objs[i].getEnabled()){
+                NetworkComponent *netComp = dynamic_cast<NetworkComponent*>(objs[i].getComponent(C_TYPES::NETWORKC));
+                if(netComp != nullptr && netComp->getEnabled()){
+                    //Do all the stuff here :D
+                    if(netComp->getIsConnected()){ //Do the checks for packet sending and receiving
+                        if(netComp->getDisconnect()){ //Disconnect the component and delete all its stuffs in the framework
+                            Framework::getFramework()->deleteNet(netComp);
+                        }
+                        else{ //The checks continue :)
+                            Framework::getFramework()->updateNet(netComp);
+                        }
+                    }
+                    else{ //Check if you need to connect.
+                        if(netComp->getAttemptConnection()){ //Try to connect
+                            Framework::getFramework()->connectNet(netComp);
+                        }
+                    }
+                }
+                netComp = nullptr;
+            }
+        }
     }
 
     void NetworkSystem::handleMessage(Message *msg){

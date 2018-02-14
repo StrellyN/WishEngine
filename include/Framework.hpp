@@ -24,9 +24,12 @@
 #ifndef FRAMEWORK_H
 #define FRAMEWORK_H
 
+#define JOYSTICK_DEADZONE 8000
+
 #include "FrameHeader.hpp"
 #include "Event.hpp"
 #include "Camera.hpp"
+#include "NetworkComponent.hpp"
 
 namespace WishEngine{
     typedef struct JoystickStruct{
@@ -58,6 +61,12 @@ namespace WishEngine{
 
             //Text
             std::map<std::string, TTF_Font*> fontPool;
+
+            //Networking
+            std::vector<TCPsocket> tcpSockets;
+            std::vector<UDPsocket> udpSockets;
+            std::vector<SDLNet_SocketSet> socketSets;
+            std::vector<IPaddress> ipAdresses, udpIpAdresses;
         public:
             ~Framework();
             static Framework* getFramework();
@@ -72,6 +81,10 @@ namespace WishEngine{
             void setFrameCapFlag(bool frameCap);
             bool getFrameCapFlag();
             int getMaxFPS();
+
+            void deleteNet(NetworkComponent *netComp);
+            void updateNet(NetworkComponent *netComp);
+            void connectNet(NetworkComponent *netComp);
 
             void deleteWindow(std::string name);
             void createWindow(std::string title, std::string name, std::string icon, int x, int y, int w, int h);

@@ -85,6 +85,525 @@ namespace WishEngine{
         return maxFPS;
     }
 
+    void Framework::deleteNet(NetworkComponent *netComp){
+        if(netComp->getIsServer()){
+            if(netComp->getIsTcp()){ //If its a TCP server
+                if(SDLNet_TCP_DelSocket(socketSets[netComp->getNetSocketSetIndex()], tcpSockets[netComp->getSocketsIndex()[0]]) != -1) {
+                    SDLNet_TCP_Close(tcpSockets[netComp->getSocketsIndex()[0]]);
+
+                    for(unsigned i=netComp->getSocketsIndex().size()-1; i>0; i--) {
+                        if(tcpSockets[netComp->getSocketsIndex()[i]] == NULL){
+                            tcpSockets.erase(tcpSockets.begin()+netComp->getSocketsIndex()[i]);
+                            ipAdresses.erase(ipAdresses.begin()+netComp->getSocketsIndex()[i]);
+                            continue;
+                        }
+
+                        if(SDLNet_TCP_DelSocket(socketSets[netComp->getNetSocketSetIndex()], tcpSockets[netComp->getSocketsIndex()[i]]) != -1) {
+                            SDLNet_TCP_Close(tcpSockets[netComp->getSocketsIndex()[i]]);
+                            tcpSockets.erase(tcpSockets.begin()+netComp->getSocketsIndex()[i]);
+                            ipAdresses.erase(ipAdresses.begin()+netComp->getSocketsIndex()[i]);
+
+                        }
+                    }
+                    tcpSockets.erase(tcpSockets.begin()+netComp->getSocketsIndex()[0]);
+                    ipAdresses.erase(ipAdresses.begin()+netComp->getSocketsIndex()[0]);
+                    SDLNet_FreeSocketSet(socketSets[netComp->getNetSocketSetIndex()]);
+                    socketSets.erase(socketSets.begin()+netComp->getNetSocketSetIndex());
+                    netComp->clearData();
+                    netComp->setIsConnected(false);
+                    netComp->setDisconnect(false);
+                }
+            }
+            else{ //If its an UDP server
+                if(SDLNet_UDP_DelSocket(socketSets[netComp->getNetSocketSetIndex()], udpSockets[netComp->getSocketsIndex()[0]]) != -1) {
+                    SDLNet_UDP_Close(udpSockets[netComp->getSocketsIndex()[0]]);
+
+                    for(unsigned i=netComp->getSocketsIndex().size()-1; i>0; i--) {
+                        if(udpSockets[netComp->getSocketsIndex()[i]] == NULL){
+                            udpSockets.erase(udpSockets.begin()+netComp->getSocketsIndex()[i]);
+                            udpIpAdresses.erase(udpIpAdresses.begin()+netComp->getSocketsIndex()[i]);
+                            continue;
+                        }
+
+                        if(SDLNet_UDP_DelSocket(socketSets[netComp->getNetSocketSetIndex()], udpSockets[netComp->getSocketsIndex()[i]]) != -1) {
+                            SDLNet_UDP_Close(udpSockets[netComp->getSocketsIndex()[i]]);
+                            udpSockets.erase(udpSockets.begin()+netComp->getSocketsIndex()[i]);
+                            udpIpAdresses.erase(udpIpAdresses.begin()+netComp->getSocketsIndex()[i]);
+                        }
+                    }
+                    udpSockets.erase(udpSockets.begin()+netComp->getSocketsIndex()[0]);
+                    udpIpAdresses.erase(udpIpAdresses.begin()+netComp->getSocketsIndex()[0]);
+                    SDLNet_FreeSocketSet(socketSets[netComp->getNetSocketSetIndex()]);
+                    socketSets.erase(socketSets.begin()+netComp->getNetSocketSetIndex());
+                    netComp->clearData();
+                    netComp->setIsConnected(false);
+                    netComp->setDisconnect(false);
+                }
+            }
+        }
+        else{
+            if(netComp->getIsTcp()){ //If its a TCP client
+                //Delete all the client needed stuff
+                if(SDLNet_TCP_DelSocket(socketSets[netComp->getNetSocketSetIndex()], tcpSockets[netComp->getSocketsIndex()[0]]) != -1) {
+                    SDLNet_TCP_Close(tcpSockets[netComp->getSocketsIndex()[0]]);
+                    tcpSockets.erase(tcpSockets.begin()+netComp->getSocketsIndex()[0]);
+                    ipAdresses.erase(ipAdresses.begin()+netComp->getSocketsIndex()[0]);
+                    SDLNet_FreeSocketSet(socketSets[netComp->getNetSocketSetIndex()]);
+                    socketSets.erase(socketSets.begin()+netComp->getNetSocketSetIndex());
+                    netComp->clearData();
+                    netComp->setIsConnected(false);
+                    netComp->setDisconnect(false);
+                }
+            }
+            else{ //If its an UDP client
+                //Delete all the client needed stuff
+                if(SDLNet_UDP_DelSocket(socketSets[netComp->getNetSocketSetIndex()], udpSockets[netComp->getSocketsIndex()[0]]) != -1) {
+                    SDLNet_UDP_Close(udpSockets[netComp->getSocketsIndex()[0]]);
+                    udpSockets.erase(udpSockets.begin()+netComp->getSocketsIndex()[0]);
+                    udpIpAdresses.erase(udpIpAdresses.begin()+netComp->getSocketsIndex()[0]);
+                    SDLNet_FreeSocketSet(socketSets[netComp->getNetSocketSetIndex()]);
+                    socketSets.erase(socketSets.begin()+netComp->getNetSocketSetIndex());
+                    netComp->clearData();
+                    netComp->setIsConnected(false);
+                    netComp->setDisconnect(false);
+                }
+            }
+        }
+    }
+
+    void Framework::updateNet(NetworkComponent *netComp){
+        if(netComp->getIsServer()){
+            if(netComp->getIsTcp()){ //If its a TCP server
+                //Update all the server needed stuff
+                int num_rdy = SDLNet_CheckSockets(socketSets[netComp->getNetSocketSetIndex()], 1);
+
+                if(num_rdy > 0){ //Connections waiting or data in need to be recieved.
+                    if(SDLNet_SocketReady(tcpSockets[netComp->getSocketsIndex()[0]])){ //The server socket is ready
+                        //Accept connection
+                        TCPsocket incomming;
+                        tcpSockets.push_back(incomming);
+                        tcpSockets[tcpSockets.size()-1] = SDLNet_TCP_Accept(tcpSockets[netComp->getSocketsIndex()[0]]);
+                        IPaddress aux;
+                        if(tcpSockets[tcpSockets.size()-1] != NULL){
+                            if(netComp->getSocketsIndex().size() < netComp->getMaxConnections()){
+                                netComp->getSocketsIndex().push_back(tcpSockets.size()-1);
+                                ipAdresses.push_back(aux);
+                                if(SDLNet_TCP_AddSocket(socketSets[netComp->getNetSocketSetIndex()], tcpSockets[netComp->getSocketsIndex()[netComp->getSocketsIndex().size()-1]]) != -1){ //Everything went right
+                                    SDLNet_TCP_Close(incomming);
+                                }
+                                else{ //Couldn't be added to the socket set
+                                    //Delete from vectors and close the sockets
+                                    SDLNet_TCP_Close(incomming);
+                                    SDLNet_TCP_Close(tcpSockets[netComp->getSocketsIndex()[netComp->getSocketsIndex().size()-1]]);
+                                    netComp->getSocketsIndex().pop_back();
+                                    tcpSockets.pop_back();
+                                    ipAdresses.pop_back();
+                                }
+                            }
+                            else{ //Server is full
+                                SDLNet_TCP_Close(incomming);
+                            }
+                        }
+                        else{ //Couldn't accept connection
+                            SDLNet_TCP_Close(tcpSockets[tcpSockets.size()-1]);
+                            tcpSockets.pop_back();
+                        }
+                    }
+                    //Check for data ready to be received here
+                    for(unsigned i=1; i<netComp->getSocketsIndex().size(); i++){
+                        //Maybe change this if to a while to check if there are multiple sockets?
+                        if(SDLNet_SocketReady(tcpSockets[netComp->getSocketsIndex()[i]])){ //If the socket is ready
+                            Packet received;
+                            netComp->getReceived().push_back(received);
+                            char temp_data[netComp->getMaxPacketSize()];
+                            int num_recv = SDLNet_TCP_Recv(tcpSockets[netComp->getSocketsIndex()[i]], temp_data, netComp->getMaxPacketSize());
+                            std::cout << "Servidor: the data is " << temp_data << std::endl;
+                            if(num_recv > 0){
+                                netComp->getReceived()[netComp->getReceived().size()-1].data = (char*) malloc(netComp->getMaxPacketSize()*sizeof(char));
+                                memcpy(netComp->getReceived()[netComp->getReceived().size()-1].data, &temp_data[0], (netComp->getMaxPacketSize()));
+                            }
+                        }
+                    }
+                }
+                //If there's any data to be sent, send it here
+                for(unsigned j=0; j<netComp->getSent().size(); j++){
+                    for(unsigned i=1; i<netComp->getSocketsIndex().size(); i++){
+                        //Send the data
+                        char temp_data[netComp->getMaxPacketSize()];
+
+                        int offset = 0;
+                        memcpy(temp_data, &netComp->getSent()[j].data, netComp->getSent()[j].length);
+
+                        int num_sent = SDLNet_TCP_Send(tcpSockets[netComp->getSocketsIndex()[i]], temp_data, netComp->getSent()[j].length);
+                        if(num_sent < offset) {
+                            //Couldn't send
+                        }
+                    }
+                }
+                netComp->getSent().clear();
+            }
+            else{ //If its an UDP server
+                //Update all the server needed
+                int num_rdy = SDLNet_CheckSockets(socketSets[netComp->getNetSocketSetIndex()], netComp->getElapsedTimeBetweenChecks());
+
+                if(num_rdy > 0){ //Connections waiting or data in need to be recieved.
+                    //Check for data ready to be received here
+                    for(unsigned i=0; i<netComp->getSocketsIndex().size(); i++){
+                        if(SDLNet_SocketReady(udpSockets[netComp->getSocketsIndex()[i]])){ //If the socket is ready
+                            Packet received;
+                            UDPpacket pak;
+                            netComp->getReceived().push_back(received);
+                            uint8_t temp_data[netComp->getMaxPacketSize()];
+                            int num_recv = SDLNet_UDP_Recv(udpSockets[netComp->getSocketsIndex()[i]], &pak);
+                            if(num_recv > 0){
+                                int offset = 0;
+
+                                netComp->getReceived()[netComp->getReceived().size()-1].length = *(uint16_t*) &pak.len;
+
+                                netComp->getReceived()[netComp->getReceived().size()-1].data = (char*) malloc((pak.len)*sizeof(uint8_t));
+                                memcpy(netComp->getReceived()[netComp->getReceived().size()-1].data, &pak.data[offset], (pak.len));
+
+                                //Add the receiver as a client connection
+                                UDPsocket serverSocket;
+                                IPaddress aux = pak.address;
+                                serverSocket = SDLNet_UDP_Open(aux.port);
+                                if(serverSocket != NULL){ //If could connect
+                                    if(SDLNet_UDP_AddSocket(socketSets[netComp->getNetSocketSetIndex()], serverSocket) != -1){ //Yay we did it!
+                                        //Add everything to vectors and change needed flags in component
+                                        udpSockets.push_back(serverSocket);
+                                        udpIpAdresses.push_back(aux);
+                                        netComp->getSocketsIndex().push_back(udpSockets.size()-1);
+                                        SDLNet_UDP_Close(serverSocket);
+                                    }
+                                    else{
+                                        SDLNet_UDP_Close(serverSocket);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                //If there's any data to be sent, send it here
+                for(unsigned j=0; j<netComp->getSent().size(); j++){
+                    for(unsigned i=1; i<netComp->getSocketsIndex().size(); i++){
+                        //Send the data
+                        UDPpacket pak;
+                        pak.address = udpIpAdresses[netComp->getSocketsIndex()[i]];
+                        Uint8 temp_data[netComp->getMaxPacketSize()];
+
+                        int offset = 0;
+                        memcpy(temp_data+offset, &netComp->getSent()[j].data, netComp->getSent()[j].length);
+                        offset += netComp->getSent()[j].length;
+
+                        pak.data = &temp_data[0];
+                        pak.len = netComp->getSent()[j].length;
+
+                        int num_sent = SDLNet_UDP_Send(udpSockets[netComp->getSocketsIndex()[i]], -1, &pak);
+                        if(num_sent < offset) {
+                            //Couldn't send
+                        }
+                    }
+                }
+                netComp->getSent().clear();
+            }
+        }
+        else{
+            if(netComp->getIsTcp()){ //If its a TCP client
+                //Update all the client needed stuff
+                int num_rdy = SDLNet_CheckSockets(socketSets[netComp->getNetSocketSetIndex()], netComp->getElapsedTimeBetweenChecks());
+
+                if(num_rdy > 0){ //Connections waiting or data in need to be recieved.
+                    //Check for data ready to be received here
+                    if(SDLNet_SocketReady(tcpSockets[netComp->getSocketsIndex()[0]])){ //If the socket is ready
+                        Packet received;
+                        netComp->getReceived().push_back(received);
+                        char temp_data[netComp->getMaxPacketSize()];
+                        int num_recv = SDLNet_TCP_Recv(tcpSockets[netComp->getSocketsIndex()[0]], temp_data, netComp->getMaxPacketSize());
+                        if(num_recv > 0){
+                            netComp->getReceived()[netComp->getReceived().size()-1].data = (char*) malloc((num_recv)*sizeof(char));
+                            memcpy(netComp->getReceived()[netComp->getReceived().size()-1].data, &temp_data, (num_recv));
+                            netComp->getReceived()[netComp->getReceived().size()-1].length = strlen(netComp->getReceived()[netComp->getReceived().size()-1].data) + 1;
+                        }
+                    }
+                }
+                //If there's any data to be sent, send it here
+                for(unsigned j=0; j<netComp->getSent().size(); j++){
+                    //Send the data
+                    char temp_data[netComp->getMaxPacketSize()];
+
+                    memcpy(temp_data, netComp->getSent()[j].data, netComp->getSent()[j].length);
+                    std::cout << "This is the final data: " << temp_data << std::endl;
+                    int num_sent = SDLNet_TCP_Send(tcpSockets[netComp->getSocketsIndex()[0]], temp_data, netComp->getSent()[j].length);
+                    if(num_sent < netComp->getSent()[j].length) {
+                        //Couldn't send
+                    }
+                }
+                netComp->getSent().clear();
+            }
+            else{ //If its an UDP client
+                //Update all the client needed stuff
+                int num_rdy = SDLNet_CheckSockets(socketSets[netComp->getNetSocketSetIndex()], netComp->getElapsedTimeBetweenChecks());
+
+                if(num_rdy > 0){ //Connections waiting or data in need to be recieved.
+                    //Check for data ready to be received here
+                    if(SDLNet_SocketReady(udpSockets[netComp->getSocketsIndex()[0]])){ //If the socket is ready
+                        Packet received;
+                        UDPpacket pak;
+                        netComp->getReceived().push_back(received);
+                        uint8_t temp_data[netComp->getMaxPacketSize()];
+                        int num_recv = SDLNet_UDP_Recv(udpSockets[netComp->getSocketsIndex()[0]], &pak);
+                        // IMPORTANT: Need to check if you are receiving from the server. Check the pak.address with the netComp.
+                        if(num_recv > 0){
+                            int offset = 0;
+
+                            netComp->getReceived()[netComp->getReceived().size()-1].length = pak.len;
+
+                            netComp->getReceived()[netComp->getReceived().size()-1].data = (char*) malloc((pak.len)*sizeof(uint8_t));
+                            memcpy(netComp->getReceived()[netComp->getReceived().size()-1].data, &pak.data[offset], (pak.len));
+                        }
+                    }
+                }
+                //If there's any data to be sent, send it here
+                for(unsigned j=0; j<netComp->getSent().size(); j++){
+                    //Send the data
+                    UDPpacket pak;
+                    pak.address = udpIpAdresses[netComp->getSocketsIndex()[0]];
+                    Uint8 temp_data[netComp->getMaxPacketSize()];
+
+                    int offset = 0;
+                    memcpy(temp_data+offset, &netComp->getSent()[j].data, netComp->getSent()[j].length);
+                    offset += netComp->getSent()[j].length;
+
+                    pak.data = &temp_data[0];
+                    pak.len = netComp->getSent()[j].length;
+
+                    int num_sent = SDLNet_UDP_Send(udpSockets[netComp->getSocketsIndex()[0]], -1, &pak);
+                    if(num_sent < offset) {
+                        //Couldn't send
+                    }
+                }
+                netComp->getSent().clear();
+            }
+        }
+    }
+
+    void Framework::connectNet(NetworkComponent *netComp){
+        if(netComp->getIsServer()){
+            if(netComp->getIsTcp()){ //If its a TCP server
+                IPaddress auxIP;
+                TCPsocket serverSocket;
+                SDLNet_SocketSet serverSet;
+                if(SDLNet_ResolveHost(&auxIP, NULL, netComp->getPort()) != -1){ //If could resolve
+                    ipAdresses.push_back(auxIP);
+                    tcpSockets.push_back(serverSocket);
+                    netComp->getSocketsIndex().push_back(tcpSockets.size()-1);
+                    socketSets.push_back(serverSet);
+                    netComp->setNetSocketSetIndex(socketSets.size()-1);
+                    tcpSockets[tcpSockets.size()-1] = SDLNet_TCP_Open(&ipAdresses[ipAdresses.size()-1]);
+                    if(tcpSockets[tcpSockets.size()-1] != NULL){ //If could connect
+                        socketSets[socketSets.size()-1] = SDLNet_AllocSocketSet(netComp->getMaxConnections() + 1);
+                        if(socketSets[socketSets.size()-1] != NULL){
+                            if(SDLNet_TCP_AddSocket(socketSets[socketSets.size()-1], tcpSockets[tcpSockets.size()-1]) != -1){ //Yay we did it!
+                                //Add everything to vectors and change needed flags in component
+                                netComp->setIsConnected(true);
+                                netComp->setAttemptConnection(false);
+                            }
+                            else{
+                                netComp->setConnectionFailed(true);
+                                netComp->setAttemptConnection(false);
+                                SDLNet_TCP_Close(tcpSockets[tcpSockets.size()-1]);
+                                tcpSockets.pop_back();
+                                SDLNet_FreeSocketSet(socketSets[socketSets.size()-1]);
+                                socketSets.pop_back();
+                                ipAdresses.pop_back();
+                                netComp->getSocketsIndex().pop_back();
+                                netComp->setNetSocketSetIndex(0);
+                            }
+                        }
+                        else{
+                            netComp->setConnectionFailed(true);
+                            netComp->setAttemptConnection(false);
+                            SDLNet_TCP_Close(tcpSockets[tcpSockets.size()-1]);
+                            tcpSockets.pop_back();
+                            SDLNet_FreeSocketSet(socketSets[socketSets.size()-1]);
+                            socketSets.pop_back();
+                            ipAdresses.pop_back();
+                            netComp->getSocketsIndex().pop_back();
+                            netComp->setNetSocketSetIndex(0);
+                        }
+                    }
+                    else{
+                        netComp->setConnectionFailed(true);
+                        netComp->setAttemptConnection(false);
+                        SDLNet_TCP_Close(tcpSockets[tcpSockets.size()-1]);
+                        tcpSockets.pop_back();
+                        socketSets.pop_back();
+                        ipAdresses.pop_back();
+                        netComp->getSocketsIndex().pop_back();
+                        netComp->setNetSocketSetIndex(0);
+                    }
+                }
+                else{
+                    netComp->setConnectionFailed(true);
+                    netComp->setAttemptConnection(false);
+                }
+            }
+            else{ //If its an UDP server
+                UDPsocket serverSocket;
+                SDLNet_SocketSet serverSet;
+                IPaddress aux;
+                serverSocket = SDLNet_UDP_Open(netComp->getPort());
+                if(serverSocket != NULL){ //If could connect
+                    serverSet = SDLNet_AllocSocketSet(netComp->getMaxConnections() + 1);
+                    if(serverSet != NULL){
+                        if(SDLNet_UDP_AddSocket(serverSet, serverSocket) != -1){ //Yay we did it!
+                            //Add everything to vectors and change needed flags in component
+                            udpSockets.push_back(serverSocket);
+                            udpIpAdresses.push_back(aux);
+                            netComp->getSocketsIndex().push_back(udpSockets.size()-1);
+                            socketSets.push_back(serverSet);
+                            netComp->setNetSocketSetIndex(socketSets.size()-1);
+                            netComp->setIsConnected(true);
+                            netComp->setAttemptConnection(false);
+                            SDLNet_UDP_Close(serverSocket);
+                            SDLNet_FreeSocketSet(serverSet);
+                        }
+                        else{
+                            netComp->setConnectionFailed(true);
+                            netComp->setAttemptConnection(false);
+                            SDLNet_UDP_Close(serverSocket);
+                            SDLNet_FreeSocketSet(serverSet);
+                        }
+                    }
+                    else{
+                        netComp->setConnectionFailed(true);
+                        netComp->setAttemptConnection(false);
+                        SDLNet_UDP_Close(serverSocket);
+                    }
+                }
+                else{
+                    netComp->setConnectionFailed(true);
+                    netComp->setAttemptConnection(false);
+                }
+            }
+        }
+        else{
+            if(netComp->getIsTcp()){ //If its a TCP client
+                //Create all the client needed stuff
+                IPaddress auxIP;
+                TCPsocket clientSocket;
+                SDLNet_SocketSet clientSet;
+                if(SDLNet_ResolveHost(&auxIP, netComp->getIp().c_str(), netComp->getPort()) != -1){ //If could resolve
+                    ipAdresses.push_back(auxIP);
+                    tcpSockets.push_back(clientSocket);
+                    netComp->getSocketsIndex().push_back(tcpSockets.size()-1);
+                    socketSets.push_back(clientSet);
+                    netComp->setNetSocketSetIndex(socketSets.size()-1);
+                    tcpSockets[tcpSockets.size()-1] = SDLNet_TCP_Open(&auxIP);
+                    if(tcpSockets[tcpSockets.size()-1] != NULL){ //If could connect
+                        socketSets[socketSets.size()-1] = SDLNet_AllocSocketSet(1);
+                        if(socketSets[socketSets.size()-1] != NULL){
+                            if(SDLNet_TCP_AddSocket(socketSets[socketSets.size()-1], tcpSockets[tcpSockets.size()-1]) != -1){ //Yay we did it!
+                                //Add everything to vectors and change needed flags in component
+                                netComp->setIsConnected(true);
+                                netComp->setAttemptConnection(false);
+
+                                //Check the server response
+                                int activeSockets = SDLNet_CheckSockets(socketSets[socketSets.size()-1], 5000);
+                                int gotServerResponse = SDLNet_SocketReady(tcpSockets[tcpSockets.size()-1]);
+                                if (gotServerResponse != 0){
+                                    // Read the message on the client socket
+                                    char *pBuffer;
+                                    int serverResponseByteCount = SDLNet_TCP_Recv(tcpSockets[tcpSockets.size()-1], pBuffer, sizeof(char));
+                                }
+                                else // If there's no activity on the client socket then we've failed to connect
+                                {
+                                    //Disconnect
+                                }
+                            }
+                            else{
+                                netComp->setConnectionFailed(true);
+                                netComp->setAttemptConnection(false);
+                                SDLNet_TCP_Close(tcpSockets[tcpSockets.size()-1]);
+                                tcpSockets.pop_back();
+                                SDLNet_FreeSocketSet(socketSets[socketSets.size()-1]);
+                                socketSets.pop_back();
+                                ipAdresses.pop_back();
+                                netComp->getSocketsIndex().pop_back();
+                                netComp->setNetSocketSetIndex(0);
+                            }
+                        }
+                        else{
+                            netComp->setConnectionFailed(true);
+                            netComp->setAttemptConnection(false);
+                            SDLNet_TCP_Close(tcpSockets[tcpSockets.size()-1]);
+                            tcpSockets.pop_back();
+                            SDLNet_FreeSocketSet(socketSets[socketSets.size()-1]);
+                            socketSets.pop_back();
+                            ipAdresses.pop_back();
+                            netComp->getSocketsIndex().pop_back();
+                            netComp->setNetSocketSetIndex(0);
+                        }
+                    }
+                    else{
+                        netComp->setConnectionFailed(true);
+                        netComp->setAttemptConnection(false);
+                        SDLNet_TCP_Close(tcpSockets[tcpSockets.size()-1]);
+                        tcpSockets.pop_back();
+                        socketSets.pop_back();
+                        ipAdresses.pop_back();
+                        netComp->getSocketsIndex().pop_back();
+                        netComp->setNetSocketSetIndex(0);
+                    }
+                }
+                else{
+                    netComp->setConnectionFailed(true);
+                    netComp->setAttemptConnection(false);
+                }
+            }
+            else{ //If its an UDP client
+                //Create all the client needed stuff
+                UDPsocket clientSocket;
+                SDLNet_SocketSet clientSet;
+                IPaddress aux;
+                SDLNet_ResolveHost(&aux, netComp->getIp().c_str(), netComp->getPort());
+                clientSocket = SDLNet_UDP_Open(netComp->getPort());
+                if(clientSocket != NULL){ //If could connect
+                    clientSet = SDLNet_AllocSocketSet(1);
+                    if(clientSet != NULL){
+                        if(SDLNet_UDP_AddSocket(clientSet, clientSocket) != -1){ //Yay we did it!
+                            //Add everything to vectors and change needed flags in component
+                            udpSockets.push_back(clientSocket);
+                            udpIpAdresses.push_back(aux);
+                            netComp->getSocketsIndex().push_back(udpSockets.size()-1);
+                            socketSets.push_back(clientSet);
+                            netComp->setNetSocketSetIndex(socketSets.size()-1);
+                            netComp->setIsConnected(true);
+                            netComp->setAttemptConnection(false);
+                            SDLNet_UDP_Close(clientSocket);
+                            SDLNet_FreeSocketSet(clientSet);
+                        }
+                        else{
+                            netComp->setConnectionFailed(true);
+                            netComp->setAttemptConnection(false);
+                            SDLNet_UDP_Close(clientSocket);
+                            SDLNet_FreeSocketSet(clientSet);
+                        }
+                    }
+                    else{
+                        netComp->setConnectionFailed(true);
+                        netComp->setAttemptConnection(false);
+                        SDLNet_UDP_Close(clientSocket);
+                    }
+                }
+                else{
+                    netComp->setConnectionFailed(true);
+                    netComp->setAttemptConnection(false);
+                }
+            }
+        }
+    }
+
     void Framework::playMusic(std::string musicFile, int volume, int loops){
         if(volume < 0) volume = 0;
         if(volume > 128) volume = 128;
@@ -619,10 +1138,10 @@ namespace WishEngine{
                 case SDL_JOYAXISMOTION:
                     type = E_TYPES::GAMEPAD_AXIS; //which axis, direction and value
                     ev.setTimeStamp(fEvent.jaxis.timestamp);
-                    if(!fEvent.jaxis.axis){ //If axis != 1 it's the X axis
-                        if(fEvent.jaxis.value < -1000)
+                    if(fEvent.jaxis.axis == 0){ //If axis != 1 it's the X axis
+                        if(fEvent.jaxis.value < -JOYSTICK_DEADZONE)
                             ev.setValue("Joystick X Left");
-                        else if(fEvent.jaxis.value > 1000)
+                        else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
                             ev.setValue("Joystick X Right");
                         else{
                             type = E_TYPES::GAMEPAD_RELEASE;
@@ -634,10 +1153,10 @@ namespace WishEngine{
                         }
                         ev.setXPos(fEvent.jaxis.value);
                     }
-                    else{ //If == 1 it's the Y axis
-                        if(fEvent.jaxis.value < -1000)
+                    else if(fEvent.jaxis.axis == 1){ //If == 1 it's the Y axis
+                        if(fEvent.jaxis.value < -JOYSTICK_DEADZONE)
                             ev.setValue("Joystick Y Up");
-                        else if(fEvent.jaxis.value > 1000)
+                        else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
                             ev.setValue("Joystick Y Down");
                         else{
                             type = E_TYPES::GAMEPAD_RELEASE;
@@ -645,6 +1164,36 @@ namespace WishEngine{
                             Event aux;
                             aux.setType(E_TYPES::GAMEPAD_RELEASE);
                             aux.setValue("Joystick Y Down");
+                            result.push_back(aux);
+                        }
+                        ev.setYPos(fEvent.jaxis.value);
+                    }
+                    else if(fEvent.jaxis.axis == 2){ //If == 1 it's the Y axis
+                        if(fEvent.jaxis.value < -JOYSTICK_DEADZONE)
+                            ev.setValue("Joystick X2 Up");
+                        else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
+                            ev.setValue("Joystick X2 Down");
+                        else{
+                            type = E_TYPES::GAMEPAD_RELEASE;
+                            ev.setValue("Joystick X2 Up");
+                            Event aux;
+                            aux.setType(E_TYPES::GAMEPAD_RELEASE);
+                            aux.setValue("Joystick X2 Down");
+                            result.push_back(aux);
+                        }
+                        ev.setYPos(fEvent.jaxis.value);
+                    }
+                    else if(fEvent.jaxis.axis == 3){ //If == 1 it's the Y axis
+                        if(fEvent.jaxis.value < -JOYSTICK_DEADZONE)
+                            ev.setValue("Joystick Y2 Up");
+                        else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
+                            ev.setValue("Joystick Y2 Down");
+                        else{
+                            type = E_TYPES::GAMEPAD_RELEASE;
+                            ev.setValue("Joystick Y2 Up");
+                            Event aux;
+                            aux.setType(E_TYPES::GAMEPAD_RELEASE);
+                            aux.setValue("Joystick Y2 Down");
                             result.push_back(aux);
                         }
                         ev.setYPos(fEvent.jaxis.value);
@@ -854,6 +1403,22 @@ namespace WishEngine{
             TTF_CloseFont(i->second);
         }
         fontPool.clear();
+        //TO DO:
+        //Clear all the network stuff here.
+        for(unsigned i=0; i<socketSets.size(); i++){
+            SDLNet_FreeSocketSet(socketSets[i]);
+        }
+        socketSets.clear();
+        for(unsigned i=0; i<tcpSockets.size(); i++){
+            SDLNet_TCP_Close(tcpSockets[i]);
+        }
+        tcpSockets.clear();
+        for(unsigned i=0; i<udpSockets.size(); i++){
+            SDLNet_UDP_Close(udpSockets[i]);
+        }
+        udpSockets.clear();
+        ipAdresses.clear();
+        udpIpAdresses.clear();
     }
 
     void Framework::quit(){

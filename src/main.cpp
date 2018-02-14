@@ -30,11 +30,6 @@ int main(int argc, char *argv[]){
 }
 
 /**
-    REMINDERS:
-        Custom scripts can have arguments (I guess I just forgot about that? LOL), change the script get function
-        to accept a reference to the open file stream to get the arguments if needed, or, send the whole line of
-        the name of the script, and in the function, have a stringstream to check for each individual script, etc.
-
     TO DO:
         General:
             - Multiple windows handling and events (SDL_GetWindowID for event window comparing)
@@ -47,7 +42,6 @@ int main(int argc, char *argv[]){
             - Make barriers for camera movement? (Maybe make the camera unable to leave a rectangle or something like that)
             - Implement space partition
             - Implement system dependencies
-            - Add a properties component that just has a string vector with the properties of the object.
 
         Look into:
             - Being able to add custom c++ scripts components just by creating it and using the engine library,

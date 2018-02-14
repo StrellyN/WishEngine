@@ -938,6 +938,28 @@ namespace WishEngine{
                             newObject.addComponent(aux);
                             aux = nullptr;
                         }
+                        if(compName == "NETWORK"){
+                            NetworkComponent *aux = nullptr;
+                            objectStream >> compEnabled;
+                            bool isS, isT;
+                            unsigned maxPacketSize, elapsedTime, maxConnections;
+                            int type;
+                            objectStream >> type;
+                            if(type == 0){
+                                aux = new NetworkComponent();
+                            }
+                            else if(type == 1){
+                                objectStream >> isS;
+                                objectStream >> isT;
+                                objectStream >> maxPacketSize;
+                                objectStream >> elapsedTime;
+                                objectStream >> maxConnections;
+                                aux = new NetworkComponent(isS, isT, maxPacketSize, elapsedTime, maxConnections);
+                            }
+                            aux->setEnabled(compEnabled);
+                            newObject.addComponent(aux);
+                            aux = nullptr;
+                        }
                         if(compName == "PHYSICS"){
                             objectStream >> compEnabled;
                             PhysicsComponent *aux = new PhysicsComponent();

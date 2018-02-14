@@ -53,5 +53,6 @@
 #include "CameraComponent.hpp"
 #include "TimerComponent.hpp"
 #include "PropertiesComponent.hpp"
+#include "NetworkComponent.hpp"
 
 #endif // HPPSCRIPTS_H
