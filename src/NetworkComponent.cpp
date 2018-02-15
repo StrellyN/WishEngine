@@ -40,11 +40,11 @@ namespace WishEngine{
         elapsedTimeBetweenChecks = 1000;
     }
 
-    NetworkComponent::NetworkComponent(bool isS, bool isT, unsigned maxPacketSize, unsigned elapsedTime, unsigned maxConnections){
+    NetworkComponent::NetworkComponent(bool isS, bool isT, unsigned maxSize, unsigned elapsedTime, unsigned maxC){
         setType(C_TYPES::NETWORKC);
         ip = "";
-        maxPacketSize = maxPacketSize;
-        maxConnections = maxConnections;
+        maxPacketSize = maxSize;
+        maxConnections = maxC;
         isServer = isS;
         isTcp = isT;
         isConnected = false;
@@ -126,6 +126,10 @@ namespace WishEngine{
 
     bool NetworkComponent::getIsServer(){
         return isServer;
+    }
+
+    void NetworkComponent::setIsServer(bool isS){
+        isServer = isS;
     }
 
     bool NetworkComponent::getIsTcp(){

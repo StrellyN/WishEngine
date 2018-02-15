@@ -27,7 +27,6 @@
 namespace WishEngine{
     typedef struct Packet{
         char *data;
-        int length;
     };
 
     class NetworkComponent : public Component{
@@ -40,7 +39,7 @@ namespace WishEngine{
             uint16_t port;
         public:
             NetworkComponent();
-            NetworkComponent(bool isS, bool isT, unsigned maxPacketSize, unsigned elapsedTime, unsigned maxConnections = 0);
+            NetworkComponent(bool isS, bool isT, unsigned maxSize, unsigned elapsedTime, unsigned maxC = 0);
             ~NetworkComponent();
             void clearData();
             void connect(std::string ip_, uint16_t port_);
@@ -56,6 +55,7 @@ namespace WishEngine{
             void setMaxConnections(unsigned mC);
             uint16_t getPort();
             bool getIsServer();
+            void setIsServer(bool isS);
             bool getIsTcp();
             bool getIsConnected();
             void setIsConnected(bool con);
