@@ -117,7 +117,6 @@ namespace WishEngine{
             else{ //If its an UDP server
                 if(SDLNet_UDP_DelSocket(socketSets[netComp->getNetSocketSetIndex()], udpSockets[netComp->getSocketsIndex()[0]]) != -1) {
                     SDLNet_UDP_Close(udpSockets[netComp->getSocketsIndex()[0]]);
-
                     for(unsigned i=netComp->getSocketsIndex().size()-1; i>0; i--) {
                         if(udpSockets[netComp->getSocketsIndex()[i]] == NULL){
                             udpSockets.erase(udpSockets.begin()+netComp->getSocketsIndex()[i]);
@@ -266,20 +265,20 @@ namespace WishEngine{
                     //Check for data ready to be received here
                     if(SDLNet_SocketReady(udpSockets[netComp->getSocketsIndex()[0]])){ //If the socket is ready
                         Packet received;
-                        UDPpacket pak;
+                        UDPpacket *pak;
+                        pak = SDLNet_AllocPacket(netComp->getMaxPacketSize());
                         netComp->getReceived().push_back(received);
-                        int num_recv = SDLNet_UDP_Recv(udpSockets[netComp->getSocketsIndex()[0]], &pak);//This crashes some times
+                        int num_recv = SDLNet_UDP_Recv(udpSockets[netComp->getSocketsIndex()[0]], pak);//This crashes some times
                         if(num_recv > 0){
                             netComp->getReceived()[netComp->getReceived().size()-1].data = (char*) malloc(netComp->getMaxPacketSize());
                             memset(netComp->getReceived()[netComp->getReceived().size()-1].data, 0, netComp->getMaxPacketSize());
-                            memcpy(netComp->getReceived()[netComp->getReceived().size()-1].data, pak.data, netComp->getMaxPacketSize());
-                            delete pak.data;
+                            memcpy(netComp->getReceived()[netComp->getReceived().size()-1].data, pak->data, netComp->getMaxPacketSize());
 
                             //Add the receiver as a client connection maybe check for what the message says.
                             bool exists = false;
                             for(unsigned i=0; i<netComp->getSocketsIndex().size(); i++){
-                                if((udpIpAdresses[netComp->getSocketsIndex()[i]].host == pak.address.host) &&
-                                   (udpIpAdresses[netComp->getSocketsIndex()[i]].port == pak.address.port)){
+                                if((udpIpAdresses[netComp->getSocketsIndex()[i]].host == pak->address.host) &&
+                                   (udpIpAdresses[netComp->getSocketsIndex()[i]].port == pak->address.port)){
                                     exists = true;
                                     break;
                                 }
@@ -287,35 +286,52 @@ namespace WishEngine{
                             if(!exists){
                                 UDPsocket serverSocket;
                                 udpSockets.push_back(serverSocket);
-                                udpIpAdresses.push_back(pak.address);
+                                udpSockets[udpSockets.size()-1] = NULL;
+                                udpIpAdresses.push_back(pak->address);
                                 netComp->getSocketsIndex().push_back(udpSockets.size()-1);
+                            }
+                        }
+                        else if(num_recv == -1){
+                            netComp->getReceived().pop_back();
+                            for(unsigned i=0; i<netComp->getSocketsIndex().size(); i++){
+                                if((udpIpAdresses[netComp->getSocketsIndex()[i]].host == pak->address.host) &&
+                                   (udpIpAdresses[netComp->getSocketsIndex()[i]].port == pak->address.port)){
+                                    udpIpAdresses.erase(udpIpAdresses.begin() + netComp->getSocketsIndex()[i]);
+                                    udpSockets.erase(udpSockets.begin() + netComp->getSocketsIndex()[i]);
+                                    netComp->getSocketsIndex().erase(netComp->getSocketsIndex().begin() + i);
+                                    break;
+                                }
                             }
                         }
                         else{
                             netComp->getReceived().pop_back();
-                            delete pak.data;
                         }
+                        SDLNet_FreePacket(pak);
                     }
                 }
                 //If there's any data to be sent, send it here
                 for(unsigned j=0; j<netComp->getSent().size(); j++){
                     for(unsigned i=1; i<netComp->getSocketsIndex().size(); i++){
                         //Send the data
-                        UDPpacket pak;
-                        pak.address = udpIpAdresses[netComp->getSocketsIndex()[i]];
+                        UDPpacket *pak;
+                        pak = SDLNet_AllocPacket(strlen(netComp->getSent()[j].data)+1);
+                        pak->address = udpIpAdresses[netComp->getSocketsIndex()[i]];
 
-                        pak.data = (uint8_t*) malloc(strlen(netComp->getSent()[j].data)+1);
-                        pak.len = strlen(netComp->getSent()[j].data)+1;
-                        memset(pak.data, 0, strlen(netComp->getSent()[j].data)+1);
-                        memcpy(pak.data, netComp->getSent()[j].data, strlen(netComp->getSent()[j].data)+1);
+                        pak->len = strlen(netComp->getSent()[j].data)+1;
+                        memset(pak->data, 0, strlen(netComp->getSent()[j].data)+1);
+                        memcpy(pak->data, netComp->getSent()[j].data, strlen(netComp->getSent()[j].data)+1);
 
-                        int num_sent = SDLNet_UDP_Send(udpSockets[netComp->getSocketsIndex()[0]], -1, &pak);
+                        int num_sent = SDLNet_UDP_Send(udpSockets[netComp->getSocketsIndex()[0]], -1, pak);
                         if(num_sent == 0){
                             //Couldn't send
                             //Probably disconnect
+                            udpIpAdresses.erase(udpIpAdresses.begin() + netComp->getSocketsIndex()[i]);
+                            udpSockets.erase(udpSockets.begin() + netComp->getSocketsIndex()[i]);
+                            netComp->getSocketsIndex().erase(netComp->getSocketsIndex().begin() + i);
+                            i--;
                         }
-                        delete pak.data;
                         delete netComp->getSent()[j].data;
+                        SDLNet_FreePacket(pak);
                     }
                 }
                 netComp->getSent().clear();
@@ -370,40 +386,40 @@ namespace WishEngine{
                     //Check for data ready to be received here
                     if(SDLNet_SocketReady(udpSockets[netComp->getSocketsIndex()[0]])){ //If the socket is ready
                         Packet received;
-                        UDPpacket pak;
+                        UDPpacket *pak;
+                        pak = SDLNet_AllocPacket(netComp->getMaxPacketSize());
                         netComp->getReceived().push_back(received);
-                        int num_recv = SDLNet_UDP_Recv(udpSockets[netComp->getSocketsIndex()[0]], &pak);
+                        int num_recv = SDLNet_UDP_Recv(udpSockets[netComp->getSocketsIndex()[0]], pak);
                         // IMPORTANT: Need to check if you are receiving from the server. Check the pak.address with the netComp.
                         if(num_recv > 0){ //It's receiving data
                             netComp->getReceived()[netComp->getReceived().size()-1].data = (char*) malloc(netComp->getMaxPacketSize());
                             memset(netComp->getReceived()[netComp->getReceived().size()-1].data, 0, netComp->getMaxPacketSize());
-                            memcpy(netComp->getReceived()[netComp->getReceived().size()-1].data, pak.data, netComp->getMaxPacketSize());
-                            delete pak.data;
+                            memcpy(netComp->getReceived()[netComp->getReceived().size()-1].data, pak->data, netComp->getMaxPacketSize());
                         }
                         else{
                             delete netComp->getReceived()[netComp->getReceived().size()-1].data;
                             netComp->getReceived().pop_back();
-                            delete pak.data;
                         }
+                        SDLNet_FreePacket(pak);
                     }
                 }
                 //If there's any data to be sent, send it here
                 for(unsigned j=0; j<netComp->getSent().size(); j++){
                     //Send the data
-                    UDPpacket pak;
-                    pak.address = udpIpAdresses[netComp->getSocketsIndex()[0]];
+                    UDPpacket *pak;
+                    pak = SDLNet_AllocPacket(strlen(netComp->getSent()[j].data)+1);
+                    pak->address = udpIpAdresses[netComp->getSocketsIndex()[0]];
 
-                    pak.data = (uint8_t*) malloc(strlen(netComp->getSent()[j].data)+1);
-                    pak.len = strlen(netComp->getSent()[j].data)+1;
-                    memset(pak.data, 0, strlen(netComp->getSent()[j].data)+1);
-                    memcpy(pak.data, netComp->getSent()[j].data, strlen(netComp->getSent()[j].data)+1);
+                    pak->len = strlen(netComp->getSent()[j].data)+1;
+                    memset(pak->data, 0, strlen(netComp->getSent()[j].data)+1);
+                    memcpy(pak->data, netComp->getSent()[j].data, strlen(netComp->getSent()[j].data)+1);
 
-                    int num_sent = SDLNet_UDP_Send(udpSockets[netComp->getSocketsIndex()[0]], -1, &pak);
+                    int num_sent = SDLNet_UDP_Send(udpSockets[netComp->getSocketsIndex()[0]], -1, pak);
                     if(num_sent == 0){
                         //Couldn't send
                         //Probably disconnect
                     }
-                    delete pak.data;
+                    SDLNet_FreePacket(pak);
                     delete netComp->getSent()[j].data;
                 }
                 netComp->getSent().clear();
@@ -491,7 +507,7 @@ namespace WishEngine{
                             //Add everything to vectors and change needed flags in component
                             netComp->setIsConnected(true);
                             netComp->setAttemptConnection(false);
-                            SDLNet_UDP_Unbind(udpSockets[udpSockets.size()-1], 0);
+                            //SDLNet_UDP_Unbind(udpSockets[udpSockets.size()-1], 0);
                         }
                         else{
                             netComp->setConnectionFailed(true);
@@ -1470,7 +1486,9 @@ namespace WishEngine{
         }
         tcpSockets.clear();
         for(unsigned i=0; i<udpSockets.size(); i++){
-            SDLNet_UDP_Close(udpSockets[i]);
+            if(udpSockets[i] != NULL){
+                SDLNet_UDP_Close(udpSockets[i]);
+            }
         }
         udpSockets.clear();
         ipAdresses.clear();
