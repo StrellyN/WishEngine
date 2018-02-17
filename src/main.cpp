@@ -48,6 +48,7 @@ int main(int argc, char *argv[]){
               like unity does, dll linking chains.
             - To save a state just save the objects in the object factory in another vector or something, and then
               restore them, that simple (Need to create a copy constructor for the components or find a way to copy them).
+              Proposition to copy components: memcpy(newcomponent, componenttobecopied, sizeof componenttobecopied);
 
         If things get too bad performance wise:
             - In the update part of the systems, instead of updating each object in each system, pass the objects that has the

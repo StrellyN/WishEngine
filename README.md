@@ -11,6 +11,17 @@ the code.
 
 ## Important Stuffs Log
 
+### 17/02/2018
+
+Networking has been completed, I coded pong with online functionality and it worked fine, so that's just amazing. I still need to fix some things, like keeping 
+udp connections synchronized and making tcp a bit more reliable since it's stream based and I'd like to be able to receive more than one packet at a time. Let's 
+see if I can do that easily so I can go back to other things like bettering the save state methods for the engine, diving deeper into being able to use more 
+than one window, being able to zoom in and out and some other interesting stuff. Although, to be fair, I feel like with the completion of the networking system 
+this engine is done, the only thing major I'd like to develop for it is the modularity part, but I've been researching and it looks really hard, if I'm not able 
+to do it I'll add a scripting language like LUA so the gameplay can be done without recompiling the engine. Apart from that, there's nothing that major to be added, 
+I already mentioned some things some lines before, but I guess I could also develop a particle system and make the physics system an actual physics system. Anyway, 
+I'll be looking into all of that.
+
 ### 19/01/2018
 
 Had to change the file I/O because I can't have it as template methods since C++ won't let me get a whole line spaces included similar to how ">>" gets a single

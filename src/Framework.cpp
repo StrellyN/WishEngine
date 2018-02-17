@@ -188,23 +188,22 @@ namespace WishEngine{
                                 netComp->getSocketsIndex().push_back(tcpSockets.size()-1);
                                 ipAdresses.push_back(aux);
                                 if(SDLNet_TCP_AddSocket(socketSets[netComp->getNetSocketSetIndex()], tcpSockets[netComp->getSocketsIndex()[netComp->getSocketsIndex().size()-1]]) != -1){ //Everything went right
-                                    SDLNet_TCP_Close(incomming);
+
                                 }
                                 else{ //Couldn't be added to the socket set
                                     //Delete from vectors and close the sockets
-                                    SDLNet_TCP_Close(incomming);
-                                    SDLNet_TCP_Close(tcpSockets[netComp->getSocketsIndex()[netComp->getSocketsIndex().size()-1]]);
+                                    SDLNet_TCP_Close(tcpSockets[tcpSockets.size()-1]);
                                     netComp->getSocketsIndex().pop_back();
                                     tcpSockets.pop_back();
                                     ipAdresses.pop_back();
                                 }
                             }
                             else{ //Server is full
-                                SDLNet_TCP_Close(incomming);
+                                SDLNet_TCP_Close(tcpSockets[tcpSockets.size()-1]);
+                                tcpSockets.pop_back();
                             }
                         }
                         else{ //Couldn't accept connection
-                            SDLNet_TCP_Close(tcpSockets[tcpSockets.size()-1]);
                             tcpSockets.pop_back();
                         }
                     }
@@ -252,8 +251,8 @@ namespace WishEngine{
                             netComp->getSocketsIndex().erase(netComp->getSocketsIndex().begin() + i);
                             i--;
                         }
-                        delete netComp->getSent()[j].data;
                     }
+                    delete netComp->getSent()[j].data;
                 }
                 netComp->getSent().clear();
             }
@@ -268,7 +267,7 @@ namespace WishEngine{
                         UDPpacket *pak;
                         pak = SDLNet_AllocPacket(netComp->getMaxPacketSize());
                         netComp->getReceived().push_back(received);
-                        int num_recv = SDLNet_UDP_Recv(udpSockets[netComp->getSocketsIndex()[0]], pak);//This crashes some times
+                        int num_recv = SDLNet_UDP_Recv(udpSockets[netComp->getSocketsIndex()[0]], pak);
                         if(num_recv > 0){
                             netComp->getReceived()[netComp->getReceived().size()-1].data = (char*) malloc(netComp->getMaxPacketSize());
                             memset(netComp->getReceived()[netComp->getReceived().size()-1].data, 0, netComp->getMaxPacketSize());
@@ -283,7 +282,7 @@ namespace WishEngine{
                                     break;
                                 }
                             }
-                            if(!exists){
+                            if(!exists && (netComp->getSocketsIndex().size() < netComp->getMaxConnections())){
                                 UDPsocket serverSocket;
                                 udpSockets.push_back(serverSocket);
                                 udpSockets[udpSockets.size()-1] = NULL;
@@ -882,7 +881,7 @@ namespace WishEngine{
     void Framework::renderText(GameObject &obj, double interpolation, Camera *cam, std::string window){
         GraphicComponent* graphComp = dynamic_cast<GraphicComponent*>(obj.getComponent(C_TYPES::GRAPHIC));
         DimentionComponent* dimComp = dynamic_cast<DimentionComponent*>(obj.getComponent(C_TYPES::DIMENTION));
-        if(obj.getEnabled() && graphComp != nullptr && graphComp->getEnabled() && dimComp != nullptr && dimComp->getEnabled()){
+        if(obj.getEnabled() && graphComp != nullptr && graphComp->getEnabled() && dimComp != nullptr && dimComp->getEnabled() && graphComp->getText().getText() != ""){
             SDL_Rect textBox; //The text box
             Rectangle camRect;
             if(cam != nullptr && cam->getEnabled() && cam->hasComponent(C_TYPES::DIMENTION) && !obj.hasComponent(C_TYPES::UI)){
@@ -996,7 +995,7 @@ namespace WishEngine{
     void Framework::renderPlainText(GameObject &obj, double interpolation, Camera *cam, std::string window){
         GraphicComponent* graphComp = dynamic_cast<GraphicComponent*>(obj.getComponent(C_TYPES::GRAPHIC));
         DimentionComponent* dimComp = dynamic_cast<DimentionComponent*>(obj.getComponent(C_TYPES::DIMENTION));
-        if(obj.getEnabled() && graphComp != nullptr && graphComp->getEnabled() && dimComp != nullptr && dimComp->getEnabled()){
+        if(obj.getEnabled() && graphComp != nullptr && graphComp->getEnabled() && dimComp != nullptr && dimComp->getEnabled() && graphComp->getText().getText() != ""){
             SDL_Rect textBox; //The text box
             Rectangle camRect;
             if(cam != nullptr && cam->getEnabled() && cam->hasComponent(C_TYPES::DIMENTION) && !obj.hasComponent(C_TYPES::UI)){
