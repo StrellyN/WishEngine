@@ -21,11 +21,11 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "NetworkComponent.hpp"
 
 namespace WishEngine{
     NetworkComponent::NetworkComponent(){
-        setType(C_TYPES::NETWORKC);
+        setType("Network");
         ip = "";
         maxPacketSize = 0;
         maxConnections = 0;
@@ -41,7 +41,7 @@ namespace WishEngine{
     }
 
     NetworkComponent::NetworkComponent(bool isS, bool isT, unsigned maxSize, unsigned elapsedTime, unsigned maxC){
-        setType(C_TYPES::NETWORKC);
+        setType("Network");
         ip = "";
         maxPacketSize = maxSize;
         maxConnections = maxC;
@@ -70,7 +70,7 @@ namespace WishEngine{
         port = 0;
     }
 
-    void NetworkComponent::connect(std::string ip_, Uint16 port_){
+    void NetworkComponent::connect(std::string ip_, uint16_t port_){
         ip = ip_;
         port = port_;
         attemptConnection = true;
@@ -120,7 +120,7 @@ namespace WishEngine{
         maxConnections = mC;
     }
 
-    Uint16 NetworkComponent::getPort(){
+    uint16_t NetworkComponent::getPort(){
         return port;
     }
 

@@ -21,14 +21,14 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "Message.hpp"
 
 namespace WishEngine{
-    Message::Message(M_TYPES t){
+    Message::Message(std::string t){
         setType(t);
     }
 
-    Message::Message(M_TYPES mT, std::string val){
+    Message::Message(std::string mT, std::string val){
         setType(mT);
         setValue(val);
     }
@@ -37,11 +37,11 @@ namespace WishEngine{
 
     }
 
-    M_TYPES Message::getType(){
+    std::string &Message::getType(){
         return type;
     }
 
-    void Message::setType(M_TYPES t){
+    void Message::setType(std::string t){
         type = t;
     }
 

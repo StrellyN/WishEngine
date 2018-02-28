@@ -24,23 +24,35 @@
 #ifndef GAMEOBJECT_H
 #define GAMEOBJECT_H
 
-#include "Component.hpp"
+#include "Object.hpp"
 
 namespace WishEngine{
+    struct ComponentInformation{
+        std::string componentType, componentName;
+        unsigned componentPosition;
+
+        ComponentInformation(std::string type, std::string name, unsigned pos){
+            componentType = type;
+            componentName = name;
+            componentPosition = pos;
+        }
+        ~ComponentInformation(){}
+    };
+
     class GameObject : public Object{
         private:
-            std::vector<Component*> components;
-            int componentPosition[C_TYPES::CTYPESIZE] = {-1};
+            std::vector<ComponentInformation> components;
+            static unsigned idTracker;
+            unsigned id;
+
         public:
             GameObject(std::string n = "Object", bool isEnabled = true);
             virtual ~GameObject();
-            void destroyComponents();
-            void addComponent(Component* comp, std::string n = "");
-            Component* getComponent(C_TYPES type, std::string n = "");
-            void deleteComponent(C_TYPES type, std::string n = "");
-            bool hasComponent(C_TYPES type, std::string n = "");
-            std::vector<Component*>& getComponents();
-            void setComponents(std::vector<Component*>& comp);
+            unsigned getId();
+            bool hasComponent(std::string type, std::string name = "");
+            unsigned getComponentPosition(std::string type, std::string name = "");
+            void setComponentPosition(unsigned newPos, std::string type, std::string name = "");
+            std::vector<ComponentInformation> &getComponents();
     };
 }
 #endif // GAMEOBJECT

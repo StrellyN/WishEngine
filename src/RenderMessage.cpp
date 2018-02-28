@@ -21,10 +21,10 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "RenderMessage.hpp"
 
 namespace WishEngine{
-    RenderMessage::RenderMessage(M_TYPES t, double in){
+    RenderMessage::RenderMessage(std::string t, double in){
         setType(t);
         setInterpolation(in);
     }

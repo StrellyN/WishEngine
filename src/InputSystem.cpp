@@ -21,16 +21,15 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "InputSystem.hpp"
 
 namespace WishEngine{
     InputSystem::InputSystem(){
-        setSystemType(S_TYPES::INPUT);
+        setSystemType("INPUT");
     }
 
     InputSystem::~InputSystem(){
         destroySystem();
-        eventList.clear();
     }
 
     /**
@@ -38,56 +37,30 @@ namespace WishEngine{
         Just sets every Input Components events stack to the one in the system, a.k.a. Passes the events.
     **/
     void InputSystem::update(double dt){
-        std::vector<GameObject> &objs = ObjectFactory::getObjectFactory()->getObjects();
-        for(unsigned i=0; i<objs.size(); i++){
-            if(eventList.size() > 0 && objs[i].getEnabled()){
-                InputComponent *objInput = dynamic_cast<InputComponent*>(objs[i].getComponent(C_TYPES::INPUTC));
-                if(objInput != nullptr && objInput->getEnabled()){
-                    objInput->getInputs().clear();
-                    objInput->getInputs() = eventList;
-                }
-                objInput = nullptr;
-            }
-        }
-    }
 
-    /**
-        Method that adds an event to the event stack, and deletes
-        the bottom one if the size is over the max size.
-    **/
-    void InputSystem::addEvent(Event &e){
-        eventList.push_back(e);
-    }
-
-    /**
-        Method that returns the last event added. Not that useful.
-    **/
-    Event& InputSystem::getInput(){
-        return eventList[eventList.size()-1];
-    }
-
-    /**
-        Method that returns the event stack.
-    **/
-    std::vector<Event>& InputSystem::getEvents(){
-        return eventList;
     }
 
     /**
         Method that handles the input that receives from the framework.
     **/
-    void InputSystem::handleInput(){
-        eventList.clear();
-        std::vector<Event> inputEvents = Framework::getFramework()->getEvents(); //Gets the input
-        for(unsigned i=0; i<inputEvents.size(); i++){
-            if(inputEvents[i].getType() == E_TYPES::EQUIT){ //Checks if it quit, and if it is sends the quit message
-                postMessage(new Message(M_TYPES::QUIT));
-            }
-            else{ //If its not quit, sends an input message with the info needed and adds the event in the stack
-                postMessage(new InputMessage(M_TYPES::EVENTS, inputEvents[i].getType(), inputEvents[i].getValue()));
-                if(inputEvents[i].getType() != E_TYPES::ENULL){
-                    addEvent(inputEvents[i]);
+    void InputSystem::handleInput(std::vector<Event> *inputList){
+        std::vector<InputComponent> *inputs = nullptr;
+        if(components != nullptr && components->find("INPUT") != components->end()){
+            inputs = &dynamic_cast<Collection<InputComponent>*>(components->at("INPUT"))->getCollection();
+        }
+        if(inputs != nullptr){
+            for(unsigned i=0; i<inputs->size(); i++){
+                if(!(*inputs)[i].getDeleted()){
+                    (*inputs)[i].getInputs() = *inputList;
                 }
+            }
+        }
+        inputs = nullptr;
+
+        for(unsigned i=0; i<inputList->size(); i++){
+            if((*inputList)[i].getType() == "QUIT"){ //Checks if it quit, and if it is sends the quit message
+                postMessage(new Message("QUIT"));
+                break;
             }
         }
     }
@@ -96,10 +69,12 @@ namespace WishEngine{
         Method that handles received messages.
     **/
     void InputSystem::handleMessage(Message* mes){
-        switch(mes->getType()){
-            case M_TYPES::HANDLEINPUT:
-                handleInput();
-                break;
+        if(mes->getType() == "INPUTLIST"){
+            InputListMessage *aux = dynamic_cast<InputListMessage*>(mes);
+            if(aux != nullptr){
+                handleInput(aux->getInputList());
+            }
+            aux = nullptr;
         }
     }
 }

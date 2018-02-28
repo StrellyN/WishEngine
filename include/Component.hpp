@@ -29,15 +29,28 @@
 namespace WishEngine{
     class Component : public Object{
         private:
-            C_TYPES type;
+            std::string type;
+            unsigned ownerId, ownerPos;
         public:
             virtual ~Component(){
             }
-            C_TYPES getType(){
+            std::string &getType(){
                 return type;
             }
-            void setType(C_TYPES t){
+            void setType(std::string t){
                 type = t;
+            }
+            unsigned getOwnerId(){
+                return ownerId;
+            }
+            void setOwnerId(unsigned oId){
+                ownerId = oId;
+            }
+            unsigned getOwnerPos(){
+                return ownerPos;
+            }
+            void setOwnerPos(unsigned oPos){
+                ownerPos = oPos;
             }
     };
 }

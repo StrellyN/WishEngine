@@ -21,18 +21,28 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "CameraComponent.hpp"
 
 namespace WishEngine{
-    CameraComponent::CameraComponent(double x, double y){
-        setType(C_TYPES::CAMERA);
+    CameraComponent::CameraComponent(int pri){
+        setType("CAMERA");
+        priority = pri;
+        rect.setX(0);
+        rect.setY(0);
+        rect.setZ(0);
+    }
+
+    CameraComponent::CameraComponent(int pri, double x, double y){
+        setType("CAMERA");
+        priority = pri;
         rect.setX(x);
         rect.setY(y);
         rect.setZ(0);
     }
 
-    CameraComponent::CameraComponent(double x, double y, double z){
-        setType(C_TYPES::CAMERA);
+    CameraComponent::CameraComponent(int pri, double x, double y, double z){
+        setType("CAMERA");
+        priority = pri;
         rect.setX(x);
         rect.setY(y);
         rect.setZ(z);
@@ -54,6 +64,10 @@ namespace WishEngine{
         rect.getZ();
     }
 
+    int CameraComponent::getPriority(){
+        return priority;
+    }
+
     void CameraComponent::setX(double x){
         rect.setX(x);
     }
@@ -64,5 +78,9 @@ namespace WishEngine{
 
     void CameraComponent::setZ(double z){
         rect.setZ(z);
+    }
+
+    void CameraComponent::setPriority(int pri){
+        priority = pri;
     }
 }

@@ -1,4 +1,3 @@
-#ifndef OBJECTFACTORY_H
 /**
     Copyright 2017 Strelly
 
@@ -22,61 +21,42 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
+#ifndef OBJECTFACTORY_H
 #define OBJECTFACTORY_H
 
+#include "ComponentListMessage.hpp"
+#include "ComponentHeaders.hpp"
+#include "ObjectListMessage.hpp"
+#include "CreateScriptMessage.hpp"
+#include "CreateWindowMessage.hpp"
+#include "Collection.hpp"
 #include "GameObject.hpp"
-#include "Message.hpp"
-#include "Camera.hpp"
+#include "System.hpp"
 
 namespace WishEngine{
-    class ObjectFactory{ //This class is also the interface scripts use to communicate with the engine.
+    class ObjectFactory : public GameSystem{ //This class is also the interface scripts use to communicate with the engine.
         private:
-            static ObjectFactory *objFactory;
-            ObjectFactory();
-
             std::vector<GameObject> objects;
-            std::vector<Camera> cameras;
+            std::map<std::string, BaseCollection*> componentCollections;
 
-            std::vector<Message*> postedMessages;
         public:
-            static ObjectFactory* getObjectFactory();
-            ~ObjectFactory();
-            void clearData();
-            void destroyObjectFactory();
-            void createObjects(std::string file);
-            void createObject(std::string data);
-            void insertObject(GameObject obj);
-            void deleteObject(int pos);
-            GameObject* getObject(int pos);
-            void deleteObject(std::string name);
-            GameObject* getObject(std::string name);
-            int getObjectPos(std::string name);
-            std::vector<GameObject>& getObjects();
-            void setObjects(std::vector<GameObject>& obj);
+            ObjectFactory();
+            virtual ~ObjectFactory();
+            void clearData(); //Send a message for each object telling it's been destroyed
+            void loadObjects(std::string file);
+            std::string checkObjectName(std::string &name);
+            std::vector<GameObject> &getObjects();
+            std::map<std::string, BaseCollection*> &getComponentCollections();
+            void deleteObject(unsigned objPos);
 
-            void addCamera(Camera cam);
-            Camera* getCamera(std::string name);
-            Camera* getCamera(int pos);
-            void deleteCamera(std::string name);
-            void sortCameras();
-            std::vector<Camera>& getCameras();
-
-            void deleteWindow(std::string name);
-            void createWindow(std::string title, std::string name, std::string icon, int x, int y, int w, int h);
-            void getWindowSize(std::string windowN, int &w, int &h);
-
-            std::vector<Message*>& getMessages();
-            void goToState(std::string stateFile);
             void update(double dt);
             void handleMessage(Message* msg);
-            void postMessage(Message *toPost);
 
-            void createSaveState(std::string file);
-            void loadSaveState(std::string file);
-            void setMaxFPS(int mFPS);
-            void setFrameCapFlag(bool frameCap);
-            bool getFrameCapFlag();
-            int getMaxFPS();
+            /**void insertObject(GameObject obj);
+            void deleteObject(std::string name);
+            void deleteObject(unsigned id);
+            GameObject *getObject(std::string name);
+            GameObject *getObject(unsigned id);**/
     };
 }
 #endif // OBJECTFACTORY

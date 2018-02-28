@@ -30,9 +30,10 @@ namespace WishEngine{
     class RenderMessage : public Message{
         private:
             double interpolation;
+
         public:
-            RenderMessage(M_TYPES t, double in);
-            ~RenderMessage();
+            RenderMessage(std::string t, double in);
+            virtual ~RenderMessage();
             double getInterpolation();
             void setInterpolation(double in);
     };

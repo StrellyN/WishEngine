@@ -21,10 +21,10 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "InputMessage.hpp"
 
 namespace WishEngine{
-    InputMessage::InputMessage(M_TYPES mT, E_TYPES iT, std::string val){
+    InputMessage::InputMessage(std::string mT, std::string iT, std::string val){
         setType(mT);
         setInputType(iT);
         setValue(val);
@@ -34,11 +34,11 @@ namespace WishEngine{
 
     }
 
-    void InputMessage::setInputType(E_TYPES iT){
+    void InputMessage::setInputType(std::string iT){
         inputType = iT;
     }
 
-    E_TYPES InputMessage::getInputType(){
+    std::string InputMessage::getInputType(){
         return inputType;
     }
 }

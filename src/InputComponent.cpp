@@ -21,11 +21,11 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "InputComponent.hpp"
 
 namespace WishEngine{
     InputComponent::InputComponent(){
-        setType(C_TYPES::INPUTC);
+        setType("INPUT");
     }
 
     InputComponent::~InputComponent(){

@@ -30,7 +30,7 @@ namespace WishEngine{
     class Object{
         private:
             std::string name;
-            bool enabled = true;
+            bool enabled = true, deleted = false;
         public:
             virtual ~Object(){
             }
@@ -45,6 +45,12 @@ namespace WishEngine{
             }
             void setEnabled(bool en){
                 enabled = en;
+            }
+            bool getDeleted(){
+                return deleted;
+            }
+            void setDeleted(bool del){
+                deleted = del;
             }
     };
 }

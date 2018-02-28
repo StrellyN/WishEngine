@@ -25,15 +25,16 @@
 #define STATE_H
 
 #include "System.hpp"
-#include "ObjectFactory.hpp"
+#include "InputSystem.hpp"
 #include "Framework.hpp"
+#include "ObjectFactory.hpp"
+#include "ScriptsInterface.hpp"
+#include "RenderMessage.hpp"
 
 namespace WishEngine{
     class State{
         private:
             std::vector<GameSystem*> systems;
-            ObjectFactory *objFac = nullptr;
-            Framework *fw = nullptr;
             State *nextState = nullptr;
             bool quit = false;
         public:
@@ -48,14 +49,12 @@ namespace WishEngine{
             void setNextState(State *nState);
             bool hasNextState();
             void addSystem(GameSystem *nSystem);
-            GameSystem* getSystem(S_TYPES type);
+            GameSystem *getSystem(std::string type);
             std::vector<GameSystem*>& getSystems();
             void setSystems(std::vector<GameSystem*>& nSystems);
-            bool hasSystemType(S_TYPES type);
+            bool hasSystemType(std::string type);
             bool getQuit();
             void setQuit(bool q);
-            ObjectFactory* getObjFac();
-            void setObjFac(ObjectFactory* of);
     };
 }
 #endif // STATE

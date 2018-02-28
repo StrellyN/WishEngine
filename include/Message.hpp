@@ -29,15 +29,14 @@
 namespace WishEngine{
     class Message{
         private:
-            M_TYPES type;
-            std::string value;
+            std::string type, value;
         public:
-            Message(M_TYPES t);
-            Message(M_TYPES mT, std::string val);
+            Message(std::string t);
+            Message(std::string mT, std::string val);
             Message();
             virtual ~Message(){}
-            M_TYPES getType();
-            void setType(M_TYPES t);
+            std::string &getType();
+            void setType(std::string t);
             std::string &getValue();
             void setValue(std::string val);
     };

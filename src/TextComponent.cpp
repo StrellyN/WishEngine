@@ -21,7 +21,7 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "TextComponent.hpp"
 
 namespace WishEngine{
     TextComponent::TextComponent(){

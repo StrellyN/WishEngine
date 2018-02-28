@@ -25,20 +25,21 @@
 #define INPUTSYSTEM_H
 
 #include "System.hpp"
+#include "InputListMessage.hpp"
+#include "InputComponent.hpp"
+#include "Collection.hpp"
 
 namespace WishEngine{
     class InputSystem : public GameSystem{
         private:
-            std::vector<Event> eventList;
+            std::map<std::string, BaseCollection*> *components = nullptr;
+
         public:
             InputSystem();
-            ~InputSystem();
+            virtual ~InputSystem();
             void update(double dt);
-            void handleInput();
+            void handleInput(std::vector<Event> *inputList);
             void handleMessage(Message* mes);
-            std::vector<Event>& getEvents();
-            Event& getInput();
-            void addEvent(Event& e);
     };
 }
 #endif // INPUTSYSTEM

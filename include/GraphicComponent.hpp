@@ -33,14 +33,14 @@ namespace WishEngine{
             Color color;
             std::string textureFile;
             int priority;
-            bool isTexture, isText;
+            bool isTexture, isText, isUi;
             TextComponent text;
         public:
-            GraphicComponent();
-            GraphicComponent(int r, int g, int b, int a, int pr);
-            GraphicComponent(std::string tFile, int a, int pr);
-            GraphicComponent(std::string t, std::string font, int maxLines, int lineSpacing, int fontSize, int r, int g, int b, int a, int pr, bool isPlain);
-            ~GraphicComponent();
+            GraphicComponent(bool isU);
+            GraphicComponent(bool isU, int r, int g, int b, int a, int pr);
+            GraphicComponent(bool isU, std::string tFile, int a, int pr);
+            GraphicComponent(bool isU, std::string t, std::string font, int maxLines, int lineSpacing, int fontSize, int r, int g, int b, int a, int pr, bool isPlain);
+            virtual ~GraphicComponent();
             std::string &getTextureFile();
             void setTextureFile(std::string file);
             void setPriority(int pr);
@@ -60,6 +60,8 @@ namespace WishEngine{
             void setIsText(bool text);
             TextComponent &getText();
             void setText(TextComponent t);
+            bool getIsUi();
+            void setIsUi(bool isU);
     };
 }
 #endif // GRAPHICCOMPONENT

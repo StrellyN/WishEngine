@@ -21,7 +21,7 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "DirectionVector.hpp"
 
 namespace WishEngine{
     DirectionVector::DirectionVector(double x, double y){

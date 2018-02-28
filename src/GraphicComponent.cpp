@@ -21,20 +21,22 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "GraphicComponent.hpp"
 
 namespace WishEngine{
-    GraphicComponent::GraphicComponent(){
+    GraphicComponent::GraphicComponent(bool isU){
         priority = 0;
-        setType(C_TYPES::GRAPHIC);
+        isUi = isU;
+        setType("GRAPHIC");
         isTexture = false;
         isText = false;
         color = Color();
         textureFile = "";
     }
 
-    GraphicComponent::GraphicComponent(int r, int g, int b, int a, int pr){
-        setType(C_TYPES::GRAPHIC);
+    GraphicComponent::GraphicComponent(bool isU, int r, int g, int b, int a, int pr){
+        setType("GRAPHIC");
+        isUi = isU;
         color = Color(r,g,b,a);
         priority = pr;
         isTexture = false;
@@ -42,8 +44,9 @@ namespace WishEngine{
         textureFile = "";
     }
 
-    GraphicComponent::GraphicComponent(std::string tFile, int a, int pr){
-        setType(C_TYPES::GRAPHIC);
+    GraphicComponent::GraphicComponent(bool isU, std::string tFile, int a, int pr){
+        setType("GRAPHIC");
+        isUi = isU;
         color = Color(0,0,0,a);
         priority = pr;
         isTexture = true;
@@ -51,8 +54,9 @@ namespace WishEngine{
         textureFile = tFile;
     }
 
-    GraphicComponent::GraphicComponent(std::string t, std::string font, int maxLines, int lineSpacing, int fontSize, int r, int g, int b, int a, int pr, bool isPlain){
-        setType(C_TYPES::GRAPHIC);
+    GraphicComponent::GraphicComponent(bool isU, std::string t, std::string font, int maxLines, int lineSpacing, int fontSize, int r, int g, int b, int a, int pr, bool isPlain){
+        setType("GRAPHIC");
+        isUi = isU;
         priority = pr;
         isTexture = false;
         isText = true;
@@ -146,5 +150,13 @@ namespace WishEngine{
 
     void GraphicComponent::setText(TextComponent t){
         text = t;
+    }
+
+    bool GraphicComponent::getIsUi(){
+        return isUi;
+    }
+
+    void GraphicComponent::setIsUi(bool isU){
+        isUi = isU;
     }
 }

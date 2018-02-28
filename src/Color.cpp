@@ -21,7 +21,7 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "Color.hpp"
 
 namespace WishEngine{
     Color::Color(){

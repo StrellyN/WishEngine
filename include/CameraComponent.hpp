@@ -24,22 +24,26 @@
 #ifndef CAMERACOMPONENT_H
 #define CAMERACOMPONENT_H
 
-//Component that defines the offset for the camera to render on screen,
-//basically the position of the camera.
+//Component that defines an object as a camera, providing the priority of rendering and
+//the offset for the camera to render on screen, basically the position of the camera.
 
 #include "Component.hpp"
 
 namespace WishEngine{
     class CameraComponent : public Component{
         private:
+            int priority;
             DirectionVector rect = DirectionVector(0, 0);
         public:
-            CameraComponent(double x, double y);
-            CameraComponent(double x, double y, double z);
-            ~CameraComponent();
+            CameraComponent(int pri);
+            CameraComponent(int pri, double x, double y);
+            CameraComponent(int pri, double x, double y, double z);
+            virtual ~CameraComponent();
+            int getPriority();
             double getX();
             double getY();
             double getZ();
+            void setPriority(int pri);
             void setX(double x);
             void setY(double y);
             void setZ(double z);

@@ -24,6 +24,8 @@
 #ifndef NETWORKCOMPONENT_H
 #define NETWORKCOMPONENT_H
 
+#include "Component.hpp"
+
 namespace WishEngine{
     typedef struct Packet{
         char *data;
@@ -40,7 +42,7 @@ namespace WishEngine{
         public:
             NetworkComponent();
             NetworkComponent(bool isS, bool isT, unsigned maxSize, unsigned elapsedTime, unsigned maxC = 0);
-            ~NetworkComponent();
+            virtual ~NetworkComponent();
             void clearData();
             void connect(std::string ip_, uint16_t port_);
             void disconnect();

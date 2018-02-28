@@ -33,7 +33,7 @@ namespace WishEngine{
             std::vector<Event> inputs;
         public:
             InputComponent();
-            ~InputComponent();
+            virtual ~InputComponent();
             std::vector<Event>& getInputs();
             Event& getInput(unsigned pos);
             void addInput(Event input);

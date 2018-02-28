@@ -21,29 +21,77 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "Framework.hpp"
 
 namespace WishEngine{
-    Framework* Framework::frame = nullptr;
-
     Framework::Framework(){
+        setSystemType("FRAMEWORK");
         init();
     }
 
     Framework::~Framework(){
+        destroySystem();
         quit();
+        objects = nullptr;
+        components = nullptr;
     }
 
-    void Framework::destroyFrameWork(){
-        delete frame;
-        frame = nullptr;
+    void Framework::update(double dt){
+
     }
 
-    Framework* Framework::getFramework(){
-        if(frame == nullptr){
-            frame = new Framework();
+    void Framework::handleMessage(Message *msg){
+        if(msg->getType() == "HANDLEINPUT"){
+            getEvents();
+            postMessage(new InputListMessage("INPUTLIST", &frameEvents));
         }
-        return frame;
+        else if(msg->getType() == "FULLSCREEN"){
+            fullScreen(msg->getValue());
+        }
+        else if(msg->getType() == "OBJECTLIST"){
+            ObjectListMessage* rmes = dynamic_cast<ObjectListMessage*>(msg);
+            if(rmes != nullptr){
+                objects = rmes->getObjectList();
+            }
+            rmes = nullptr;
+        }
+        else if(msg->getType() == "COMPONENTLIST"){
+            ComponentListMessage* rmes = dynamic_cast<ComponentListMessage*>(msg);
+            if(rmes != nullptr){
+                components = rmes->getComponentList();
+            }
+            rmes = nullptr;
+        }
+        else if(msg->getType() == "SFRAME"){
+            startFrame();
+        }
+        else if(msg->getType() == "RFRAME"){
+            RenderMessage* rmes = dynamic_cast<RenderMessage*>(msg);
+            if(rmes != nullptr){
+                renderObjects(rmes->getInterpolation());
+            }
+            rmes = nullptr;
+        }
+        else if(msg->getType() == "FFRAME"){
+            endFrame();
+        }
+        else if(msg->getType() == "CREATEWINDOW"){
+            CreateWindowMessage *aux = dynamic_cast<CreateWindowMessage*>(msg);
+            if(aux != nullptr){
+                createWindow(aux->getTitle(), aux->getName(), aux->getIcon(), aux->getX(), aux->getY(), aux->getW(), aux->getH());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "DELETEWINDOW"){
+            deleteWindow(msg->getValue());
+        }
+        else if(msg->getType() == "SETMAXFPS"){
+            setMaxFPS(Utils::stringToInt(msg->getValue()));
+        }
+        else if(msg->getType() == "SETFRAMECAPFLAG"){
+            setFrameCapFlag(Utils::stringToInt(msg->getValue()));
+        }
+        //Create a message for each shit like render text, render texture, music,window, network, input, etc...
     }
 
     void Framework::fullScreen(std::string windowName){
@@ -794,21 +842,130 @@ namespace WishEngine{
         Mix_ResumeMusic();
     }
 
+    /**
+        Method to determine if an object is greater than other in terms of render priority.
+        A lower priority will make the graphic system render that camera first, being behind of the next ones.
+    **/
+    bool objectGraphicSorting(GraphicComponent &a, GraphicComponent &b){
+        return a.getPriority() < b.getPriority();
+    }
 
-    void Framework::render(GameObject &obj, double interpolation, Camera *cam, std::string window){
-        GraphicComponent* graphComp = dynamic_cast<GraphicComponent*>(obj.getComponent(C_TYPES::GRAPHIC));
-        DimentionComponent* dimComp = dynamic_cast<DimentionComponent*>(obj.getComponent(C_TYPES::DIMENTION));
-        AnimationComponent* animComp = dynamic_cast<AnimationComponent*>(obj.getComponent(C_TYPES::ANIMATION));
-        if(obj.getEnabled() && graphComp != nullptr && graphComp->getEnabled() && dimComp != nullptr && dimComp->getEnabled()){ //Object and components are enabled
+    bool objectCameraSorting(CameraComponent &a, CameraComponent &b){
+        return a.getPriority() < b.getPriority();
+    }
+
+    void Framework::renderObjects(double interpolation){
+        std::vector<GraphicComponent> *graphics = nullptr; //Gets the objects
+        if(components != nullptr && components->find("GRAPHIC") != components->end()){
+            graphics = &dynamic_cast<Collection<GraphicComponent>*>(components->at("GRAPHIC"))->getCollection();
+        }
+        std::vector<CameraComponent> *cameras = nullptr; //Gets the objects
+        if(components != nullptr && components->find("CAMERA") != components->end()){
+            cameras = &dynamic_cast<Collection<CameraComponent>*>(components->at("CAMERA"))->getCollection();
+        }
+        std::vector<DimensionComponent> *dimensions = nullptr; //Gets the objects
+        if(components != nullptr && components->find("DIMENSION") != components->end()){
+            dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at("DIMENSION"))->getCollection();
+        }
+        std::vector<AnimationComponent> *animations = nullptr; //Gets the objects
+        if(components != nullptr && components->find("ANIMATION") != components->end()){
+            animations = &dynamic_cast<Collection<AnimationComponent>*>(components->at("ANIMATION"))->getCollection();
+        }
+
+        if(graphics != nullptr && !std::is_sorted(graphics->begin(), graphics->end(), objectGraphicSorting)){ //If they are not sorted, sort them.
+            std::sort(graphics->begin(), graphics->end(), objectGraphicSorting);
+            for(unsigned i=0; i<graphics->size(); i++){
+                (*objects)[(*graphics)[i].getOwnerPos()].setComponentPosition(i, (*graphics)[i].getType());
+            }
+        }
+        if(cameras != nullptr && !std::is_sorted(cameras->begin(), cameras->end(), objectCameraSorting)){ //If they are not sorted, sort them.
+            std::sort(cameras->begin(), cameras->end(), objectCameraSorting);
+            for(unsigned i=0; i<cameras->size(); i++){
+                (*objects)[(*cameras)[i].getOwnerPos()].setComponentPosition(i, (*cameras)[i].getType());
+            }
+        }
+
+        /**
+            Components we are gonna need:
+                - Dimension (Both the objects and the cameras)
+                - Graphic
+                - Animation
+                - Camera
+
+            Rendering:
+            1) For each camera, get its camera and its dimension.(done)
+            2) Inside the camera for, for each object, get its dimension, graphic and animation (done)
+            3) Check the graphics things to see if its text or what not
+            4) Call the correct function
+        **/
+        if(objects != nullptr && graphics != nullptr && cameras != nullptr && dimensions != nullptr){
+            for(unsigned i=0; i<cameras->size(); i++){
+                GameObject *cameraObj = &((*objects)[(*cameras)[i].getOwnerPos()]);
+                if(cameraObj->hasComponent("DIMENSION")){
+                    DimensionComponent *camDim = &(*dimensions)[cameraObj->getComponentPosition("DIMENSION")];
+                    //CameraComponent *camCam = (*cameras)[i];
+                    for(unsigned j=0; j<graphics->size(); j++){
+                        GameObject *currentObject = &(*objects)[(*graphics)[j].getOwnerPos()];
+                        if(currentObject->getId() != cameraObj->getId()){
+                            if(currentObject->hasComponent("DIMENSION")){
+                                DimensionComponent *objDim = &(*dimensions)[currentObject->getComponentPosition("DIMENSION")];
+                                AnimationComponent *objAni = nullptr;
+                                if((*objects)[j].hasComponent("ANIMATION")){
+                                    objAni = &(*animations)[currentObject->getComponentPosition("ANIMATION")];
+                                }
+
+                                if((*graphics)[j].getIsText()){
+                                    if((*graphics)[j].getText().getIsPlain()){
+                                        renderPlainText(&(*graphics)[j], objDim, objAni, interpolation, camDim, &(*cameras)[i], "mainWindow");
+                                    }
+                                    else{
+                                        renderText(&(*graphics)[j], objDim, objAni, interpolation, camDim, &(*cameras)[i], "mainWindow");
+                                    }
+                                }
+                                else{
+                                    render(&(*graphics)[j], objDim, objAni, interpolation, camDim, &(*cameras)[i], "mainWindow");
+                                }
+
+                                objDim = nullptr;
+                                objAni = nullptr;
+                            }
+                        }
+                    }
+
+                    /**
+                        This part down here is for not having to set a new position to the cameras each frame for them to not do
+                        the shake if you pause or whatever, it's been done with objects in the render function too.
+
+                        It just updates the last position to the new one calculated with the interpolation, that way, even when
+                        the object/camera is not receiving position updates, the last position is going to catch up with the current
+                        one, avoiding the "shake" effect of rendering the camera/objects in the last position and current one, when
+                        they are too far apart.
+                    **/
+                    camDim->setX((nearbyint(camDim->getX()*(interpolation) + camDim->getpX()*(1-interpolation))));
+                    camDim->setX(camDim->getpX());
+                    camDim->setY((nearbyint(camDim->getY()*(interpolation) + camDim->getpY()*(1-interpolation))));
+                    camDim->setY(camDim->getpY());
+                    camDim = nullptr;
+                }
+                cameraObj = nullptr;
+            }
+        }
+
+        graphics = nullptr;
+        cameras = nullptr;
+        animations = nullptr;
+        dimensions = nullptr;
+    }
+
+    void Framework::render(GraphicComponent *graphComp, DimensionComponent *dimComp, AnimationComponent *animComp, double interpolation, DimensionComponent *camDim, CameraComponent *camComp, std::string window){
+        if(graphComp != nullptr && graphComp->getEnabled() && dimComp != nullptr && dimComp->getEnabled()){ //Object and components are enabled
             SDL_Rect rect;
             Rectangle camRect; //change any camDim->get() to the interpolation equivalent
-            if(cam != nullptr && cam->getEnabled() && cam->hasComponent(C_TYPES::DIMENTION) && !obj.hasComponent(C_TYPES::UI)){
-                DimentionComponent* camDim = dynamic_cast<DimentionComponent*>(cam->getComponent(C_TYPES::DIMENTION));
+            if(!graphComp->getIsUi()){
                 rect = {(nearbyint(dimComp->getX()*(interpolation) + dimComp->getpX()*(1-interpolation)))-(nearbyint(camDim->getX()*(interpolation) + camDim->getpX()*(1-interpolation))),
                                  (nearbyint(dimComp->getY()*(interpolation) + dimComp->getpY()*(1-interpolation)))-(nearbyint(camDim->getY()*(interpolation) + camDim->getpY()*(1-interpolation))),
                                   dimComp->getW()*dimComp->getScale(),dimComp->getH()*dimComp->getScale()};
                 camRect = Rectangle(((camDim->getX()*(interpolation) + camDim->getpX()*(1-interpolation))), (nearbyint(camDim->getY()*(interpolation) + camDim->getpY()*(1-interpolation))), camDim->getW(), camDim->getH());
-                camDim = nullptr;
             }
             else{
                 rect = {(nearbyint(dimComp->getX()*(interpolation) + dimComp->getpX()*(1-interpolation))),
@@ -817,7 +974,7 @@ namespace WishEngine{
                 camRect = Rectangle(0, 0, 0, 0);
             }
             Rectangle objRect(dimComp->getX(), dimComp->getY(), dimComp->getW(), dimComp->getH());
-            if(Utils::checkCollision(objRect, camRect) || obj.hasComponent(C_TYPES::UI)){ //Culling!
+            if(Utils::checkCollision(objRect, camRect) || graphComp->getIsUi()){ //Culling!
                 SDL_Rect *cut = nullptr;
                 if(animComp != nullptr && animComp->getEnabled()){ //Animation doesn't use scale
                     cut = new SDL_Rect();
@@ -825,12 +982,9 @@ namespace WishEngine{
                 }
                 std::string tFile = graphComp->getTextureFile();
                 //Apply the camera component here (same for text rendering)
-                if(cam != nullptr && cam->getEnabled()){
-                    CameraComponent *camComp = dynamic_cast<CameraComponent*>(cam->getComponent(C_TYPES::CAMERA));
-                    if(camComp != nullptr && camComp->getEnabled()){
-                        rect.x += camComp->getX();
-                        rect.y += camComp->getY();
-                    }
+                if(camComp != nullptr && camComp->getEnabled()){
+                    rect.x += camComp->getX();
+                    rect.y += camComp->getY();
                 }
                 if(graphComp->getIsTexture()){
                     if(renderPool.count(window)){
@@ -872,25 +1026,17 @@ namespace WishEngine{
             dimComp->setY((nearbyint(dimComp->getY()*(interpolation) + dimComp->getpY()*(1-interpolation))));
             dimComp->setY(dimComp->getpY());
         }
-        graphComp = nullptr;
-        dimComp = nullptr;
-        animComp = nullptr;
-        cam = nullptr;
     }
 
-    void Framework::renderText(GameObject &obj, double interpolation, Camera *cam, std::string window){
-        GraphicComponent* graphComp = dynamic_cast<GraphicComponent*>(obj.getComponent(C_TYPES::GRAPHIC));
-        DimentionComponent* dimComp = dynamic_cast<DimentionComponent*>(obj.getComponent(C_TYPES::DIMENTION));
-        if(obj.getEnabled() && graphComp != nullptr && graphComp->getEnabled() && dimComp != nullptr && dimComp->getEnabled() && graphComp->getText().getText() != ""){
+    void Framework::renderText(GraphicComponent *graphComp, DimensionComponent *dimComp, AnimationComponent *animComp, double interpolation, DimensionComponent *camDim, CameraComponent *camComp, std::string window){
+        if(graphComp != nullptr && graphComp->getEnabled() && dimComp != nullptr && dimComp->getEnabled() && graphComp->getText().getText() != ""){
             SDL_Rect textBox; //The text box
             Rectangle camRect;
-            if(cam != nullptr && cam->getEnabled() && cam->hasComponent(C_TYPES::DIMENTION) && !obj.hasComponent(C_TYPES::UI)){
-                DimentionComponent* camDim = dynamic_cast<DimentionComponent*>(cam->getComponent(C_TYPES::DIMENTION));
+            if(!graphComp->getIsUi()){
                 textBox = {(nearbyint(dimComp->getX()*(interpolation) + dimComp->getpX()*(1-interpolation)))-(nearbyint(camDim->getX()*(interpolation) + camDim->getpX()*(1-interpolation))),
                                  (nearbyint(dimComp->getY()*(interpolation) + dimComp->getpY()*(1-interpolation)))-(nearbyint(camDim->getY()*(interpolation) + camDim->getpY()*(1-interpolation))),
                                   dimComp->getW()*dimComp->getScale(),dimComp->getH()*dimComp->getScale()};
                 camRect = Rectangle((nearbyint(camDim->getX()*(interpolation) + camDim->getpX()*(1-interpolation))), (nearbyint(camDim->getY()*(interpolation) + camDim->getpY()*(1-interpolation))), camDim->getW(), camDim->getH());
-                camDim = nullptr;
             }
             else{
                 textBox = {(nearbyint(dimComp->getX()*(interpolation) + dimComp->getpX()*(1-interpolation))),
@@ -899,13 +1045,10 @@ namespace WishEngine{
                 camRect = Rectangle(0, 0, 0, 0);
             }
             Rectangle textRect(dimComp->getX(), dimComp->getY(), dimComp->getW(), dimComp->getH());
-            if(Utils::checkCollision(textRect, camRect) || obj.hasComponent(C_TYPES::UI)){ //Culling!
-                if(cam != nullptr && cam->getEnabled()){
-                    CameraComponent *camComp = dynamic_cast<CameraComponent*>(cam->getComponent(C_TYPES::CAMERA));
-                    if(camComp != nullptr && camComp->getEnabled()){
-                        textBox.x += camComp->getX();
-                        textBox.y += camComp->getY();
-                    }
+            if(Utils::checkCollision(textRect, camRect) || graphComp->getIsUi()){ //Culling!
+                if(camComp != nullptr && camComp->getEnabled()){
+                    textBox.x += camComp->getX();
+                    textBox.y += camComp->getY();
                 }
                 Rectangle letterRect(textRect.getX(), textRect.getY(), 0, 0);
                 SDL_Rect letter = {textBox.x, textBox.y, 0, 0}; //rect for rendering each letter
@@ -955,7 +1098,7 @@ namespace WishEngine{
                     letterRect.setW(letter.w);
                     letterRect.setH(letter.h);
                     if(lineNumber >= startingLine){
-                        if(Utils::checkCollision(letterRect, camRect) || obj.hasComponent(C_TYPES::UI)){ //Letters Culling!
+                        if(Utils::checkCollision(letterRect, camRect) || graphComp->getIsUi()){ //Letters Culling!
                             color = text.getIndividualCharacterColor()[i];
                             SDL_SetTextureColorMod(texturePool[textureName], color.getR(), color.getG(), color.getB());
                             SDL_SetTextureAlphaMod(texturePool[textureName], color.getA());
@@ -987,24 +1130,17 @@ namespace WishEngine{
             dimComp->setY((nearbyint(dimComp->getY()*(interpolation) + dimComp->getpY()*(1-interpolation))));
             dimComp->setY(dimComp->getpY());
         }
-        graphComp = nullptr;
-        dimComp = nullptr;
-        cam = nullptr;
     }
 
-    void Framework::renderPlainText(GameObject &obj, double interpolation, Camera *cam, std::string window){
-        GraphicComponent* graphComp = dynamic_cast<GraphicComponent*>(obj.getComponent(C_TYPES::GRAPHIC));
-        DimentionComponent* dimComp = dynamic_cast<DimentionComponent*>(obj.getComponent(C_TYPES::DIMENTION));
-        if(obj.getEnabled() && graphComp != nullptr && graphComp->getEnabled() && dimComp != nullptr && dimComp->getEnabled() && graphComp->getText().getText() != ""){
+    void Framework::renderPlainText(GraphicComponent *graphComp, DimensionComponent *dimComp, AnimationComponent *animComp, double interpolation, DimensionComponent *camDim, CameraComponent *camComp, std::string window){
+        if(graphComp != nullptr && graphComp->getEnabled() && dimComp != nullptr && dimComp->getEnabled() && graphComp->getText().getText() != ""){
             SDL_Rect textBox; //The text box
             Rectangle camRect;
-            if(cam != nullptr && cam->getEnabled() && cam->hasComponent(C_TYPES::DIMENTION) && !obj.hasComponent(C_TYPES::UI)){
-                DimentionComponent* camDim = dynamic_cast<DimentionComponent*>(cam->getComponent(C_TYPES::DIMENTION));
+            if(!graphComp->getIsUi()){
                 textBox = {(nearbyint(dimComp->getX()*(interpolation) + dimComp->getpX()*(1-interpolation)))-(nearbyint(camDim->getX()*(interpolation) + camDim->getpX()*(1-interpolation))),
                                  (nearbyint(dimComp->getY()*(interpolation) + dimComp->getpY()*(1-interpolation)))-(nearbyint(camDim->getY()*(interpolation) + camDim->getpY()*(1-interpolation))),
                                   dimComp->getW()*dimComp->getScale(),dimComp->getH()*dimComp->getScale()};
                 camRect = Rectangle((nearbyint(camDim->getX()*(interpolation) + camDim->getpX()*(1-interpolation))), (nearbyint(camDim->getY()*(interpolation) + camDim->getpY()*(1-interpolation))), camDim->getW(), camDim->getH());
-                camDim = nullptr;
             }
             else{
                 textBox = {(nearbyint(dimComp->getX()*(interpolation) + dimComp->getpX()*(1-interpolation))),
@@ -1027,9 +1163,6 @@ namespace WishEngine{
                 fontPool[fontPoolName] = TTF_OpenFont(fontName.c_str(), text.getIndividualCharacterSize()[0]);
             }
             if(fontPool[fontPoolName] == NULL){
-                graphComp = nullptr;
-                dimComp = nullptr;
-                cam = nullptr;
                 return;
             }
             if(texturePool.count(textureName) == 0){
@@ -1045,13 +1178,10 @@ namespace WishEngine{
             SDL_QueryTexture(texturePool[textureName], NULL, NULL, &letter.w, &letter.h);
             letterRect.setW(letter.w);
             letterRect.setH(letter.h);
-            if(Utils::checkCollision(letterRect, camRect) || obj.hasComponent(C_TYPES::UI)){ //Letters Culling!
-                if(cam != nullptr && cam->getEnabled()){
-                    CameraComponent *camComp = dynamic_cast<CameraComponent*>(cam->getComponent(C_TYPES::CAMERA));
-                    if(camComp != nullptr && camComp->getEnabled()){
-                        letter.x += camComp->getX();
-                        letter.y += camComp->getY();
-                    }
+            if(Utils::checkCollision(letterRect, camRect) || graphComp->getIsUi()){ //Letters Culling!
+                if(camComp != nullptr && camComp->getEnabled()){
+                    letter.x += camComp->getX();
+                    letter.y += camComp->getY();
                 }
                 color = text.getIndividualCharacterColor()[0];
                 SDL_SetTextureColorMod(texturePool[textureName], color.getR(), color.getG(), color.getB());
@@ -1071,9 +1201,6 @@ namespace WishEngine{
             dimComp->setY((nearbyint(dimComp->getY()*(interpolation) + dimComp->getpY()*(1-interpolation))));
             dimComp->setY(dimComp->getpY());
         }
-        graphComp = nullptr;
-        dimComp = nullptr;
-        cam = nullptr;
     }
 
     void Framework::getSizeOfText(std::string text, std::string font, int &w, int &h){
@@ -1106,28 +1233,28 @@ namespace WishEngine{
         return SDL_GetTicks();
     }
 
-    std::vector<Event> Framework::getEvents(){
-        std::vector<Event> result;
+    void Framework::getEvents(){
+        frameEvents.clear();
         while(SDL_PollEvent(&fEvent)){
             Event ev;
-            E_TYPES type = E_TYPES::ENULL;
+            std::string type = "NULL";
             int mX = 0, mY = 0;
             switch(fEvent.type){
                 case SDL_KEYDOWN:
-                    type = E_TYPES::KEYBOARD_PRESS;
+                    type = "KEYBOARD_PRESS";
                     ev.setTimeStamp(fEvent.key.timestamp);
                     ev.setValue(SDL_GetKeyName(fEvent.key.keysym.sym));
                     ev.setWindowID(fEvent.key.windowID);
                     break;
                 case SDL_KEYUP:
-                    type = E_TYPES::KEYBOARD_RELEASE;
+                    type = "KEYBOARD_RELEASE";
                     ev.setTimeStamp(fEvent.key.timestamp);
                     ev.setValue(SDL_GetKeyName(fEvent.key.keysym.sym));
                     ev.setWindowID(fEvent.key.windowID);
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     SDL_GetMouseState(&mX, &mY);
-                    type = E_TYPES::MOUSE_PRESS;
+                    type = "MOUSE_PRESS";
                     ev.setDeviceID(fEvent.button.which);
                     switch(fEvent.button.button){
                         case SDL_BUTTON_LEFT:
@@ -1151,7 +1278,7 @@ namespace WishEngine{
                     break;
                 case SDL_MOUSEBUTTONUP:
                     SDL_GetMouseState(&mX, &mY);
-                    type = E_TYPES::MOUSE_RELEASE;
+                    type = "MOUSE_RELEASE";
                     ev.setDeviceID(fEvent.button.which);
                     switch(fEvent.button.button){
                         case SDL_BUTTON_LEFT:
@@ -1174,7 +1301,7 @@ namespace WishEngine{
                     ev.setWindowID(fEvent.button.windowID);
                     break;
                 case SDL_JOYDEVICEADDED:
-                    type = E_TYPES::GAMEPAD_ADDED;
+                    type = "GAMEPAD_ADDED";
                     ev.setTimeStamp(fEvent.jdevice.timestamp);
                     ev.setDeviceID(fEvent.jdevice.which);
                     JoystickStruct aux;
@@ -1183,7 +1310,7 @@ namespace WishEngine{
                     joysticks.push_back(aux);
                     break;
                 case SDL_JOYDEVICEREMOVED:
-                    type = E_TYPES::GAMEPAD_REMOVED;
+                    type = "GAMEPAD_REMOVED";
                     ev.setTimeStamp(fEvent.jdevice.timestamp);
                     ev.setDeviceID(fEvent.jdevice.which);
                     for(unsigned i=0; i<joysticks.size(); i++){
@@ -1195,19 +1322,19 @@ namespace WishEngine{
                     }
                     break;
                 case SDL_JOYBUTTONDOWN:
-                    type = E_TYPES::GAMEPAD_PRESS;
+                    type = "GAMEPAD_PRESS";
                     ev.setValue(Utils::intToString(fEvent.jbutton.button));
                     ev.setTimeStamp(fEvent.jdevice.timestamp);
                     ev.setDeviceID(fEvent.jdevice.which);
                     break;
                 case SDL_JOYBUTTONUP:
-                    type = E_TYPES::GAMEPAD_RELEASE;
+                    type = "GAMEPAD_RELEASE";
                     ev.setValue(Utils::intToString(fEvent.jbutton.button));
                     ev.setTimeStamp(fEvent.jdevice.timestamp);
                     ev.setDeviceID(fEvent.jdevice.which);
                     break;
                 case SDL_JOYAXISMOTION:
-                    type = E_TYPES::GAMEPAD_AXIS; //which axis, direction and value
+                    type = "GAMEPAD_AXIS"; //which axis, direction and value
                     ev.setTimeStamp(fEvent.jaxis.timestamp);
                     if(fEvent.jaxis.axis == 0){ //If axis != 1 it's the X axis
                         if(fEvent.jaxis.value < -JOYSTICK_DEADZONE)
@@ -1215,12 +1342,12 @@ namespace WishEngine{
                         else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
                             ev.setValue("Joystick X Right");
                         else{
-                            type = E_TYPES::GAMEPAD_RELEASE;
+                            type = "GAMEPAD_RELEASE";
                             ev.setValue("Joystick X Left");
                             Event aux;
-                            aux.setType(E_TYPES::GAMEPAD_RELEASE);
+                            aux.setType("GAMEPAD_RELEASE");
                             aux.setValue("Joystick X Right");
-                            result.push_back(aux);
+                            frameEvents.push_back(aux);
                         }
                         ev.setXPos(fEvent.jaxis.value);
                     }
@@ -1230,12 +1357,12 @@ namespace WishEngine{
                         else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
                             ev.setValue("Joystick Y Down");
                         else{
-                            type = E_TYPES::GAMEPAD_RELEASE;
+                            type = "GAMEPAD_RELEASE";
                             ev.setValue("Joystick Y Up");
                             Event aux;
-                            aux.setType(E_TYPES::GAMEPAD_RELEASE);
+                            aux.setType("GAMEPAD_RELEASE");
                             aux.setValue("Joystick Y Down");
-                            result.push_back(aux);
+                            frameEvents.push_back(aux);
                         }
                         ev.setYPos(fEvent.jaxis.value);
                     }
@@ -1245,12 +1372,12 @@ namespace WishEngine{
                         else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
                             ev.setValue("Joystick X2 Down");
                         else{
-                            type = E_TYPES::GAMEPAD_RELEASE;
+                            type = "GAMEPAD_RELEASE";
                             ev.setValue("Joystick X2 Up");
                             Event aux;
-                            aux.setType(E_TYPES::GAMEPAD_RELEASE);
+                            aux.setType("GAMEPAD_RELEASE");
                             aux.setValue("Joystick X2 Down");
-                            result.push_back(aux);
+                            frameEvents.push_back(aux);
                         }
                         ev.setYPos(fEvent.jaxis.value);
                     }
@@ -1260,19 +1387,19 @@ namespace WishEngine{
                         else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
                             ev.setValue("Joystick Y2 Down");
                         else{
-                            type = E_TYPES::GAMEPAD_RELEASE;
+                            type = "GAMEPAD_RELEASE";
                             ev.setValue("Joystick Y2 Up");
                             Event aux;
-                            aux.setType(E_TYPES::GAMEPAD_RELEASE);
+                            aux.setType("GAMEPAD_RELEASE");
                             aux.setValue("Joystick Y2 Down");
-                            result.push_back(aux);
+                            frameEvents.push_back(aux);
                         }
                         ev.setYPos(fEvent.jaxis.value);
                     }
                     ev.setDeviceID(fEvent.jaxis.which);
                     break;
                 case SDL_MOUSEWHEEL:
-                    type = E_TYPES::MOUSE_WHEEL;
+                    type = "MOUSE_WHEEL";
                     ev.setTimeStamp(fEvent.wheel.timestamp);
                     ev.setXPos(fEvent.wheel.x);
                     ev.setYPos(fEvent.wheel.y);
@@ -1280,7 +1407,7 @@ namespace WishEngine{
                     ev.setWindowID(fEvent.wheel.windowID);
                     break;
                 case SDL_MOUSEMOTION:
-                    type = E_TYPES::MOUSE_MOTION;
+                    type = "MOUSE_MOTION";
                     ev.setXPos(fEvent.motion.x);
                     ev.setYPos(fEvent.motion.y);
                     ev.setXRel(fEvent.motion.xrel);
@@ -1290,21 +1417,20 @@ namespace WishEngine{
                     ev.setWindowID(fEvent.motion.windowID);
                     break;
                 case SDL_QUIT:
-                    type = E_TYPES::EQUIT;
+                    type = "QUIT";
                     break;
                 case SDL_WINDOWEVENT:
                     switch(fEvent.window.event){ //Expand for all the window events and maybe include the ids for closing single windows etc...
                         case SDL_WINDOWEVENT_CLOSE:
-                            type = E_TYPES::EQUIT;
+                            type = "QUIT"; //For now until I expand this.
                             break;
                     }
             }
             ev.setType(type);
-            if(ev.getType() != E_TYPES::ENULL){
-                result.push_back(ev);
+            if(ev.getType() != "NULL"){
+                frameEvents.push_back(ev);
             }
         }
-        return result;
     }
 
     void Framework::deleteWindow(std::string name){

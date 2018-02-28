@@ -29,8 +29,9 @@
 namespace WishEngine{
     class GameSystem{
         private:
-            S_TYPES systemType;
+            std::string systemType;
             std::vector<Message*> postedMessages;
+
         public:
             virtual ~GameSystem(){
 
@@ -44,16 +45,16 @@ namespace WishEngine{
                 }
                 postedMessages.clear();
             }
-            S_TYPES getSystemType(){
+            std::string &getSystemType(){
                 return systemType;
             }
-            void setSystemType(S_TYPES type){
+            void setSystemType(std::string type){
                 systemType = type;
             }
-            void postMessage(Message* toPost){
+            void postMessage(Message *toPost){
                 postedMessages.push_back(toPost);
             }
-            std::vector<Message*>& getMessages(){
+            std::vector<Message*> &getMessages(){
                 return postedMessages;
             }
     };

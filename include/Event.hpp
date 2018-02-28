@@ -29,16 +29,15 @@
 namespace WishEngine{
     class Event{
         private:
-            E_TYPES type;
-            std::string value;
+            std::string type, value;
             int deviceID, xPos, yPos, xRel, yRel;
             unsigned timeStamp, windowID;
         public:
             Event();
-            Event(E_TYPES t, std::string val);
+            Event(std::string t, std::string val);
             ~Event();
-            E_TYPES getType();
-            void setType(E_TYPES t);
+            std::string getType();
+            void setType(std::string t);
             std::string &getValue();
             void setValue(std::string val);
             int getDeviceID();

@@ -21,26 +21,21 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "State.hpp"
 
 namespace WishEngine{
     State::State(std::string configFile){
-        //Maybe change the adding of the systems as plugins, so the coder can use
-        //whatever he wants and also modders can code more systems more easily.
-        //ObjectFactory and Framework will always be loaded though.
-        addSystem(new ScriptSystem()); //Add all the systems and everything needed
         addSystem(new InputSystem());
-        addSystem(new GraphicsSystem());
-        addSystem(new PhysicsSystem());
-        addSystem(new AudioSystem());
-        addSystem(new AnimationSystem());
-        addSystem(new NetworkSystem());
-        addSystem(new TimerSystem());
-        addSystem(new CollisionSystem());
-        ObjectFactory::getObjectFactory()->destroyObjectFactory();
-        setObjFac(ObjectFactory::getObjectFactory());
-        fw = Framework::getFramework();
-        getObjFac()->createObjects(configFile); //We pass the file received to the object factory so it can create everything
+        //addSystem(new AudioSystem());
+        //addSystem(new CollisionSystem());
+        //addSystem(new AnimationSystem());
+        //addSystem(new NetworkSystem());
+        //addSystem(new PhysicsSystem());
+        //addSystem(new TimerSystem());
+        addSystem(new ScriptsInterface());
+        addSystem(new ObjectFactory());
+        addSystem(new Framework());
+        sendMessage(new Message("LOADOBJECTS", configFile));
     }
 
     State::~State(){
@@ -49,12 +44,6 @@ namespace WishEngine{
             systems[i] = nullptr;
         }
         systems.clear();
-        if(nextState != nullptr){ //Delete the next state if there's any
-            delete nextState;
-            nextState = nullptr;
-        }
-        Framework::getFramework()->clearData();
-        objFac = nullptr;
     }
 
     /**
@@ -64,16 +53,27 @@ namespace WishEngine{
     **/
     void State::update(){
         double dt = 0.01, accumulator = 0; //Sets some variables for the timing of the loop, like the current ms
-        double currentDT = fw->getTicks(), newDT, interpolation;
+
+        auto now = std::chrono::high_resolution_clock::now();
+        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+        auto epoch = now_ms.time_since_epoch();
+        auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+
+        double currentDT = value.count(), newDT, interpolation;
         while(!quit){ //While the state isn't set to quit
-            newDT = fw->getTicks(); //Get the ticks before all the updates
+            now = std::chrono::high_resolution_clock::now();
+            now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+            epoch = now_ms.time_since_epoch();
+            value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+
+            newDT = value.count(); //Get the ticks before all the updates
             double frameTime = (newDT - currentDT) / double(1000); // Amount of seconds it takes a frame to finish
             if ( frameTime > double(TICKS_PER_SECOND)/double(100) ) // Capping the frame time so the game skips things if it lags too much
                 frameTime = double(TICKS_PER_SECOND)/double(100);
             currentDT = newDT; //Set the current ticks as the new ones for the next frames calculations
             accumulator += frameTime; //Add the time passed to the accumulator
             while( accumulator >= dt ){ //While the accumulator is greater than the fixed time value
-                sendMessage(new Message(M_TYPES::HANDLEINPUT));
+                sendMessage(new Message("HANDLEINPUT"));
                 for(unsigned i=0; i<getSystems().size(); i++){ //Update all the systems and check for quit being true
                     getSystems()[i]->update(dt);
                     if(getQuit() == true){ //If quit is true quit the state
@@ -101,9 +101,9 @@ namespace WishEngine{
         Method that calls everything needed to render the frame.
     **/
     void State::render(double interpolation){
-        sendMessage(new Message(M_TYPES::SFRAME));
-        sendMessage(new RenderMessage(M_TYPES::RENDER, interpolation));
-        sendMessage(new Message(M_TYPES::FFRAME));
+        sendMessage(new Message("SFRAME"));
+        sendMessage(new RenderMessage("RFRAME", interpolation));
+        sendMessage(new Message("FFRAME"));
     }
 
     /**
@@ -113,31 +113,17 @@ namespace WishEngine{
         for(unsigned i=0; i<systems.size(); i++){
             std::vector<Message*> &sentMessages = systems[i]->getMessages();
             for(unsigned j=0; j<sentMessages.size(); j++){
-                handleMessage(sentMessages[j]);
+                sendMessage(sentMessages[j]);
                 if(getQuit())
                     break;
-                if(sentMessages[j] != nullptr){ //Avoinding the MEMORY LEAKS (It already happened once :( Over 1k messages leaked
+                if(sentMessages[j] != nullptr){ //Avoiding the MEMORY LEAKS
                     delete sentMessages[j];
                     sentMessages[j] = nullptr;
                 }
             }
-            sentMessages.clear();
-        }
-        bool clearVector = true;
-        std::vector<Message*> &factoryMessages = ObjectFactory::getObjectFactory()->getMessages();
-        for(unsigned j=0; j<factoryMessages.size(); j++){
-            handleMessage(factoryMessages[j]);
-            if(getQuit()){
-                clearVector = false;
+            if(getQuit())
                 break;
-            }
-            if(factoryMessages[j] != nullptr){ //Avoinding the MEMORY LEAKS (It already happened once :( Over 1k messages leaked
-                delete factoryMessages[j];
-                factoryMessages[j] = nullptr;
-            }
-        }
-        if(clearVector){
-            factoryMessages.clear();
+            sentMessages.clear();
         }
     }
 
@@ -145,44 +131,12 @@ namespace WishEngine{
         Method used to handle received messages.
     **/
     void State::handleMessage(Message *msg){
-        switch(msg->getType()){ //Check the message type and does whatever it needs to do depending on it
-            case M_TYPES::QUIT:{
-                setQuit(true);
-                break;
-            }
-            case M_TYPES::FULLSCREEN:{ //Fix for it to work
-                std::string windowName = msg->getValue();
-                fw->fullScreen(windowName);
-                break;
-            }
-            case M_TYPES::NEWSTATE:{
-                nextState = new State(msg->getValue());
-                quit = true;
-                break;
-            }
-            case M_TYPES::LOADSTATE:{
-                std::fstream file(msg->getValue(), std::ios::in);
-                if(file){
-                    file.close();
-                    Framework::getFramework()->stopMusic();
-                    ObjectFactory::getObjectFactory()->clearData(); //Destroy all the objects and cameras
-                    int j=0;
-                    for(unsigned i=0; i<Framework::getFramework()->getWindowCount()-1; i++){ //Destroy all the windows (Except main window)
-                        if(Framework::getFramework()->getWindowName(i) == "mainWindow"){
-                            j++;
-                            continue;
-                        }
-                        else{
-                            Framework::getFramework()->deleteWindow(Framework::getFramework()->getWindowName(j));
-                        }
-                    }
-                    ObjectFactory::getObjectFactory()->createObjects(msg->getValue());
-                }
-                else{
-                    file.close();
-                }
-                break;
-            }
+        if(msg->getType() == "QUIT"){
+            setQuit(true);
+        }
+        if(msg->getType() == "GOTOSTATE"){
+            sendMessage(new Message("DELETEEVERYTHING"));
+            sendMessage(new Message("LOADOBJECTS", msg->getValue()));
         }
     }
 
@@ -191,9 +145,6 @@ namespace WishEngine{
     **/
     void State::sendMessage(Message *mes){
         handleMessage(mes); //First it handles it itself
-        if(objFac != nullptr){
-            objFac->handleMessage(mes); //Then sends it to the object factory
-        }
         for(unsigned i=0; i<getSystems().size(); i++){ //And finaly to the rest of the systems
             getSystems()[i]->handleMessage(mes);
         }
@@ -271,7 +222,7 @@ namespace WishEngine{
     /**
         Method used to check if the state has a certain system.
     **/
-    bool State::hasSystemType(S_TYPES type){
+    bool State::hasSystemType(std::string type){
         for(unsigned i=0; i<getSystems().size(); i++){
             if(getSystems()[i]->getSystemType() == type){
                 return true;
@@ -292,30 +243,12 @@ namespace WishEngine{
     /**
         Method that returns a pointer to the system if the state has it.
     **/
-    GameSystem* State::getSystem(S_TYPES type){
+    GameSystem *State::getSystem(std::string type){
         for(unsigned i=0; i<getSystems().size(); i++){
             if(getSystems()[i]->getSystemType() == type){
                 return getSystems()[i];
             }
         }
         return nullptr;
-    }
-
-    /**
-        Method that returns the object factory pointer.
-    **/
-    ObjectFactory* State::getObjFac(){
-        return objFac;
-    }
-
-    /**
-        Method that sets the new object factory, deleteing the old one in the process.
-    **/
-    void State::setObjFac(ObjectFactory* of){
-        if(objFac != nullptr){
-            delete objFac;
-            objFac = nullptr;
-        }
-        objFac = of;
     }
 }

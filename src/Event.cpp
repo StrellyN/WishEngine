@@ -21,11 +21,11 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "Event.hpp"
 
 namespace WishEngine{
     Event::Event(){
-        setType(E_TYPES::ENULL);
+        setType("NULL");
         setValue("NULL");
         xPos = 0;
         xRel = 0;
@@ -36,9 +36,16 @@ namespace WishEngine{
         windowID = -1;
     }
 
-    Event::Event(E_TYPES t, std::string val){
+    Event::Event(std::string t, std::string val){
         setType(t);
         setValue(val);
+        xPos = 0;
+        xRel = 0;
+        yPos = 0;
+        yRel = 0;
+        deviceID = -1;
+        timeStamp = 0;
+        windowID = -1;
     }
 
     Event::~Event(){
@@ -51,11 +58,11 @@ namespace WishEngine{
         Do the list
     **/
 
-    E_TYPES Event::getType(){
+    std::string Event::getType(){
         return type;
     }
 
-    void Event::setType(E_TYPES t){
+    void Event::setType(std::string t){
         type = t;
     }
 

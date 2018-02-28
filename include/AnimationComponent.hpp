@@ -32,7 +32,7 @@ namespace WishEngine{
             Rectangle rect;
         public:
             AnimationComponent(double x, double y, double w, double h);
-            ~AnimationComponent();
+            virtual ~AnimationComponent();
             void setX(double x);
             void setY(double y);
             void setW(double w);

@@ -21,7 +21,7 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "Engine.hpp"
 
 namespace WishEngine{
     Engine::Engine(){
@@ -47,8 +47,6 @@ namespace WishEngine{
     Engine::~Engine(){
         delete currentState;
         currentState = nullptr;
-        Framework::getFramework()->destroyFrameWork(); //Destroying the framework, only done here
-        ObjectFactory::getObjectFactory()->destroyObjectFactory();
     }
 
     /**
@@ -57,10 +55,8 @@ namespace WishEngine{
     void Engine::update(){
         while(getState() != nullptr){ //While the state isn't nullptr
             getState()->update(); //Update the state
-            State *aux = getState()->getNextState();
             delete currentState;
-            currentState = aux;
-            aux = nullptr;
+            currentState = nullptr;
         }
     }
 

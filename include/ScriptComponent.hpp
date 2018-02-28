@@ -31,7 +31,7 @@ namespace WishEngine{
      class ScriptComponent : public Component{
         public:
             ScriptComponent(){
-                setType(C_TYPES::SCRIPT);
+                setType("Script");
             }
             virtual ~ScriptComponent(){}
             virtual void execute(GameObject &thisObj, double deltaT) = 0;

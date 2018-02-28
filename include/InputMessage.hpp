@@ -29,12 +29,13 @@
 namespace WishEngine{
     class InputMessage : public Message{
         private:
-            E_TYPES inputType;
+            std::string inputType;
+
         public:
-            InputMessage(M_TYPES mT, E_TYPES iT, std::string val);
-            ~InputMessage();
-            E_TYPES getInputType();
-            void setInputType(E_TYPES iT);
+            InputMessage(std::string mT, std::string iT, std::string val);
+            virtual ~InputMessage();
+            std::string getInputType();
+            void setInputType(std::string iT);
     };
 }
 #endif // INPUTMESSAGE

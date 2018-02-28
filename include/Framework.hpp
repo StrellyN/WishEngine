@@ -28,22 +28,37 @@
 
 #include "FrameHeader.hpp"
 #include "Event.hpp"
-#include "Camera.hpp"
+#include "Collection.hpp"
 #include "NetworkComponent.hpp"
+#include "System.hpp"
+#include "GameObject.hpp"
+#include "RenderMessage.hpp"
+#include "InputListMessage.hpp"
+#include "ObjectListMessage.hpp"
+#include "ComponentListMessage.hpp"
+#include "GraphicComponent.hpp"
+#include "DimensionComponent.hpp"
+#include "AnimationComponent.hpp"
+#include "CameraComponent.hpp"
+#include "CreateWindowMessage.hpp"
 
 namespace WishEngine{
     typedef struct JoystickStruct{
         SDL_Joystick *pad;
         int id;
     };
-    class Framework{
+
+    class Framework : public GameSystem{
         private:
             //General
-            static Framework *frame;
-            Framework();
             SDL_Event fEvent;
             bool frameCapFlag;
             int maxFPS, frameTicks;
+            std::vector<GameObject> *objects = nullptr;
+            std::map<std::string, BaseCollection*> *components = nullptr;
+
+            //Inputs
+            std::vector<Event> frameEvents;
 
             //Joysticks
             std::vector<JoystickStruct> joysticks;
@@ -68,12 +83,15 @@ namespace WishEngine{
             std::vector<SDLNet_SocketSet> socketSets;
             std::vector<IPaddress> ipAdresses, udpIpAdresses;
         public:
-            ~Framework();
-            static Framework* getFramework();
+            Framework();
+            virtual ~Framework();
             void init();
+            void update(double dt);
+            void handleMessage(Message *msg);
             void quit();
+
             double getTicks();
-            std::vector<Event> getEvents();
+            void getEvents();
             void clearData();
             void destroyFrameWork();
             void fullScreen(std::string windowName);
@@ -82,7 +100,7 @@ namespace WishEngine{
             bool getFrameCapFlag();
             int getMaxFPS();
 
-            void deleteNet(NetworkComponent *netComp);
+            void deleteNet(NetworkComponent *netComp); //Search a way to avoid having network components here
             void updateNet(NetworkComponent *netComp);
             void connectNet(NetworkComponent *netComp);
 
@@ -111,9 +129,10 @@ namespace WishEngine{
 
             void startFrame();
             void endFrame();
-            void render(GameObject &obj, double interpolation, Camera *cam, std::string window = "");
-            void renderText(GameObject &obj, double interpolation, Camera *cam, std::string window = "");
-            void renderPlainText(GameObject &obj, double interpolation, Camera *cam, std::string window = "");
+            void renderObjects(double interpolation);
+            void render(GraphicComponent *graphComp, DimensionComponent *dimComp, AnimationComponent *animComp, double interpolation, DimensionComponent *camDim, CameraComponent *camComp, std::string window = "");
+            void renderText(GraphicComponent *graphComp, DimensionComponent *dimComp, AnimationComponent *animComp, double interpolation, DimensionComponent *camDim, CameraComponent *camComp, std::string window = "");
+            void renderPlainText(GraphicComponent *graphComp, DimensionComponent *dimComp, AnimationComponent *animComp, double interpolation, DimensionComponent *camDim, CameraComponent *camComp, std::string window = "");
             void getSizeOfText(std::string text, std::string font, int &w, int &h);
     };
 }

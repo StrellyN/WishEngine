@@ -21,11 +21,11 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "AnimationComponent.hpp"
 
 namespace WishEngine{
     AnimationComponent::AnimationComponent(double x, double y, double w, double h){
-        setType(C_TYPES::ANIMATION);
+        setType("Animation");
         rect.setX(x);
         rect.setY(y);
         rect.setW(w);

@@ -21,328 +21,520 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "HppHeaders.hpp"
+#include "ObjectFactory.hpp"
 
 namespace WishEngine{
-    ObjectFactory* ObjectFactory::objFactory = nullptr;
-
     ObjectFactory::ObjectFactory(){
-
-    }
-
-    /**
-        Method to get the Object Factory instance, creating it if it doesn't exist yet.
-    **/
-    ObjectFactory* ObjectFactory::getObjectFactory(){
-        if(objFactory == nullptr){
-            objFactory = new ObjectFactory();
-        }
-        return objFactory;
+        setSystemType("OBJECTFACTORY");
     }
 
     ObjectFactory::~ObjectFactory(){
-
-    }
-
-    /**
-        Like with the cameras, this is the true way of destroying an object factory.
-        But in this case it's not because ownership, but because it's a singleton
-        class and you have to do it this way.
-    **/
-    void ObjectFactory::destroyObjectFactory(){
         clearData();
-        delete objFactory;
-        objFactory = nullptr;
+        destroySystem();
     }
 
     void ObjectFactory::clearData(){
-        for(unsigned i=0; i<objects.size(); i++){
-            objects[i].destroyComponents();
-        }
         objects.clear();
-        for(unsigned i=0; i<cameras.size(); i++){
-            cameras[i].destroyComponents();
+        for(std::map<std::string, BaseCollection*>::iterator it = componentCollections.begin(); it != componentCollections.end(); it++){
+            delete it->second;
+            it->second = nullptr;
         }
-        cameras.clear();
-        for(unsigned i=0; i<postedMessages.size(); i++){
-            delete postedMessages[i];
-            postedMessages[i] = nullptr;
+        componentCollections.clear();
+    }
+
+    void ObjectFactory::update(double dt){
+        //Send the objects and components pointer.
+        postMessage(new ObjectListMessage("OBJECTLIST", &objects));
+        postMessage(new ComponentListMessage("COMPONENTLIST", &componentCollections));
+    }
+
+    void ObjectFactory::handleMessage(Message* msg){
+        if(msg->getType() == "LOADOBJECTS"){
+            loadObjects(msg->getValue());
         }
-        postedMessages.clear();
+        else if(msg->getType() == "OBJECTDELETED"){
+            deleteObject(Utils::stringToInt(msg->getValue()));
+        }
     }
 
-    void ObjectFactory::postMessage(Message *toPost){
-        postedMessages.push_back(toPost);
+    void ObjectFactory::deleteObject(unsigned objPos){
+        //Set all the objects components as Deleted
     }
 
-    std::vector<Message*>& ObjectFactory::getMessages(){
-        return postedMessages;
+    /**
+        Method to check if an object name is already in use
+    **/
+    std::string ObjectFactory::checkObjectName(std::string &name){
+        std::string finalName = name;
+        if(finalName == ""){
+            finalName = "Object";
+        }
+        int modifier = 1;
+        for(int i=0; i<objects.size(); i++){
+            if(objects[i].getName() == finalName){
+                finalName = name;
+                finalName += Utils::intToString(modifier);
+                i = -1;
+                modifier++;
+            }
+        }
+        return finalName;
     }
 
-    void ObjectFactory::goToState(std::string stateFile){
-        postMessage(new InputMessage(M_TYPES::NEWSTATE, E_TYPES::ENULL, stateFile));
-    }
-
-    void ObjectFactory::setMaxFPS(int mFPS){
-        Framework::getFramework()->setMaxFPS(mFPS);
-    }
-
-    void ObjectFactory::setFrameCapFlag(bool frameCap){
-        Framework::getFramework()->setFrameCapFlag(frameCap);
-    }
-
-    bool ObjectFactory::getFrameCapFlag(){
-        return Framework::getFramework()->getFrameCapFlag();
-    }
-
-    int ObjectFactory::getMaxFPS(){
-        return Framework::getFramework()->getMaxFPS();
-    }
-
-
-    void ObjectFactory::createSaveState(std::string file){
-        //export to the file the structure of all the objects existing right now.
+    /**
+        Method that reads a file in search of configuration structures to create objects, windows or cameras.
+    **/
+    void ObjectFactory::loadObjects(std::string file){ //And you'd format the data map here for each object in the file
         std::fstream objectStream;
-        objectStream.open(file, std::ios::out); //Open the stream
-        for(unsigned i=0; i<objects.size(); i++){
-            objectStream << "OBJECT \n";
-            objectStream << objects[i].getEnabled() << " \n";
-            objectStream << "NAME " << objects[i].getName() << " \n";
-            for(unsigned j=0; j<objects[i].getComponents().size(); j++){
-                Component *comp = objects[i].getComponents()[j];
-                if(comp->getType() == C_TYPES::ANIMATION){
-                    AnimationComponent *aux = dynamic_cast<AnimationComponent*>(comp);
-                    objectStream << "ANIMATION \n";
-                    objectStream << aux->getEnabled() << " \n";
-                    objectStream << aux->getX() << " \n";
-                    objectStream << aux->getY() << " \n";
-                    objectStream << aux->getW() << " \n";
-                    objectStream << aux->getH() << " \n";
-                    aux = nullptr;
-                }
-                if(comp->getType() == C_TYPES::ANIMATOR){
-                    AnimatorComponent *aux = dynamic_cast<AnimatorComponent*>(comp);
-                    objectStream << "ANIMATOR \n";
-                    objectStream << aux->getEnabled() << " \n";
-                    objectStream << aux->getCurrentState() << " \n";
-                    for(std::map<std::string, AnimationState>::iterator k=aux->getStates().begin(); k!=aux->getStates().end(); k++){
-                        objectStream << "STATE \n";
-                        objectStream << "NAME " << k->first << " \n";
-                        objectStream << "TYPE 2 \n";
-                        objectStream << k->second.getReverseAnimation() << " \n";
-                        objectStream << k->second.getInitialX() << " \n";
-                        objectStream << k->second.getInitialY() << " \n";
-                        objectStream << k->second.getFrameW() << " \n";
-                        objectStream << k->second.getFrameH() << " \n";
-                        objectStream << k->second.getTextureW() << " \n";
-                        objectStream << k->second.getTextureH() << " \n";
-                        objectStream << k->second.getAnimationSpeed() << " \n";
-                        objectStream << k->second.getAnimationFrames() << " \n";
+        objectStream.open(file, std::ios::in); //Open the stream
+        if(objectStream){ //if file could be accessed
+            //Load objects and stuff
+            std::string objType;
+            while(objectStream >> objType){ //While an object, a window or a camera is read
+                if(objType == "OBJECT"){ //If you read an object
+                    unsigned objPos = 0, objId = 0;
+                    std::string compName = "", objName = "";
+                    bool objEnabled, hasName;
+
+                    //Basics of the objects
+                    objectStream >> objEnabled;
+                    objectStream >> hasName;
+                    if(hasName){
+                        objectStream >> objName;
                     }
-                    objectStream << "END \n";
-                    aux = nullptr;
-                }
-                if(comp->getType() == C_TYPES::AUDIOC){
-                    AudioComponent *aux = dynamic_cast<AudioComponent*>(comp);
-                    if(aux->getIsCurrentSong()){
-                        aux->setIsPlaying(true);
+                    objName = checkObjectName(objName);
+                    objects.emplace_back(objName, objEnabled);
+                    objPos = objects.size() - 1;
+                    objId = objects[objPos].getId();
+
+                    //Components
+                    while(objectStream >> compName){ //While you don't reach the end of the object declaration
+                        bool compEnabled;
+                        if(compName == "END"){ //If you read END, that means end of declaration so you quit the loop
+                            break;
+                        }
+                        if(compName == "ANIMATION"){
+                            double x, y, w, h;
+                            objectStream >> compEnabled;
+                            objectStream >> x;
+                            objectStream >> y;
+                            objectStream >> w;
+                            objectStream >> h;
+                            if(componentCollections.count("ANIMATION") == 0){
+                                componentCollections["ANIMATION"] = new Collection<AnimationComponent>("ANIMATION");
+                            }
+                            Collection<AnimationComponent> *col = dynamic_cast<Collection<AnimationComponent>*>(componentCollections["ANIMATION"]);
+                            unsigned result = col->addItem(AnimationComponent(x, y, w, h), objId);
+                            if(result){
+                                unsigned compPos = col->getCollection().size()-1;
+                                std::string compN = col->getCollection()[compPos].getName();
+                                objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
+                                col->getCollection()[compPos].setEnabled(compEnabled);
+                                col->getCollection()[compPos].setOwnerId(objId);
+                                col->getCollection()[compPos].setOwnerPos(objPos);
+                            }
+                            col = nullptr;
+                        }
+                        /**if(compName == "ANIMATOR"){
+                            std::string animatorStates, initialState;
+                            AnimatorComponent* newAnimator = new AnimatorComponent();
+                            objectStream >> compEnabled;
+                            objectStream >> initialState;
+                            newAnimator->setCurrentState(initialState);
+                            newAnimator->setEnabled(compEnabled);
+                            while(objectStream >> animatorStates){
+                                if(animatorStates == "END"){ //If you read END, that means end of declaration, so you quit the loop
+                                    break;
+                                }
+                                if(animatorStates == "STATE"){
+                                    std::string stateName = "State";
+                                    AnimationState newState;
+                                    std::string stateVals;
+                                    int stateType;
+                                    objectStream >> stateVals; //Get the first value
+
+                                    if(stateVals == "NAME"){ //If its the name we set the name and advance to the next value
+                                        objectStream >> stateName;
+                                        objectStream >> stateVals;
+                                    }
+                                    if(stateVals == "TYPE"){ //If current value is type
+                                        objectStream >> stateType; //We load the type
+                                    }
+                                    if(stateType == 2){ //If type is 2 we load all the attributes
+                                        bool revAnim;
+                                        double inix, iniy, frw, frh, texw, texh, animspeed, animframes;
+                                        objectStream >> revAnim;
+                                        objectStream >> inix;
+                                        objectStream >> iniy;
+                                        objectStream >> frw;
+                                        objectStream >> frh;
+                                        objectStream >> texw;
+                                        objectStream >> texh;
+                                        objectStream >> animspeed;
+                                        objectStream >> animframes;
+                                        newState = AnimationState(revAnim, inix, iniy, frw, frh, texw, texh, animspeed, animframes);
+                                    }
+                                    newAnimator->addAnimationState(stateName, newState); //We add the state
+                                }
+                            }
+                            newObject.addComponent(newAnimator);
+                            newAnimator = nullptr;
+                        }**/
+                        /**if(compName == "AUDIO"){
+                            std::string audioFile, name="Audio";
+                            bool isSong, isPlaying;
+                            int loops;
+                            objectStream >> compEnabled;
+                            objectStream >> name;
+                            objectStream >> audioFile;
+                            objectStream >> isSong;
+                            objectStream >> isPlaying;
+                            objectStream >> loops;
+                            AudioComponent *aux = new AudioComponent(audioFile, isSong, isPlaying, loops);
+                            aux->setEnabled(compEnabled);
+                            newObject.addComponent(aux, name);
+                            aux = nullptr;
+                        }**/
+                        if(compName == "CAMERA"){
+                            double x, y;
+                            int prior;
+                            objectStream >> compEnabled;
+                            objectStream >> prior;
+                            objectStream >> x;
+                            objectStream >> y;
+                            if(componentCollections.count("CAMERA") == 0){
+                                componentCollections["CAMERA"] = new Collection<CameraComponent>("CAMERA");
+                            }
+                            Collection<CameraComponent> *col = dynamic_cast<Collection<CameraComponent>*>(componentCollections["CAMERA"]);
+                            unsigned result = col->addItem(CameraComponent(prior, x, y), objId);
+                            if(result){
+                                unsigned compPos = col->getCollection().size()-1;
+                                std::string compN = col->getCollection()[compPos].getName();
+                                objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
+                                col->getCollection()[compPos].setEnabled(compEnabled);
+                                col->getCollection()[compPos].setOwnerId(objId);
+                                col->getCollection()[compPos].setOwnerPos(objPos);
+                            }
+                            col = nullptr;
+                        }
+                        if(compName == "DIMENSION"){
+                            double x, y, w, h;
+                            objectStream >> compEnabled;
+                            objectStream >> x;
+                            objectStream >> y;
+                            objectStream >> w;
+                            objectStream >> h;
+                            if(componentCollections.count("DIMENSION") == 0){
+                                componentCollections["DIMENSION"] = new Collection<DimensionComponent>("DIMENSION");
+                            }
+                            Collection<DimensionComponent> *col = dynamic_cast<Collection<DimensionComponent>*>(componentCollections["DIMENSION"]);
+                            unsigned result = col->addItem(DimensionComponent(x, y, w, h), objId);
+                            if(result){
+                                unsigned compPos = col->getCollection().size()-1;
+                                std::string compN = col->getCollection()[compPos].getName();
+                                objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
+                                col->getCollection()[compPos].setEnabled(compEnabled);
+                                col->getCollection()[compPos].setOwnerId(objId);
+                                col->getCollection()[compPos].setOwnerPos(objPos);
+                            }
+                            col = nullptr;
+                        }
+                        /**if(compName == "EMITEDFORCE"){
+                            double x, y, force;
+                            objectStream >> compEnabled;
+                            objectStream >> x;
+                            objectStream >> y;
+                            objectStream >> force;
+                            EmittedForceComponent *aux = new EmittedForceComponent(x, y, force);
+                            aux->setEnabled(compEnabled);
+                            newObject.addComponent(aux);
+                            aux = nullptr;
+                        }**/
+                        if(compName == "GRAPHIC"){
+                            int type;
+                            bool isU;
+                            objectStream >> compEnabled;
+                            objectStream >> isU;
+                            objectStream >> type;
+                            if(type == 1){
+                                if(componentCollections.count("GRAPHIC") == 0){
+                                    componentCollections["GRAPHIC"] = new Collection<GraphicComponent>("GRAPHIC");
+                                }
+                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections["GRAPHIC"]);
+                                unsigned result = col->addItem(GraphicComponent(isU), objId);
+                                if(result){
+                                    unsigned compPos = col->getCollection().size()-1;
+                                    std::string compN = col->getCollection()[compPos].getName();
+                                    objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
+                                    col->getCollection()[compPos].setEnabled(compEnabled);
+                                    col->getCollection()[compPos].setOwnerId(objId);
+                                    col->getCollection()[compPos].setOwnerPos(objPos);
+                                }
+                                col = nullptr;
+                            }
+                            else if(type == 2){
+                                int r, g, b, a, pr;
+                                objectStream >> r;
+                                objectStream >> g;
+                                objectStream >> b;
+                                objectStream >> a;
+                                objectStream >> pr;
+                                if(componentCollections.count("GRAPHIC") == 0){
+                                    componentCollections["GRAPHIC"] = new Collection<GraphicComponent>("GRAPHIC");
+                                }
+                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections["GRAPHIC"]);
+                                unsigned result = col->addItem(GraphicComponent(isU, r, g, b, a, pr), objId);
+                                if(result){
+                                    unsigned compPos = col->getCollection().size()-1;
+                                    std::string compN = col->getCollection()[compPos].getName();
+                                    objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
+                                    col->getCollection()[compPos].setEnabled(compEnabled);
+                                    col->getCollection()[compPos].setOwnerId(objId);
+                                    col->getCollection()[compPos].setOwnerPos(objPos);
+                                }
+                                col = nullptr;
+                            }
+                            else if(type == 3){
+                                std::string textureFile;
+                                int a, pr;
+                                objectStream >> textureFile;
+                                objectStream >> a;
+                                objectStream >> pr;
+                                if(componentCollections.count("GRAPHIC") == 0){
+                                    componentCollections["GRAPHIC"] = new Collection<GraphicComponent>("GRAPHIC");
+                                }
+                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections["GRAPHIC"]);
+                                unsigned result = col->addItem(GraphicComponent(isU, textureFile, a, pr), objId);
+                                if(result){
+                                    unsigned compPos = col->getCollection().size()-1;
+                                    std::string compN = col->getCollection()[compPos].getName();
+                                    objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
+                                    col->getCollection()[compPos].setEnabled(compEnabled);
+                                    col->getCollection()[compPos].setOwnerId(objId);
+                                    col->getCollection()[compPos].setOwnerPos(objPos);
+                                }
+                                col = nullptr;
+                            }
+                            else if(type == 4){
+                                std::string text, font;
+                                bool isPlain;
+                                int maxlines, linespacing, fontsize, r, g, b, a, priority;
+                                std::string command;
+                                objectStream >> command;
+                                if(command == "BEGIN"){
+                                    objectStream >> command;
+                                    while(command != "END"){
+                                        text += command;
+                                        objectStream >> command;
+                                        if(command != "END"){
+                                            text += " ";
+                                        }
+                                    }
+                                }
+                                objectStream >> font;
+                                objectStream >> maxlines;
+                                objectStream >> linespacing;
+                                objectStream >> fontsize;
+                                objectStream >> r;
+                                objectStream >> g;
+                                objectStream >> b;
+                                objectStream >> a;
+                                objectStream >> priority;
+                                objectStream >> isPlain;
+                                if(componentCollections.count("GRAPHIC") == 0){
+                                    componentCollections["GRAPHIC"] = new Collection<GraphicComponent>("GRAPHIC");
+                                }
+                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections["GRAPHIC"]);
+                                unsigned result = col->addItem(GraphicComponent(isU, text, font, maxlines, linespacing, fontsize, r, g, b, a, priority, isPlain), objId);
+                                if(result){
+                                    unsigned compPos = col->getCollection().size()-1;
+                                    std::string compN = col->getCollection()[compPos].getName();
+                                    objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
+                                    col->getCollection()[compPos].setEnabled(compEnabled);
+                                    col->getCollection()[compPos].setOwnerId(objId);
+                                    col->getCollection()[compPos].setOwnerPos(objPos);
+                                }
+                                col = nullptr;
+                            }
+                        }
+                        /**if(compName == "GRAVITY"){
+                            double x, y, force;
+                            objectStream >> compEnabled;
+                            objectStream >> x;
+                            objectStream >> y;
+                            objectStream >> force;
+                            GravityComponent *aux = new GravityComponent(x, y, force);
+                            aux->setEnabled(compEnabled);
+                            newObject.addComponent(aux);
+                            aux = nullptr;
+                        }**/
+                        /**if(compName == "HITBOX"){
+                            double offx, offy, w, h;
+                            bool checkForColl;
+                            objectStream >> compEnabled;
+                            objectStream >> offx;
+                            objectStream >> offy;
+                            objectStream >> w;
+                            objectStream >> h;
+                            objectStream >> checkForColl;
+                            HitboxComponent *aux = new HitboxComponent(offx, offy, w, h, checkForColl);
+                            aux->setEnabled(compEnabled);
+                            newObject.addComponent(aux);
+                            aux = nullptr;
+                        }**/
+                        if(compName == "NETWORK"){
+                            objectStream >> compEnabled;
+                            bool isS, isT;
+                            unsigned maxPacketSize, elapsedTime, maxConnections;
+                            int type;
+                            objectStream >> type;
+                            if(type == 0){
+                                if(componentCollections.count("NETWORK") == 0){
+                                    componentCollections["NETWORK"] = new Collection<NetworkComponent>("NETWORK");
+                                }
+                                Collection<NetworkComponent> *col = dynamic_cast<Collection<NetworkComponent>*>(componentCollections["NETWORK"]);
+                                unsigned result = col->addItem(NetworkComponent(), objId);
+                                if(result){
+                                    unsigned compPos = col->getCollection().size()-1;
+                                    std::string compN = col->getCollection()[compPos].getName();
+                                    objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
+                                    col->getCollection()[compPos].setEnabled(compEnabled);
+                                    col->getCollection()[compPos].setOwnerId(objId);
+                                    col->getCollection()[compPos].setOwnerPos(objPos);
+                                }
+                                col = nullptr;
+                            }
+                            else if(type == 1){
+                                objectStream >> isS;
+                                objectStream >> isT;
+                                objectStream >> maxPacketSize;
+                                objectStream >> elapsedTime;
+                                objectStream >> maxConnections;
+                                if(componentCollections.count("NETWORK") == 0){
+                                    componentCollections["NETWORK"] = new Collection<NetworkComponent>("NETWORK");
+                                }
+                                Collection<NetworkComponent> *col = dynamic_cast<Collection<NetworkComponent>*>(componentCollections["NETWORK"]);
+                                unsigned result = col->addItem(NetworkComponent(isS, isT, maxPacketSize, elapsedTime, maxConnections), objId);
+                                if(result){
+                                    unsigned compPos = col->getCollection().size()-1;
+                                    std::string compN = col->getCollection()[compPos].getName();
+                                    objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
+                                    col->getCollection()[compPos].setEnabled(compEnabled);
+                                    col->getCollection()[compPos].setOwnerId(objId);
+                                    col->getCollection()[compPos].setOwnerPos(objPos);
+                                }
+                                col = nullptr;
+                            }
+                        }
+                        /**if(compName == "PHYSICS"){
+                            objectStream >> compEnabled;
+                            PhysicsComponent *aux = new PhysicsComponent();
+                            aux->setEnabled(compEnabled);
+                            newObject.addComponent(aux);
+                            aux = nullptr;
+                            VelocityComponent *aux2 = new VelocityComponent();
+                            aux2->setEnabled(compEnabled);
+                            newObject.addComponent(aux2);
+                            aux2 = nullptr;
+                        }**/
+                        /**if(compName == "PROPERTIES"){
+                            objectStream >> compEnabled;
+                            PropertiesComponent *aux = new PropertiesComponent();
+                            aux->setEnabled(compEnabled);
+                            std::string property;
+                            objectStream >> property;
+                            while(property != "END"){
+                                aux->addProperty(property);
+                                objectStream >> property;
+                            }
+                            newObject.addComponent(aux);
+                            aux = nullptr;
+                        }**/
+                        /**if(compName == "PUSHABLE"){
+                            objectStream >> compEnabled;
+                            PushableComponent *aux = new PushableComponent();
+                            aux->setEnabled(compEnabled);
+                            newObject.addComponent(aux);
+                            aux = nullptr;
+                        }**/
+                        if(compName == "SCRIPT"){
+                            std::string name;
+                            std::string args = "";
+                            objectStream >> compEnabled;
+                            objectStream >> name;
+                            std::getline(objectStream, args);
+                            if(componentCollections.count("SCRIPT") == 0){
+                                componentCollections["SCRIPT"] = new Collection<BaseCollection*>("SCRIPT");
+                            }
+                            Collection<BaseCollection*> *col = dynamic_cast<Collection<BaseCollection*>*>(componentCollections["SCRIPT"]);
+                            postMessage(new CreateScriptMessage(col, &objects[objPos], objPos, compEnabled, name, args));
+                            col = nullptr;
+                        }
+                        if(compName == "INPUT"){
+                            objectStream >> compEnabled;
+                            InputComponent *aux = new InputComponent();
+                            if(componentCollections.count("INPUT") == 0){
+                                componentCollections["INPUT"] = new Collection<InputComponent>("INPUT");
+                            }
+                            Collection<InputComponent> *col = dynamic_cast<Collection<InputComponent>*>(componentCollections["INPUT"]);
+                            unsigned result = col->addItem(InputComponent(), objId);
+                            if(result){
+                                unsigned compPos = col->getCollection().size()-1;
+                                std::string compN = col->getCollection()[compPos].getName();
+                                objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
+                                col->getCollection()[compPos].setEnabled(compEnabled);
+                                col->getCollection()[compPos].setOwnerId(objId);
+                                col->getCollection()[compPos].setOwnerPos(objPos);
+                            }
+                            col = nullptr;
+                        }
+                        /**if(compName == "TIMER"){
+                            double counter, maxTime;
+                            bool countDown, paused;
+                            objectStream >> compEnabled;
+                            objectStream >> counter;
+                            objectStream >> maxTime;
+                            objectStream >> countDown;
+                            objectStream >> paused;
+                            TimerComponent *aux = new TimerComponent(counter, maxTime, countDown, paused);
+                            aux->setEnabled(compEnabled);
+                            newObject.addComponent(aux);
+                            aux = nullptr;
+                        }**/
                     }
-                    objectStream << "AUDIO \n";
-                    objectStream << aux->getEnabled() << " \n";
-                    objectStream << comp->getName() << " \n";
-                    objectStream << aux->getAudioFile() << " \n";
-                    objectStream << aux->getIsSong() << " \n";
-                    objectStream << aux->getIsPlaying() << " \n";
-                    objectStream << aux->getLoops() << " \n";
-                    aux->setIsPlaying(false);
-                    aux = nullptr;
                 }
-                if(comp->getType() == C_TYPES::DIMENTION){
-                    DimentionComponent *aux = dynamic_cast<DimentionComponent*>(comp);
-                    objectStream << "DIMENTION \n";
-                    objectStream << aux->getEnabled() << " \n";
-                    objectStream << aux->getX() << " \n";
-                    objectStream << aux->getY() << " \n";
-                    objectStream << aux->getW() << " \n";
-                    objectStream << aux->getH() << " \n";
-                    aux = nullptr;
-                }
-                if(comp->getType() == C_TYPES::EMITEDFORCE){
-                    EmittedForceComponent *aux = dynamic_cast<EmittedForceComponent*>(comp);
-                    objectStream << "EMITEDFORCE \n";
-                    objectStream << aux->getEnabled() << " \n";
-                    objectStream << aux->getX() << " \n";
-                    objectStream << aux->getY() << " \n";
-                    objectStream << aux->getForce() << " \n";
-                    aux = nullptr;
-                }
-                if(comp->getType() == C_TYPES::GRAPHIC){
-                    GraphicComponent *aux = dynamic_cast<GraphicComponent*>(comp);
-                    objectStream << "GRAPHIC \n";
-                    objectStream << aux->getEnabled() << " \n";
-                    if(!aux->getIsTexture() && !aux->getIsText()){
-                        objectStream << "2 \n";
-                        objectStream << aux->getR() << " \n";
-                        objectStream << aux->getG() << " \n";
-                        objectStream << aux->getB() << " \n";
-                        objectStream << aux->getAlpha() << " \n";
-                        objectStream << aux->getPriority() << " \n";
+                if(objType == "WINDOW"){ //If you read a window
+                    std::string title, name, icon;
+                    int x, y, w, h;
+                    std::string command;
+                    objectStream >> command;
+                    if(command == "BEGIN"){
+                        objectStream >> command;
+                        while(command != "END"){
+                            title += command;
+                            objectStream >> command;
+                            if(command != "END"){
+                                title += " ";
+                            }
+                        }
                     }
-                    else if(aux->getIsTexture() && !aux->getIsText()){
-                        objectStream << "3 \n";
-                        objectStream << aux->getTextureFile() << " \n";
-                        objectStream << aux->getAlpha() << " \n";
-                        objectStream << aux->getPriority() << " \n";
-                    }
-                    else if(aux->getIsText()){
-                        objectStream << "4 \n";
-                        objectStream << "BEGIN " << aux->getText().getText() << " END \n";
-                        objectStream << aux->getText().getFont() << " \n";
-                        objectStream << aux->getText().getMaxLines() << " \n";
-                        objectStream << aux->getText().getLineSpacing() << " \n";
-                        objectStream << aux->getText().getIndividualCharacterSize()[0] << " \n";
-                        objectStream << aux->getR() << " \n";
-                        objectStream << aux->getG() << " \n";
-                        objectStream << aux->getB() << " \n";
-                        objectStream << aux->getAlpha() << " \n";
-                        objectStream << aux->getPriority() << " \n";
-                        objectStream << aux->getText().getIsPlain() << " \n";
-                    }
-                    aux = nullptr;
+                    objectStream >> name;
+                    objectStream >> icon;
+                    objectStream >> x;
+                    objectStream >> y;
+                    objectStream >> w;
+                    objectStream >> h;
+                    postMessage(new CreateWindowMessage(title, name, icon, x, y, w, h));
                 }
-                if(comp->getType() == C_TYPES::GRAVITY){
-                    GravityComponent *aux = dynamic_cast<GravityComponent*>(comp);
-                    objectStream << "GRAVITY \n";
-                    objectStream << aux->getEnabled() << " \n";
-                    objectStream << aux->getX() << " \n";
-                    objectStream << aux->getY() << " \n";
-                    objectStream << aux->getForce() << " \n";
-                    aux = nullptr;
-                }
-                if(comp->getType() == C_TYPES::HITBOX){
-                    HitboxComponent *aux = dynamic_cast<HitboxComponent*>(comp);
-                    objectStream << "HITBOX \n";
-                    objectStream << aux->getEnabled() << " \n";
-                    objectStream << aux->getOffsetX() << " \n";
-                    objectStream << aux->getOffsetY() << " \n";
-                    objectStream << aux->getW() << " \n";
-                    objectStream << aux->getH() << " \n";
-                    objectStream << aux->getCheckForCollisions() << " \n";
-                    aux = nullptr;
-                }
-                if(comp->getType() == C_TYPES::PHYSICS){
-                    objectStream << "PHYSICS \n";
-                    objectStream << comp->getEnabled() << " \n";
-                }
-                if(comp->getType() == C_TYPES::PLAYER){
-                    objectStream << "PLAYER \n";
-                    objectStream << comp->getEnabled() << " \n";
-                }
-                if(comp->getType() == C_TYPES::PUSHABLE){
-                    objectStream << "PUSHABLE \n";
-                    objectStream << comp->getEnabled() << " \n";
-                }
-                if(comp->getType() == C_TYPES::SCRIPT){
-                    objectStream << "SCRIPT \n";
-                    objectStream << comp->getEnabled() << " \n";
-                    objectStream << comp->getName() << " \n";
-                }
-                if(comp->getType() == C_TYPES::SOLID){
-                    objectStream << "SOLID \n";
-                    objectStream << comp->getEnabled() << " \n";
-                }
-                if(comp->getType() == C_TYPES::UI){
-                    objectStream << "UI \n";
-                    objectStream << comp->getEnabled() << " \n";
-                }
-                if(comp->getType() == C_TYPES::INPUTC){
-                    objectStream << "INPUT \n";
-                    objectStream << comp->getEnabled() << " \n";
-                }
-                if(comp->getType() == C_TYPES::TIMERC){
-                    TimerComponent *aux = dynamic_cast<TimerComponent*>(comp);
-                    objectStream << "TIMER \n";
-                    objectStream << aux->getEnabled() << " \n";
-                    objectStream << aux->getCounter() << " \n";
-                    objectStream << aux->getMaxTime() << " \n";
-                    objectStream << aux->getCountDown() << " \n";
-                    objectStream << aux->getPaused() << " \n";
-                    aux = nullptr;
-                }
-                comp = nullptr;
-            }
-            objectStream << "END \n";
-        }
-        for(unsigned i=0; i<cameras.size(); i++){
-            objectStream << "CAMERA \n";
-            objectStream << cameras[i].getEnabled() << " \n";
-            objectStream << cameras[i].getName() << " \n";
-            for(unsigned j=0; j<cameras[i].getComponents().size(); j++){
-                Component* comp = cameras[i].getComponents()[j];
-                if(comp->getType() == C_TYPES::DIMENTION){
-                    DimentionComponent *dim = dynamic_cast<DimentionComponent*>(comp);
-                    objectStream << "DIMENTION \n";
-                    objectStream << dim->getEnabled() << " \n";
-                    objectStream << dim->getX() << " \n";
-                    objectStream << dim->getY() << " \n";
-                    objectStream << dim->getW() << " \n";
-                    objectStream << dim->getH() << " \n";
-                    dim = nullptr;
-                }
-                if(comp->getType() == C_TYPES::SCRIPT){
-                    objectStream << "SCRIPT \n";
-                    objectStream << comp->getEnabled() << " \n";
-                    objectStream << comp->getName() << " \n";
-                }
-                if(comp->getType() == C_TYPES::CAMERA){
-                    CameraComponent *dim = dynamic_cast<CameraComponent*>(comp);
-                    objectStream << "CAMERACOMP \n";
-                    objectStream << dim->getEnabled() << " \n";
-                    objectStream << dim->getX() << " \n";
-                    objectStream << dim->getY() << " \n";
-                    dim = nullptr;
-                }
-                if(comp->getType() == C_TYPES::TIMERC){
-                    TimerComponent *dim = dynamic_cast<TimerComponent*>(comp);
-                    objectStream << "TIMER \n";
-                    objectStream << dim->getEnabled() << " \n";
-                    objectStream << dim->getCounter() << " \n";
-                    objectStream << dim->getMaxTime() << " \n";
-                    objectStream << dim->getCountDown() << " \n";
-                    objectStream << dim->getPaused() << " \n";
-                    dim = nullptr;
-                }
-                comp = nullptr;
-            }
-            objectStream << "END \n";
-        }
-        for(unsigned i=0; i<Framework::getFramework()->getWindowCount(); i++){
-            std::string wName = Framework::getFramework()->getWindowName(i);
-            if(wName != "mainWindow"){
-                int x, y, w, h;
-                Framework::getFramework()->getWindowSize(wName, w, h);
-                Framework::getFramework()->getWindowPosition(wName, x, y);
-                objectStream << "WINDOW \n";
-                objectStream << "BEGIN " << Framework::getFramework()->getWindowTitle(wName) << " END \n";
-                objectStream << wName << " \n";
-                objectStream << x << " \n";
-                objectStream << y << " \n";
-                objectStream << w << " \n";
-                objectStream << h << " \n";
-                objectStream << "END \n";
             }
         }
         objectStream.close();
     }
 
-    void ObjectFactory::loadSaveState(std::string file){
-        postMessage(new InputMessage(M_TYPES::LOADSTATE, E_TYPES::ENULL, file));
-    }
-
     /**
         Method that reads a string in search of a configuration structure to create an object, a window or a camera.
     **/
-    void ObjectFactory::createObject(std::string data){
+    /**void ObjectFactory::createObject(std::string data){
         std::stringstream objectStream(data);
         std::string objType, objName;
         while(objectStream >> objType){ //While an object, a window or a camera is read
@@ -441,7 +633,7 @@ namespace WishEngine{
                         objectStream >> y;
                         objectStream >> w;
                         objectStream >> h;
-                        DimentionComponent *aux = new DimentionComponent(x, y, w, h);
+                        DimensionComponent *aux = new DimensionComponent(x, y, w, h);
                         aux->setEnabled(compEnabled);
                         newObject.addComponent(aux);
                         aux = nullptr;
@@ -679,7 +871,7 @@ namespace WishEngine{
                         objectStream >> y;
                         objectStream >> w;
                         objectStream >> h;
-                        DimentionComponent *aux = new DimentionComponent(x, y, w, h);
+                        DimensionComponent *aux = new DimensionComponent(x, y, w, h);
                         aux->setEnabled(compEnabled);
                         newCamera.addComponent(aux);
                         aux = nullptr;
@@ -725,449 +917,42 @@ namespace WishEngine{
             }
         }
         objectStream.clear();
-    }
-
-    /**
-        Method that reads a file in search of configuration structures to create objects, windows or cameras.
-    **/
-    void ObjectFactory::createObjects(std::string file){ //And you'd format the data map here for each object in the file
-        std::fstream objectStream;
-        objectStream.open(file, std::ios::in); //Open the stream
-        if(objectStream){ //if file could be accessed
-            //Load objects and stuff
-            std::string objType, objName;
-            while(objectStream >> objType){ //While an object, a window or a camera is read
-                if(objType == "OBJECT"){ //If you read an object
-                    std::string compName;
-                    bool objEnabled;
-                    GameObject newObject = GameObject();
-                    objectStream >> objEnabled;
-                    newObject.setEnabled(objEnabled);
-                    while(objectStream >> compName){ //While you don't reach the end of the object declaration
-                        bool compEnabled;
-                        if(compName == "END"){ //If you read END, that means end of declaration so you quit the loop
-                            break;
-                        }
-                        if(compName == "NAME"){
-                            std::string strValue;
-                            objectStream >> strValue;
-                            newObject.setName(strValue);
-                        }
-                        if(compName == "ANIMATION"){
-                            double x, y, w, h;
-                            objectStream >> compEnabled;
-                            objectStream >> x;
-                            objectStream >> y;
-                            objectStream >> w;
-                            objectStream >> h;
-                            AnimationComponent *aux = new AnimationComponent(x, y, w, h);
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "ANIMATOR"){
-                            std::string animatorStates, initialState;
-                            AnimatorComponent* newAnimator = new AnimatorComponent();
-                            objectStream >> compEnabled;
-                            objectStream >> initialState;
-                            newAnimator->setCurrentState(initialState);
-                            newAnimator->setEnabled(compEnabled);
-                            while(objectStream >> animatorStates){
-                                if(animatorStates == "END"){ //If you read END, that means end of declaration, so you quit the loop
-                                    break;
-                                }
-                                if(animatorStates == "STATE"){
-                                    std::string stateName = "State";
-                                    AnimationState newState;
-                                    std::string stateVals;
-                                    int stateType;
-                                    objectStream >> stateVals; //Get the first value
-
-                                    if(stateVals == "NAME"){ //If its the name we set the name and advance to the next value
-                                        objectStream >> stateName;
-                                        objectStream >> stateVals;
-                                    }
-                                    if(stateVals == "TYPE"){ //If current value is type
-                                        objectStream >> stateType; //We load the type
-                                    }
-                                    if(stateType == 2){ //If type is 2 we load all the attributes
-                                        bool revAnim;
-                                        double inix, iniy, frw, frh, texw, texh, animspeed, animframes;
-                                        objectStream >> revAnim;
-                                        objectStream >> inix;
-                                        objectStream >> iniy;
-                                        objectStream >> frw;
-                                        objectStream >> frh;
-                                        objectStream >> texw;
-                                        objectStream >> texh;
-                                        objectStream >> animspeed;
-                                        objectStream >> animframes;
-                                        newState = AnimationState(revAnim, inix, iniy, frw, frh, texw, texh, animspeed, animframes);
-                                    }
-                                    newAnimator->addAnimationState(stateName, newState); //We add the state
-                                }
-                            }
-                            newObject.addComponent(newAnimator);
-                            newAnimator = nullptr;
-                        }
-                        if(compName == "AUDIO"){
-                            std::string audioFile, name="Audio";
-                            bool isSong, isPlaying;
-                            int loops;
-                            objectStream >> compEnabled;
-                            objectStream >> name;
-                            objectStream >> audioFile;
-                            objectStream >> isSong;
-                            objectStream >> isPlaying;
-                            objectStream >> loops;
-                            AudioComponent *aux = new AudioComponent(audioFile, isSong, isPlaying, loops);
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux, name);
-                            aux = nullptr;
-                        }
-                        if(compName == "DIMENTION"){
-                            double x, y, w, h;
-                            objectStream >> compEnabled;
-                            objectStream >> x;
-                            objectStream >> y;
-                            objectStream >> w;
-                            objectStream >> h;
-                            DimentionComponent *aux = new DimentionComponent(x, y, w, h);
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "EMITEDFORCE"){
-                            double x, y, force;
-                            objectStream >> compEnabled;
-                            objectStream >> x;
-                            objectStream >> y;
-                            objectStream >> force;
-                            EmittedForceComponent *aux = new EmittedForceComponent(x, y, force);
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "GRAPHIC"){
-                            int type;
-                            objectStream >> compEnabled;
-                            objectStream >> type;
-                            if(type == 1){
-                                GraphicComponent *aux = new GraphicComponent();
-                                aux->setEnabled(compEnabled);
-                                newObject.addComponent(aux);
-                                aux = nullptr;
-                            }
-                            if(type == 2){
-                                int r, g, b, a, pr;
-                                objectStream >> r;
-                                objectStream >> g;
-                                objectStream >> b;
-                                objectStream >> a;
-                                objectStream >> pr;
-                                GraphicComponent *aux = new GraphicComponent(r, g, b, a, pr);
-                                aux->setEnabled(compEnabled);
-                                newObject.addComponent(aux);
-                                aux = nullptr;
-                            }
-                            if(type == 3){
-                                std::string textureFile;
-                                int a, pr;
-                                objectStream >> textureFile;
-                                objectStream >> a;
-                                objectStream >> pr;
-                                GraphicComponent *aux = new GraphicComponent(textureFile, a, pr);
-                                aux->setEnabled(compEnabled);
-                                newObject.addComponent(aux);
-                                aux = nullptr;
-                            }
-                            if(type == 4){
-                                std::string text, font;
-                                bool isPlain;
-                                int maxlines, linespacing, fontsize, r, g, b, a, priority;
-                                std::string command;
-                                objectStream >> command;
-                                if(command == "BEGIN"){
-                                    objectStream >> command;
-                                    while(command != "END"){
-                                        text += command;
-                                        objectStream >> command;
-                                        if(command != "END"){
-                                            text += " ";
-                                        }
-                                    }
-                                }
-                                objectStream >> font;
-                                objectStream >> maxlines;
-                                objectStream >> linespacing;
-                                objectStream >> fontsize;
-                                objectStream >> r;
-                                objectStream >> g;
-                                objectStream >> b;
-                                objectStream >> a;
-                                objectStream >> priority;
-                                objectStream >> isPlain;
-                                GraphicComponent *aux = new GraphicComponent(text, font, maxlines, linespacing, fontsize, r, g, b, a, priority, isPlain);
-                                aux->setEnabled(compEnabled);
-                                newObject.addComponent(aux);
-                                aux = nullptr;
-                            }
-                        }
-                        if(compName == "GRAVITY"){
-                            double x, y, force;
-                            objectStream >> compEnabled;
-                            objectStream >> x;
-                            objectStream >> y;
-                            objectStream >> force;
-                            GravityComponent *aux = new GravityComponent(x, y, force);
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "HITBOX"){
-                            double offx, offy, w, h;
-                            bool checkForColl;
-                            objectStream >> compEnabled;
-                            objectStream >> offx;
-                            objectStream >> offy;
-                            objectStream >> w;
-                            objectStream >> h;
-                            objectStream >> checkForColl;
-                            HitboxComponent *aux = new HitboxComponent(offx, offy, w, h, checkForColl);
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "NETWORK"){
-                            NetworkComponent *aux = nullptr;
-                            objectStream >> compEnabled;
-                            bool isS, isT;
-                            unsigned maxPacketSize, elapsedTime, maxConnections;
-                            int type;
-                            objectStream >> type;
-                            if(type == 0){
-                                aux = new NetworkComponent();
-                            }
-                            else if(type == 1){
-                                objectStream >> isS;
-                                objectStream >> isT;
-                                objectStream >> maxPacketSize;
-                                objectStream >> elapsedTime;
-                                objectStream >> maxConnections;
-                                aux = new NetworkComponent(isS, isT, maxPacketSize, elapsedTime, maxConnections);
-                            }
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "PHYSICS"){
-                            objectStream >> compEnabled;
-                            PhysicsComponent *aux = new PhysicsComponent();
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                            VelocityComponent *aux2 = new VelocityComponent();
-                            aux2->setEnabled(compEnabled);
-                            newObject.addComponent(aux2);
-                            aux2 = nullptr;
-                        }
-                        if(compName == "PLAYER"){
-                            objectStream >> compEnabled;
-                            PlayerComponent *aux = new PlayerComponent();
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "PROPERTIES"){
-                            objectStream >> compEnabled;
-                            PropertiesComponent *aux = new PropertiesComponent();
-                            aux->setEnabled(compEnabled);
-                            std::string property;
-                            objectStream >> property;
-                            while(property != "END"){
-                                aux->addProperty(property);
-                                objectStream >> property;
-                            }
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "PUSHABLE"){
-                            objectStream >> compEnabled;
-                            PushableComponent *aux = new PushableComponent();
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "SCRIPT"){
-                            std::string name;
-                            std::string args = "";
-                            objectStream >> compEnabled;
-                            objectStream >> name;
-                            std::getline(objectStream, args);
-                            ScriptComponent* newScript = getScript(name, args);
-                            if(newScript != nullptr){
-                                newScript->setEnabled(compEnabled);
-                                newObject.addComponent(newScript, name);
-                            }
-                            newScript = nullptr;
-                        }
-                        if(compName == "SOLID"){
-                            objectStream >> compEnabled;
-                            SolidComponent *aux = new SolidComponent();
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "UI"){
-                            objectStream >> compEnabled;
-                            UIComponent *aux = new UIComponent();
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "INPUT"){
-                            objectStream >> compEnabled;
-                            InputComponent *aux = new InputComponent();
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "TIMER"){
-                            double counter, maxTime;
-                            bool countDown, paused;
-                            objectStream >> compEnabled;
-                            objectStream >> counter;
-                            objectStream >> maxTime;
-                            objectStream >> countDown;
-                            objectStream >> paused;
-                            TimerComponent *aux = new TimerComponent(counter, maxTime, countDown, paused);
-                            aux->setEnabled(compEnabled);
-                            newObject.addComponent(aux);
-                            aux = nullptr;
-                        }
-                    }
-                    insertObject(newObject);
-                }
-                if(objType == "WINDOW"){ //If you read a window
-                    std::string title, name, icon;
-                    int x, y, w, h;
-                    std::string command;
-                    objectStream >> command;
-                    if(command == "BEGIN"){
-                        objectStream >> command;
-                        while(command != "END"){
-                            title += command;
-                            objectStream >> command;
-                            if(command != "END"){
-                                title += " ";
-                            }
-                        }
-                    }
-                    objectStream >> name;
-                    objectStream >> icon;
-                    objectStream >> x;
-                    objectStream >> y;
-                    objectStream >> w;
-                    objectStream >> h;
-                    Framework::getFramework()->createWindow(title, name, icon, x, y, w, h);
-                }
-                //Make the cameras building thing
-                if(objType == "CAMERA"){
-                    bool camEnabled;
-                    std::string compName, camName;
-                    Camera newCamera = Camera();
-                    objectStream >> camEnabled;
-                    newCamera.setEnabled(camEnabled);
-                    objectStream >> camName;
-                    newCamera.setName(camName);
-                    while(objectStream >> compName){ //While you don't reach the end of the object declaration
-                        bool compEnabled;
-                        if(compName == "END"){ //If you read END, that means end of declaration so you quit the loop
-                            break;
-                        }
-                        if(compName == "DIMENTION"){
-                            double x, y, w, h;
-                            objectStream >> compEnabled;
-                            objectStream >> x;
-                            objectStream >> y;
-                            objectStream >> w;
-                            objectStream >> h;
-                            DimentionComponent *aux = new DimentionComponent(x, y, w, h);
-                            aux->setEnabled(compEnabled);
-                            newCamera.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "SCRIPT"){
-                            std::string name;
-                            std::string args;
-                            objectStream >> compEnabled;
-                            objectStream >> name;
-                            std::getline(objectStream, args);
-                            ScriptComponent* newScript = getScript(name, args);
-                            if(newScript != nullptr){
-                                newScript->setEnabled(compEnabled);
-                                newCamera.addComponent(newScript, name);
-                            }
-                            newScript = nullptr;
-                        }
-                        if(compName == "CAMERACOMP"){
-                            double x, y;
-                            objectStream >> compEnabled;
-                            objectStream >> x;
-                            objectStream >> y;
-                            CameraComponent *aux = new CameraComponent(x, y);
-                            aux->setEnabled(compEnabled);
-                            newCamera.addComponent(aux);
-                            aux = nullptr;
-                        }
-                        if(compName == "TIMER"){
-                            double counter, maxTime;
-                            bool countDown, paused;
-                            objectStream >> compEnabled;
-                            objectStream >> counter;
-                            objectStream >> maxTime;
-                            objectStream >> countDown;
-                            objectStream >> paused;
-                            TimerComponent *aux = new TimerComponent(counter, maxTime, countDown, paused);
-                            aux->setEnabled(compEnabled);
-                            newCamera.addComponent(aux);
-                            aux = nullptr;
-                        }
-                    }
-                    addCamera(newCamera);
-                }
-            }
-        }
-        objectStream.close();
-    }
+    }**/
 
     /**
         Deletes an object in the passed position destroying its components in the process.
     **/
-    void ObjectFactory::deleteObject(int pos){
-        if(pos > -1 && pos < objects.size())
-            objects[pos].destroyComponents();
-            objects.erase(objects.begin() + pos);
-    }
+    /**void ObjectFactory::deleteObject(unsigned id){
+        for(unsigned i=0; i<objects.size(); i++){
+            if(objects[i].getId() == id){
+                //Send message saying the object with id id was deleted
+                objects.erase(objects.begin() + i);
+                break;
+            }
+        }
+    }**/
 
     /**
         Deletes an object with the passed name destroying its components in the process.
     **/
-    void ObjectFactory::deleteObject(std::string name){
-        int pos = getObjectPos(name);
-        if(pos > -1 && pos < objects.size())
-            objects[pos].destroyComponents();
-            objects.erase(objects.begin() + pos);
-    }
+    /**void ObjectFactory::deleteObject(std::string name){
+        for(unsigned i=0; i<objects.size(); i++){
+            if(objects[i].getName() == name){
+                //Send message saying the object with id getId() was deleted
+                objects.erase(objects.begin() + i);
+                break;
+            }
+        }
+    }**/
 
     /**
         Inserts an object into the object pool, but before doing that, it checks if the name
         is unique and if it isn't it changes it until it is.
     **/
-    void ObjectFactory::insertObject(GameObject obj){
+    /**void ObjectFactory::insertObject(GameObject obj){
         int i=1;
         std::string auxName = obj.getName();
-        while(getObject(auxName) != nullptr || auxName == ""){
+        while(getObject(auxName) != NULL || auxName == ""){
             auxName = obj.getName();
             if(auxName == ""){
                 auxName = "Object";
@@ -1180,172 +965,61 @@ namespace WishEngine{
         }
         obj.setName(auxName);
         objects.push_back(obj); //This for some reason makes the objects component count to 0
-    }
-
-    /**
-        Destroys all the objects and sets them to the objects passed.
-    **/
-    void ObjectFactory::setObjects(std::vector<GameObject>& obj){
-        for(unsigned i=0; i<objects.size(); i++){
-            objects[i].destroyComponents();
-        }
-        objects.clear();
-        objects = obj;
-    }
+    }**/
 
     /**
         Returns an object by position or a nullptr if the object doesn't exist.
     **/
-    GameObject* ObjectFactory::getObject(int pos){
-        if(pos > -1 && pos < objects.size()){
-            return &objects[pos];
+    /**GameObject *ObjectFactory::getObject(unsigned id){
+        for(unsigned i=0; i<objects.size(); i++){
+            if(objects[i].getId() == id){
+                return &objects[i];
+            }
         }
         return nullptr;
-    }
+    }**/
 
     /**
         Returns an object by name or a nullptr if the object doesn't exist.
     **/
-    GameObject* ObjectFactory::getObject(std::string name){
-        int pos = getObjectPos(name);
-        if(pos > -1 && pos < objects.size()){
-            return &objects[pos];
-        }
-        return nullptr;
-    }
-
-    /**
-        Returns the object position for that name if it exists.
-        Returns -1 if it doesn't exist.
-    **/
-    int ObjectFactory::getObjectPos(std::string name){
+    /**GameObject *ObjectFactory::getObject(std::string name){
         for(unsigned i=0; i<objects.size(); i++){
             if(objects[i].getName() == name){
-                return i;
+                return &objects[i];
             }
         }
-        return -1;
-    }
+        return nullptr;
+    }**/
 
     /**
         Returns the objects vector.
     **/
-    std::vector<GameObject>& ObjectFactory::getObjects(){
+    /**std::vector<GameObject>& ObjectFactory::getObjects(){
         return objects;
     }
 
-    /**
-        Method used to determine if a camera is greater than the other in terms of priority.
-        A lower priority will make the graphic system render that camera first, being behind of the next ones.
-    **/
-    bool camerasSorting(Camera &a, Camera &b){
-        return a.getPriority() < b.getPriority();
-    }
-
-    /**
-        Method to sort the cameras by priority.
-    **/
-    void ObjectFactory::sortCameras(){
-        std::sort(cameras.begin(), cameras.end(), camerasSorting);
-    }
-
-    /**
-        Method to add a camera.
-        It checks if there's a camera already using that name or if it has a name.
-        If the name exists or it doesn't have one, it changes it until it fins an
-        available name.
-    **/
-    void ObjectFactory::addCamera(Camera cam){
-        int i=1;
-        std::string auxName = cam.getName();
-        while(getCamera(auxName) != nullptr || auxName == ""){
-            auxName = cam.getName();
-            if(auxName == ""){
-                auxName = "Camera";
-                cam.setName("Camera");
-            }
-            else{
-                auxName.append(Utils::intToString(i));
-                i++;
-            }
-        }
-        cam.setName(auxName);
-        cameras.push_back(cam);
-        sortCameras();
-    }
-
-    /**
-        Method to get a camera by its name.
-    **/
-    Camera* ObjectFactory::getCamera(std::string name){
-        for(unsigned i=0; i<cameras.size(); i++){
-            if(cameras[i].getName() == name){
-                return &cameras[i];
-            }
-        }
-        return nullptr;
-    }
-
-    /**
-        Method to get a camera by its position on the vector.
-    **/
-    Camera* ObjectFactory::getCamera(int pos){
-        if(pos > -1 && pos < cameras.size())
-            return &cameras[pos];
-        return nullptr;
-    }
-
-    /**
-        Method to delete a camera by its name.
-    **/
-    void ObjectFactory::deleteCamera(std::string name){
-        for(unsigned i=0; i<cameras.size(); i++){
-            if(cameras[i].getName() == name){
-                cameras[i].destroyComponents();
-                cameras.erase(cameras.begin() + i);
-            }
-        }
-    }
-
-    /**
-        Method to return the cameras vector.
-    **/
-    std::vector<Camera>& ObjectFactory::getCameras(){
-        return cameras;
-    }
+    std::map<std::string, BaseCollection*> &ObjectFactory::getComponentCollections(){
+        return componentCollections;
+    }**/
 
     /**
         Layer to delete a window for the scripts to be able to call it without accessing the framework.
     **/
-    void ObjectFactory::deleteWindow(std::string name){
+    /**void ObjectFactory::deleteWindow(std::string name){
         Framework::getFramework()->deleteWindow(name);
-    }
+    }**/
 
     /**
         Layer to create a window for the scripts to be able to call it without accessing the framework.
     **/
-    void ObjectFactory::createWindow(std::string title, std::string name, std::string icon, int x, int y, int w, int h){
+    /**void ObjectFactory::createWindow(std::string title, std::string name, std::string icon, int x, int y, int w, int h){
         Framework::getFramework()->createWindow(title, name, icon, x, y, w, h);
-    }
+    }**/
 
     /**
         Layer to get a windows size for the scripts to be able to call it without accessing the framework.
     **/
-    void ObjectFactory::getWindowSize(std::string windowN, int &w, int &h){
+    /**void ObjectFactory::getWindowSize(std::string windowN, int &w, int &h){
         Framework::getFramework()->getWindowSize(windowN, w, h);
-    }
-
-    void ObjectFactory::update(double dt){
-
-    }
-
-    void ObjectFactory::handleMessage(Message* msg){
-        switch(msg->getType()){
-            case M_TYPES::ADDOBJ:
-                break;
-            case M_TYPES::QUIT:
-                postMessage(new Message(M_TYPES::QUIT));
-                break;
-        }
-    }
+    }**/
 }
