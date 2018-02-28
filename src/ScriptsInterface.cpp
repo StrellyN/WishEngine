@@ -1,5 +1,5 @@
 /**
-    Copyright 2017 Strelly
+    Copyright 2018 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -187,10 +187,11 @@ namespace WishEngine{
         bool exists = false;
         for(unsigned i=0; i<col->getCollection().size(); i++){
             if(col->getCollection()[i]->getType() == n){
-                if(n == "TitleScript"){
-                    Collection<TitleScript> *coli = dynamic_cast<Collection<TitleScript>*>(col->getCollection()[i]);
+                /** TEMPLATE:
+                if(n == "YourScriptName"){
+                    Collection<YourScript> *coli = dynamic_cast<Collection<YourScript>*>(col->getCollection()[i]);
                     if(coli != nullptr){
-                        unsigned result = coli->addItem(TitleScript(), own->getId());
+                        unsigned result = coli->addItem(YourScript(), own->getId());
                         if(result){
                             unsigned compPos = coli->getCollection().size()-1;
                             std::string compN = coli->getCollection()[compPos].getName();
@@ -201,15 +202,16 @@ namespace WishEngine{
                         }
                     }
                     coli = nullptr;
-                }
+                }**/
                 exists = true;
                 break;
             }
         }
         if(!exists){
-            if(n == "TitleScript"){
-                col->getCollection().push_back(new Collection<TitleScript>("TitleScript"));
-                Collection<TitleScript> *coli = dynamic_cast<Collection<TitleScript>*>(col->getCollection()[col->getCollection().size() - 1]);
+            /** TEMPLATE:
+            if(n == "YourScriptName"){
+                col->getCollection().push_back(new Collection<YourScript>("YourScriptName"));
+                Collection<YourScript> *coli = dynamic_cast<Collection<YourScript>*>(col->getCollection()[col->getCollection().size() - 1]);
                 if(coli != nullptr){
                     unsigned result = coli->addItem(TitleScript(), own->getId());
                     if(result){
@@ -222,28 +224,8 @@ namespace WishEngine{
                     }
                 }
                 coli = nullptr;
-            }
+            }**/
         }
-
-        /**
-            INSTRUCTIONS TO CHECK AND ADD SCRIPTS:
-            1) Check the name of the script.
-            2) Cycle through all the BaseCollections vector to check the type.
-            3) If the type match, dynamic cast it into the type, add the script there and do all the pos, id, etc...
-            4) If the type doesn't exist, we'll emplace_back a new Collection of the type and create the script there
-
-            Reference stuff:
-            unsigned result = col->addItem(NetworkComponent(isS, isT, maxPacketSize, elapsedTime, maxConnections), objId);
-            if(result){
-                unsigned compPos = col->getCollection().size()-1;
-                std::string compN = col->getCollection()[compPos].getName();
-                objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
-                col->getCollection()[compPos].setEnabled(compEnabled);
-                col->getCollection()[compPos].setOwnerId(objId);
-                col->getCollection()[compPos].setOwnerPos(objPos);
-            }
-            col = nullptr;
-        **/
     }
 
     void ScriptsInterface::update(double dt){
@@ -254,16 +236,16 @@ namespace WishEngine{
 
         if(scripts != nullptr){
             for(unsigned i=0; i<scripts->size(); i++){
-                //if getType() == "..." -> dynamic_cast<...> -> for unsigned j -> execute;
-                if((*scripts)[i]->getType() == "TitleScript"){
-                    Collection<TitleScript> *col = dynamic_cast<Collection<TitleScript>*>((*scripts)[i]);
+                /** TEMPLATE:
+                if((*scripts)[i]->getType() == "YourScriptName"){
+                    Collection<YourScript> *col = dynamic_cast<Collection<YourScript>*>((*scripts)[i]);
                     if(col != nullptr){
                         for(unsigned j=0; j<col->getCollection().size(); j++){
                             col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerId()], dt);
                         }
                     }
                     col = nullptr;
-                }
+                }**/
             }
         }
 

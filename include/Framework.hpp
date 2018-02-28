@@ -1,5 +1,5 @@
 /**
-    Copyright 2017 Strelly
+    Copyright 2018 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -29,18 +29,22 @@
 #include "FrameHeader.hpp"
 #include "Event.hpp"
 #include "Collection.hpp"
-#include "NetworkComponent.hpp"
 #include "System.hpp"
 #include "GameObject.hpp"
+
 #include "RenderMessage.hpp"
 #include "InputListMessage.hpp"
 #include "ObjectListMessage.hpp"
 #include "ComponentListMessage.hpp"
+#include "CreateWindowMessage.hpp"
+#include "AudioMessage.hpp"
+#include "NetworkMessage.hpp"
+
+#include "NetworkComponent.hpp"
 #include "GraphicComponent.hpp"
 #include "DimensionComponent.hpp"
 #include "AnimationComponent.hpp"
 #include "CameraComponent.hpp"
-#include "CreateWindowMessage.hpp"
 
 namespace WishEngine{
     typedef struct JoystickStruct{
@@ -93,7 +97,6 @@ namespace WishEngine{
             double getTicks();
             void getEvents();
             void clearData();
-            void destroyFrameWork();
             void fullScreen(std::string windowName);
             void setMaxFPS(int mFPS);
             void setFrameCapFlag(bool frameCap);

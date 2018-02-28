@@ -1,5 +1,5 @@
 /**
-    Copyright 2017 Strelly
+    Copyright 2018 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     NetworkComponent::NetworkComponent(){
-        setType("Network");
+        setType("NETWORK");
         ip = "";
         maxPacketSize = 0;
         maxConnections = 0;
@@ -41,7 +41,7 @@ namespace WishEngine{
     }
 
     NetworkComponent::NetworkComponent(bool isS, bool isT, unsigned maxSize, unsigned elapsedTime, unsigned maxC){
-        setType("Network");
+        setType("NETWORK");
         ip = "";
         maxPacketSize = maxSize;
         maxConnections = maxC;

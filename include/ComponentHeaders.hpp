@@ -1,5 +1,5 @@
 /**
-    Copyright 2017 Strelly
+    Copyright 2018 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -31,5 +31,11 @@
 #include "InputComponent.hpp"
 #include "NetworkComponent.hpp"
 #include "ScriptComponent.hpp"
+#include "AudioComponent.hpp"
+#include "HitboxComponent.hpp"
+#include "AnimatorComponent.hpp"
+#include "TimerComponent.hpp"
+#include "PropertiesComponent.hpp"
+#include "PhysicsComponent.hpp"
 
 #endif // COMPONENTHEADERS_H

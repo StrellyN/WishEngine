@@ -1,5 +1,5 @@
 /**
-    Copyright 2017 Strelly
+    Copyright 2018 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     AnimationComponent::AnimationComponent(double x, double y, double w, double h){
-        setType("Animation");
+        setType("ANIMATION");
         rect.setX(x);
         rect.setY(y);
         rect.setW(w);

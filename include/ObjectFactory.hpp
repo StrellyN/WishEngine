@@ -1,5 +1,5 @@
 /**
-    Copyright 2017 Strelly
+    Copyright 2018 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -42,7 +42,8 @@ namespace WishEngine{
         public:
             ObjectFactory();
             virtual ~ObjectFactory();
-            void clearData(); //Send a message for each object telling it's been destroyed
+            void clearData();
+            void deleteEverything();
             void loadObjects(std::string file);
             std::string checkObjectName(std::string &name);
             std::vector<GameObject> &getObjects();
@@ -51,12 +52,6 @@ namespace WishEngine{
 
             void update(double dt);
             void handleMessage(Message* msg);
-
-            /**void insertObject(GameObject obj);
-            void deleteObject(std::string name);
-            void deleteObject(unsigned id);
-            GameObject *getObject(std::string name);
-            GameObject *getObject(unsigned id);**/
     };
 }
 #endif // OBJECTFACTORY

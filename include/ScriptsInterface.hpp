@@ -1,5 +1,5 @@
 /**
-    Copyright 2017 Strelly
+    Copyright 2018 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -33,8 +33,7 @@
 #include "CreateWindowMessage.hpp"
 #include "ScriptComponent.hpp"
 
-//Include all components
-#include "GraphicComponent.hpp"
+#include "ComponentHeaders.hpp"
 
 namespace WishEngine{
     class ScriptsInterface : public GameSystem{

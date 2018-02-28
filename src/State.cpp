@@ -1,5 +1,5 @@
 /**
-    Copyright 2017 Strelly
+    Copyright 2018 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -26,12 +26,12 @@
 namespace WishEngine{
     State::State(std::string configFile){
         addSystem(new InputSystem());
-        //addSystem(new AudioSystem());
-        //addSystem(new CollisionSystem());
-        //addSystem(new AnimationSystem());
-        //addSystem(new NetworkSystem());
-        //addSystem(new PhysicsSystem());
-        //addSystem(new TimerSystem());
+        addSystem(new AudioSystem());
+        addSystem(new CollisionSystem());
+        addSystem(new AnimationSystem());
+        addSystem(new NetworkSystem());
+        addSystem(new TimerSystem());
+        addSystem(new PhysicsSystem());
         addSystem(new ScriptsInterface());
         addSystem(new ObjectFactory());
         addSystem(new Framework());

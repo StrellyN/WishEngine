@@ -3,7 +3,7 @@
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
-    files (the "Software"), to deal in the Software without restriction,
+    files (the "Software"), to deal iCopyright 2018 Strellyn the Software without restriction,
     including without limitation the rights to use, copy, modify, merge,
     publish, distribute, sublicense, and/or sell copies of the Software,
     and to permit persons to whom the Software is furnished to do so,
@@ -45,6 +45,9 @@ namespace WishEngine{
             getEvents();
             postMessage(new InputListMessage("INPUTLIST", &frameEvents));
         }
+        else if(msg->getType() == "DELETEEVERYTHING"){
+            clearData();
+        }
         else if(msg->getType() == "FULLSCREEN"){
             fullScreen(msg->getValue());
         }
@@ -74,6 +77,99 @@ namespace WishEngine{
         }
         else if(msg->getType() == "FFRAME"){
             endFrame();
+        }
+        else if(msg->getType() == "CONNECTNET"){
+            NetworkMessage *aux = dynamic_cast<NetworkMessage*>(msg);
+            if(aux != nullptr){
+                connectNet(aux->getComp());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "UPDATENET"){
+            NetworkMessage *aux = dynamic_cast<NetworkMessage*>(msg);
+            if(aux != nullptr){
+                updateNet(aux->getComp());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "DISCONNECTNET"){
+            NetworkMessage *aux = dynamic_cast<NetworkMessage*>(msg);
+            if(aux != nullptr){
+                deleteNet(aux->getComp());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "FADEINMUSIC"){
+            AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
+            if(aux != nullptr){
+                fadeInMusic(aux->getAudioFile(), aux->getVolume(), aux->getLoops(), aux->getFadeDuration());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "FADEOUTMUSIC"){
+            AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
+            if(aux != nullptr){
+                fadeOutMusic(aux->getFadeDuration());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "FADEINMUSICPOS"){
+            AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
+            if(aux != nullptr){
+                fadeInMusicPos(aux->getAudioFile(), aux->getVolume(), aux->getLoops(), aux->getFadeDuration(), aux->getSongTimer());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "PLAYMUSIC"){
+            AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
+            if(aux != nullptr){
+                playMusic(aux->getAudioFile(), aux->getVolume(), aux->getLoops());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "PLAYSOUND"){
+            AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
+            if(aux != nullptr){
+                playSound(aux->getAudioFile(), aux->getVolume(), aux->getLoops());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "SETMUSICPOS"){
+            AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
+            if(aux != nullptr){
+                setMusicPos(aux->getSongTimer());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "SETMUSICVOLUME"){
+            AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
+            if(aux != nullptr){
+                setMusicVolume(aux->getVolume());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "DELETEMUSIC"){
+            AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
+            if(aux != nullptr){
+                deleteMusic(aux->getAudioFile());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "DELETESOUND"){
+            AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
+            if(aux != nullptr){
+                deleteMusic(aux->getAudioFile());
+            }
+            aux = nullptr;
+        }
+        else if(msg->getType() == "PAUSEMUSIC"){
+            pauseMusic();
+        }
+        else if(msg->getType() == "RESUMEMUSIC"){
+            resumeMusic();
+        }
+        else if(msg->getType() == "STOPMUSIC"){
+            stopMusic();
         }
         else if(msg->getType() == "CREATEWINDOW"){
             CreateWindowMessage *aux = dynamic_cast<CreateWindowMessage*>(msg);
@@ -910,7 +1006,7 @@ namespace WishEngine{
                             if(currentObject->hasComponent("DIMENSION")){
                                 DimensionComponent *objDim = &(*dimensions)[currentObject->getComponentPosition("DIMENSION")];
                                 AnimationComponent *objAni = nullptr;
-                                if((*objects)[j].hasComponent("ANIMATION")){
+                                if(animations != nullptr && currentObject->hasComponent("ANIMATION")){
                                     objAni = &(*animations)[currentObject->getComponentPosition("ANIMATION")];
                                 }
 
