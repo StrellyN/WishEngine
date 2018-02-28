@@ -16,18 +16,18 @@ the code.
 Well hello there, I'm back with big and important changes, as you can see, now there's an "Old Version" folder. It contains the source code that was here until 
 this commit, in case I have to go back to it or someone is curious about it.
 
-Now you may be wondering what's this "new version" about. Well I've been working on an engine restructure, to make it modular and to have the components outside 
-the game objects for them to be more cache friendly, don't have them allocated with "new", etc... It also separates all the systems, so now they can only talk 
-through messages, that means no more direct calls to ObjectFactory or Framework, but thanks to this I'll be able to make systems as DLLs, so that's cool.
+Now, you may be wondering what's this "new version" about. Well I've been working on an engine restructure, to make it modular and to have the components outside 
+the game objects for them to be more cache friendly, don't have them allocated with "new", etc... I also separated all the systems, now they can only talk 
+through messages, that means no more direct calls to ObjectFactory or Framework, but thanks to this I'll may be able to make systems as DLLs, so that's cool.
 
-What else... Oh yeah, some systems are gone, like the ScriptSystem and GraphicSystem. GraphicSystem became useless after having everythign talk through messages, 
-it would have been sending a message for each object to render them, so instead I just make the Framework receive the Render message and do it itself.
+What else... Oh yeah, some systems are gone, like the ScriptSystem and GraphicSystem. GraphicSystem became useless after having everything talk through messages, 
+it was going to send a message for each object to render, instead I just made the Framework receive the Render message and do it itself.
 
 ScriptSystem didn't disappear per say, it just became ScriptsInterface, which, as the name implies, acts as the way for scripts to comunicate with the engine and 
 as a way to update the scripts and create them for the ObjectFactory.
 
 For now that's it, I still need to convert the rest of the systems to this new form, and then test the DLL thing. If it ends up failing, I'll think about bringing 
-the old version one or just continue with the more independent but inconvinient one. See you then!
+the old version back or continue with this new one. See you then!
 
 ### 17/02/2018
 
