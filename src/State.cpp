@@ -25,16 +25,7 @@
 
 namespace WishEngine{
     State::State(std::string configFile){
-        addSystem(new InputSystem());
-        addSystem(new AudioSystem());
-        addSystem(new CollisionSystem());
-        addSystem(new AnimationSystem());
-        addSystem(new NetworkSystem());
-        addSystem(new TimerSystem());
-        addSystem(new PhysicsSystem());
-        addSystem(new ScriptsInterface());
-        addSystem(new ObjectFactory());
-        addSystem(new Framework());
+        loadSystems();
         sendMessage(new Message("LOADOBJECTS", configFile));
     }
 
@@ -44,6 +35,40 @@ namespace WishEngine{
             systems[i] = nullptr;
         }
         systems.clear();
+
+        #ifdef _WIN32
+            for(unsigned i=0; i<systemsDLL.size(); i++){
+                FreeLibrary(systemsDLL[i]);
+            }
+            systemsDLL.clear();
+        #else
+
+        #endif
+    }
+
+    void State::loadSystems(){
+        #ifdef _WIN32
+            WIN32_FIND_DATA fileData;
+            HANDLE fileHandle = FindFirstFile(R"(.\systems\*.dll)", &fileData);
+            typedef GameSystem* (__cdecl *ObjProc)(void);
+
+            if(fileHandle == (void*)ERROR_INVALID_HANDLE || fileHandle == (void*)ERROR_FILE_NOT_FOUND){
+                return;
+            }
+
+            do{
+                HINSTANCE temp = LoadLibrary((R"(systems\)" +  std::string(fileData.cFileName)) .c_str());
+
+                if (temp) {
+                    ObjProc ProcAdd = (ObjProc)GetProcAddress(temp, "getSystem");
+                    addSystem(ProcAdd());
+                }
+
+                systemsDLL.push_back(temp);
+            } while (FindNextFile(fileHandle, &fileData));
+        #else
+
+        #endif
     }
 
     /**
@@ -52,6 +77,10 @@ namespace WishEngine{
         Made looking at: https://gafferongames.com/post/fix_your_timestep/
     **/
     void State::update(){
+        if(systems.empty()){
+            quit = true;
+        }
+
         double dt = 0.01, accumulator = 0; //Sets some variables for the timing of the loop, like the current ms
 
         auto now = std::chrono::high_resolution_clock::now();
@@ -114,12 +143,10 @@ namespace WishEngine{
             std::vector<Message*> &sentMessages = systems[i]->getMessages();
             for(unsigned j=0; j<sentMessages.size(); j++){
                 sendMessage(sentMessages[j]);
+                sentMessages.erase(sentMessages.begin() + j);
+                j--;
                 if(getQuit())
                     break;
-                if(sentMessages[j] != nullptr){ //Avoiding the MEMORY LEAKS
-                    delete sentMessages[j];
-                    sentMessages[j] = nullptr;
-                }
             }
             if(getQuit())
                 break;

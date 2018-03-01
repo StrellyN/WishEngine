@@ -3,13 +3,31 @@
 ## About
 
 Wish Engine is a (for now) 2D game engine coded in C++ using (for now as well since later on I want to make my own multimedia API) the SDL2 Library.
-The engine itself is my last college project and its a modular entity component system, right now isn't possible but in the future I hope to implement a way 
-to add systems and components through dlls since right now each time you want to add a system you have to compile the engine.
+The engine itself is my last college project and its a modular entity component system, so you can add systems and scripts through dlls.
 
 It works on Linux and Windows, I haven't tested it on Mac since I don't have access to one. It's also free software so feel free to do whatever you want with 
 the code.
 
 ## Important Stuffs Log
+
+### 01/03/2018
+
+We are gold, the engine can now add systems via DLL, you don't even know how happy I am right now, but yeah, this is it, I did it.
+
+As you can see the source code for the engine is really small now since I don't have to compile all the systems and components with it. Those 
+you'll find in the "Systems" folder, with a quick readme for all of them explaining in one or two lines what they do and stuff.
+
+As a note, you'll probably find that the custom scripts are added as a system, this is because since the custom scripts are going to have to be 
+compiled with parts of the engine anyway, I decided to compile them into a system. I may go ahead and try to separate the scripts completely from 
+the system but I don't think its worth it and it'll only add a useless layer of things to do, but I guess I'll try it anyway in case I discover 
+something cool.
+
+So that's it, the engine is now complete... Sike! I still need to do the dynamic library loading cross-platform, right now it only works for windows, 
+but that shouldn't be that difficult. I'll do a mini update when I'm done with that. Other plans include the physics system which right now, does nothing, 
+and an editor for a standard version of the engine which will include all the systems I've developed, so you don't have to make the config files, etc... But 
+with the I'm gonna be relaxed, don't even know when I'm gonna start with it.
+
+Anyway, see you aroung!
 
 ### 28/08/2018
 

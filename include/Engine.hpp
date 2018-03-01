@@ -29,7 +29,7 @@
 namespace WishEngine{
     class Engine{
         private:
-            State *currentState;
+            State *currentState = nullptr;
         public:
             Engine();
             ~Engine();

@@ -25,29 +25,31 @@
 #define STATE_H
 
 #include "System.hpp"
-
-#include "InputSystem.hpp"
-#include "Framework.hpp"
-#include "ObjectFactory.hpp"
-#include "ScriptsInterface.hpp"
-#include "AudioSystem.hpp"
-#include "CollisionSystem.hpp"
-#include "AnimationSystem.hpp"
-#include "NetworkSystem.hpp"
-#include "TimerSystem.hpp"
-#include "PhysicsSystem.hpp"
-
 #include "RenderMessage.hpp"
+
+
+
+#ifdef _WIN32
+    #include "windows.h"
+#else
+
+#endif
 
 namespace WishEngine{
     class State{
         private:
+            #ifdef _WIN32
+                std::vector<HINSTANCE> systemsDLL;
+            #else
+
+            #endif
             std::vector<GameSystem*> systems;
             State *nextState = nullptr;
             bool quit = false;
         public:
             State(std::string configFile);
             ~State();
+            void loadSystems();
             void update();
             void render(double interpolation);
             void handleMessage(Message *msg);
