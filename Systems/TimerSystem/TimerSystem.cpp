@@ -71,5 +71,8 @@ namespace WishEngine{
             }
             rmes = nullptr;
         }
+        else if(msg->getType() == "DELETEEVERYTHING"){
+            destroySystem();
+        }
     }
 }

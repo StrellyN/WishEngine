@@ -30,15 +30,20 @@ namespace WishEngine{
     class Message{
         private:
             std::string type, value;
+            double numericValue;
         public:
             Message(std::string t);
             Message(std::string mT, std::string val);
+            Message(std::string mT, double numVal);
+            Message(std::string mT, std::string val, double numVal);
             Message();
             virtual ~Message(){}
             std::string &getType();
             void setType(std::string t);
             std::string &getValue();
             void setValue(std::string val);
+            double getNumericValue();
+            void setNumericValue(double numVal);
     };
 }
 #endif // MESSAGE

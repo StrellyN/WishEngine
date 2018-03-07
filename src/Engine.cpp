@@ -26,54 +26,28 @@
 namespace WishEngine{
     Engine::Engine(){
         srand(time(NULL)); //Seed for the random number generator, done only once
-        std::fstream initialStateConfig;
-        std::string file;
-        initialStateConfig.open("data/INISTATE.config", std::ios::in); //we open the config file
-        if(initialStateConfig){ //Check if file can be accessed
-            initialStateConfig >> file; //get the state configuration file path from the file
-            initialStateConfig.close(); //close the file
-            currentState = new State(file);//Push a state that will read it's object configuration from the file
-        }
-        else{ //If it can't be accessed
-            initialStateConfig.close(); //close the file
-            std::fstream errorLog; //open a stream to the error log
-            errorLog.open("ERROR.txt", std::ios::out); //Open the error log
-            errorLog << "Couldn't access data/INISTATE.config file."; //write the error
-            errorLog.close(); //close the stream
-        }
     }
 
-    Engine::~Engine(){
-        delete currentState;
-        currentState = nullptr;
-    }
+    Engine::~Engine(){}
 
     /**
         Main engine loop, it just adds and deletes the states and updates the current one.
     **/
     void Engine::update(){
-        while(getState() != nullptr){ //While the state isn't nullptr
-            getState()->update(); //Update the state
-            delete currentState;
-            currentState = nullptr;
-        }
+        getState().update(); //Update the state
     }
 
     /**
         Method that returns the states vector.
     **/
-    State* Engine::getState(){
+    State &Engine::getState(){
         return currentState;
     }
 
     /**
         Method that deletes and sets the states with the new ones passed.
     **/
-    void Engine::setState(State* nState){
-        if(currentState != nullptr){
-            delete currentState;
-            currentState = nullptr;
-        }
+    void Engine::setState(State &nState){
         currentState = nState;
     }
 }

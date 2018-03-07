@@ -42,12 +42,12 @@ namespace WishEngine{
     class GameObject : public Object{
         private:
             std::vector<ComponentInformation> components;
-            static unsigned idTracker;
-            unsigned id;
+            unsigned id = 0;
 
         public:
             GameObject(std::string n = "Object", bool isEnabled = true);
             virtual ~GameObject();
+            void setId(unsigned i);
             unsigned getId();
             bool hasComponent(std::string type, std::string name = "");
             unsigned getComponentPosition(std::string type, std::string name = "");

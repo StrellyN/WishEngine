@@ -21,37 +21,20 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#ifndef OBJECT_H
-#define OBJECT_H
+#ifndef AVAILABLEOBJECTSMESSAGE_H
+#define AVAILABLEOBJECTSMESSAGE_H
 
-#include "Utils.hpp"
+#include "Message.hpp"
 
 namespace WishEngine{
-    class Object{
+    class AvailableObjectsMessage : public Message{
         private:
-            std::string name;
-            bool enabled = true, deleted = false;
+            std::vector<unsigned> *availabilityList;
+
         public:
-            virtual ~Object(){
-            }
-            std::string &getName(){
-                return name;
-            }
-            void setName(std::string n){
-                name = n;
-            }
-            bool getEnabled(){
-                return enabled;
-            }
-            void setEnabled(bool en){
-                enabled = en;
-            }
-            bool getDeleted(){
-                return deleted;
-            }
-            void setDeleted(bool del){
-                deleted = del;
-            }
+            AvailableObjectsMessage(std::string mT, std::vector<unsigned> *aList);
+            virtual ~AvailableObjectsMessage();
+            std::vector<unsigned> *getAvailabilityList();
     };
 }
-#endif // OBJECT
+#endif // AVAILABLEOBJECTSMESSAGE_H

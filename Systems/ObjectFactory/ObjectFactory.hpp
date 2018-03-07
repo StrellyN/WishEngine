@@ -25,6 +25,7 @@
 #define OBJECTFACTORY_H
 
 #include "ComponentListMessage.hpp"
+#include "AvailableObjectsMessage.hpp"
 #include "ComponentHeaders.hpp"
 #include "ObjectListMessage.hpp"
 #include "CreateScriptMessage.hpp"
@@ -37,6 +38,7 @@ namespace WishEngine{
     class ObjectFactory : public GameSystem{ //This class is also the interface scripts use to communicate with the engine.
         private:
             std::vector<GameObject> objects;
+            std::vector<unsigned> availableObjects;
             std::map<std::string, BaseCollection*> componentCollections;
 
         public:
@@ -48,7 +50,6 @@ namespace WishEngine{
             std::string checkObjectName(std::string &name);
             std::vector<GameObject> &getObjects();
             std::map<std::string, BaseCollection*> &getComponentCollections();
-            void deleteObject(unsigned objPos);
 
             void update(double dt);
             void handleMessage(Message* msg);

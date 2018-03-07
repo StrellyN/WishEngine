@@ -2,13 +2,33 @@
 
 ## About
 
-Wish Engine is a (for now) 2D game engine coded in C++ using (for now as well since later on I want to make my own multimedia API) the SDL2 Library.
-The engine itself is my last college project and its a modular entity component system, so you can add systems and scripts through dlls.
+Wish Engine itself is a C++ plugin framework that is in charge of making all the systems communicate with each other, update them in order 
+and sending useful messages each frame to, for example, handle input messages, start of a frame, render frame, etc... These messages may or may 
+not be used by the systems. 
+It's functionality obviously depends on the systems coupled with it and in this case, I'm developing a general purposes 2D game engine using SDL2 
+as the multimedia library.
 
 It works on Linux and Windows, I haven't tested it on Mac since I don't have access to one. It's also free software so feel free to do whatever you want with 
 the code.
 
+Last tested on Linux: 07/03/2018 (Linux Mint)
+I pretty much test it everyday on Windows so.
+
 ## Important Stuffs Log
+
+### 07/03/2018
+
+Alright, so I fixed major bugs and systems that made everything crash, finaly added the ability to delete objects and components, fixed the messaging 
+since it was a mess and was causing lots of crashes too and successfuly ported Wish Engine to Linux (Mint), meaning that I'm done with the cross-platform 
+stuffs. You can see a more concrete list of changes in the commit comment.
+
+What's left to do:
+  - Still need to fix minor bugs and a random crash that I have yet to find out why it happens.
+  - Test the networking system porting the Online Pong I made with the first version of the engine.
+  - Test the Timer System, although it's not a priority since it's a really basic system so even if it doesn't work, I won't rush a fix.
+  - The visual editor for the engine.
+  - Implement a way to create and load savestates (If what I'm thinking works, this is going to be easy).
+  - I want to start developing an OpenGL system to be able to render cute 3D things.
 
 ### 01/03/2018
 
@@ -23,13 +43,13 @@ the system but I don't think its worth it and it'll only add a useless layer of 
 something cool.
 
 So that's it, the engine is now complete... Sike! I still need to do the dynamic library loading cross-platform, right now it only works for windows, 
-but that shouldn't be that difficult. I'll do a mini update when I'm done with that. Other plans include the physics system which right now, does nothing, 
-and an editor for a standard version of the engine which will include all the systems I've developed, so you don't have to make the config files, etc... But 
-with the I'm gonna be relaxed, don't even know when I'm gonna start with it.
+but that shouldn't be that difficult. I'll do a mini update when I'm done with that. Other plans include an editor for a standard version of the engine 
+which will include all the systems I've developed, so you don't have to make the config files, etc... But with the editor I'm gonna be relaxed, don't 
+even know when I'm gonna start with it.
 
-Anyway, see you aroung!
+Anyway, see you around!
 
-### 28/08/2018
+### 28/02/2018
 
 Well hello there, I'm back with big and important changes, as you can see, now there's an "Old Version" folder. It contains the source code that was here until 
 this commit, in case I have to go back to it or someone is curious about it.

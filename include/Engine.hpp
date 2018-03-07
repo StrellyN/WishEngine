@@ -29,13 +29,13 @@
 namespace WishEngine{
     class Engine{
         private:
-            State *currentState = nullptr;
+            State currentState;
         public:
             Engine();
             ~Engine();
             void update();
-            State* getState();
-            void setState(State* nState);
+            State &getState();
+            void setState(State &nState);
     };
 }
 #endif // ENGINE

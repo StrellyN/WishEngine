@@ -21,30 +21,19 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#ifndef PHYSICSSYSTEM_H
-#define PHYSICSSYSTEM_H
-
-#include "System.hpp"
-#include "PhysicsComponent.hpp"
-#include "DimensionComponent.hpp"
-#include "HitboxComponent.hpp"
-#include "Collection.hpp"
-#include "GameObject.hpp"
-
-#include "ComponentListMessage.hpp"
-#include "ObjectListMessage.hpp"
+#include "AvailableObjectsMessage.hpp"
 
 namespace WishEngine{
-    class PhysicsSystem : public GameSystem{
-        private:
-            std::map<std::string, BaseCollection*> *components = nullptr;
-            std::vector<GameObject> *objects = nullptr;
+    AvailableObjectsMessage::AvailableObjectsMessage(std::string mT, std::vector<unsigned> *aList){
+        setType(mT);
+        availabilityList = aList;
+    }
 
-        public:
-            PhysicsSystem();
-            ~PhysicsSystem();
-            void update(double dt);
-            void handleMessage(Message* msg);
-    };
+    AvailableObjectsMessage::~AvailableObjectsMessage(){
+        availabilityList = nullptr;
+    }
+
+    std::vector<unsigned> *AvailableObjectsMessage::getAvailabilityList(){
+        return availabilityList;
+    }
 }
-#endif // PHYSISCSSYSTEM

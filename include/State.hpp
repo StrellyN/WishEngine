@@ -25,14 +25,12 @@
 #define STATE_H
 
 #include "System.hpp"
-#include "RenderMessage.hpp"
-
-
 
 #ifdef _WIN32
     #include "windows.h"
-#else
-
+#elif defined(__unix__) || defined(__linux__)
+    #include <dlfcn.h>
+    #include <dirent.h>
 #endif
 
 namespace WishEngine{
@@ -40,14 +38,13 @@ namespace WishEngine{
         private:
             #ifdef _WIN32
                 std::vector<HINSTANCE> systemsDLL;
-            #else
-
+            #elif defined(__unix__) || defined(__linux__)
+                std::vector<void*> systemsDLL;
             #endif
             std::vector<GameSystem*> systems;
-            State *nextState = nullptr;
             bool quit = false;
         public:
-            State(std::string configFile);
+            State();
             ~State();
             void loadSystems();
             void update();
@@ -55,9 +52,6 @@ namespace WishEngine{
             void handleMessage(Message *msg);
             void handleMessages();
             void sendMessage(Message *mes);
-            State* getNextState();
-            void setNextState(State *nState);
-            bool hasNextState();
             void addSystem(GameSystem *nSystem);
             GameSystem *getSystem(std::string type);
             std::vector<GameSystem*>& getSystems();

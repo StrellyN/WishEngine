@@ -26,11 +26,26 @@
 namespace WishEngine{
     Message::Message(std::string t){
         setType(t);
+        value = "";
+        numericValue = 0;
     }
 
     Message::Message(std::string mT, std::string val){
         setType(mT);
+        value = val;
+        numericValue = 0;
+    }
+
+    Message::Message(std::string mT, double numVal){
+        setType(mT);
+        value = "";
+        numericValue = numVal;
+    }
+
+    Message::Message(std::string mT, std::string val, double numVal){
+        setType(mT);
         setValue(val);
+        setNumericValue(numVal);
     }
 
     Message::Message(){
@@ -51,5 +66,13 @@ namespace WishEngine{
 
     std::string &Message::getValue(){
         return value;
+    }
+
+    double Message::getNumericValue(){
+        return numericValue;
+    }
+
+    void Message::setNumericValue(double numVal){
+        numericValue = numVal;
     }
 }

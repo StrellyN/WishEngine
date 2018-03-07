@@ -1,7 +1,13 @@
 #include "Framework.hpp"
 
+#ifdef _WIN32
+	#define EXPORT __declspec(dllexport)
+#elif defined(__unix__) || defined(__linux__)
+	#define EXPORT
+#endif
+
 extern "C"{
-    __declspec(dllexport) WishEngine::GameSystem *getSystem(){
+    EXPORT WishEngine::GameSystem *getSystem(){
         return new WishEngine::Framework();
     }
 }

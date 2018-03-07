@@ -29,6 +29,7 @@
 #include "GameObject.hpp"
 #include "CreateScriptMessage.hpp"
 #include "ObjectListMessage.hpp"
+#include "AvailableObjectsMessage.hpp"
 #include "ComponentListMessage.hpp"
 #include "CreateWindowMessage.hpp"
 #include "ScriptComponent.hpp"
@@ -40,6 +41,7 @@ namespace WishEngine{
         private:
             static std::map<std::string, BaseCollection*> *components;
             static std::vector<GameObject> *objects;
+            static std::vector<unsigned> *availableObjects;
             static std::vector<Message*> *postedM;
 
         public:
@@ -49,12 +51,17 @@ namespace WishEngine{
             void handleMessage(Message* mes);
             void createScript(Collection<BaseCollection*> *col, GameObject *own, unsigned ownPos, bool isEn, std::string n, std::string ar);
 
+            static unsigned getObjectQuantity();
+
             static void insertObject(std::string name, bool isEnabled);
             static unsigned deleteObject(std::string name);
             static unsigned deleteObject(unsigned id);
             static GameObject *getObject(std::string name);
             static GameObject *getObject(unsigned id);
+            static GameObject *getObjectByPos(unsigned pos);
 
+            template <class T>
+            static unsigned insertComponent(std::string oName, T component, std::string name = "");
             template <class T>
             static unsigned insertComponent(unsigned oId, T component, std::string name = "");
             template <class T>
@@ -70,6 +77,8 @@ namespace WishEngine{
             static void loadSaveState();
             static void setMaxFPS(int mFPS);
             static void setFrameCapFlag(bool frameCap);
+            static void quit();
+            static void fullScreen(std::string window);
             //static bool getFrameCapFlag();
             //static int getMaxFPS();
     };

@@ -45,6 +45,7 @@ namespace WishEngine{
     class Collection : public BaseCollection{
         private:
             std::vector<T> collection;
+            std::vector<unsigned> availablePositions;
 
         public:
             Collection(std::string ty="");
@@ -55,6 +56,7 @@ namespace WishEngine{
             bool hasItem(unsigned ownrId, std::string name);
             bool hasItem(unsigned ownrId);
             std::vector<T> &getCollection();
+            unsigned deleteByPos(unsigned pos);
     };
 
     template <class T>
@@ -68,6 +70,7 @@ namespace WishEngine{
     template <class T>
     Collection<T>::~Collection(){
         collection.clear();
+        availablePositions.clear();
     }
 
     template <class T>
@@ -88,9 +91,18 @@ namespace WishEngine{
             i++;
         }
         if(!hasItem(ownrId, name)){
-            item.setName(name);
-            collection.push_back(item);
-            return 1;
+            if(availablePositions.empty()){
+                item.setName(name);
+                collection.push_back(item);
+                return collection.size();
+            }
+            else{
+                item.setName(name);
+                unsigned newPos = availablePositions[availablePositions.size() - 1];
+                collection[newPos] = item;
+                availablePositions.pop_back();
+                return newPos + 1;
+            }
         }
         return 0;
     }
@@ -98,18 +110,28 @@ namespace WishEngine{
     template <class T>
     T &Collection<T>::getItem(unsigned ownrId, std::string name){
         for(unsigned i=0; i<collection.size(); i++){
-            if(collection[i].getName() == name && collection[i].getOwnerId() == ownrId){
+            if(!collection[i].getDeleted() && collection[i].getName() == name && collection[i].getOwnerId() == ownrId){
                 return collection[i];
             }
         }
         return NULL;
     }
 
+    template<class T>
+    unsigned Collection<T>::deleteByPos(unsigned pos){
+        if(pos > 0 && pos < collection.size() && !collection[pos].getDeleted()){
+            availablePositions.push_back(pos);
+            collection[pos].setDeleted(true);
+            return 1;
+        }
+        return 0;
+    }
+
     template <class T>
     unsigned Collection<T>::deleteItem(unsigned ownrId, std::string name){
         for(unsigned i=0; i<collection.size(); i++){
-            if(collection[i].getName() == name && collection[i].getOwnerId() == ownrId){
-                //collection.erase(collection.begin() + i);
+            if(!collection[i].getDeleted() && collection[i].getName() == name && collection[i].getOwnerId() == ownrId){
+                availablePositions.push_back(i);
                 collection[i].setDeleted(true);
                 return 1;
             }
@@ -120,7 +142,7 @@ namespace WishEngine{
     template <class T>
     bool Collection<T>::hasItem(unsigned ownrId, std::string name){
         for(unsigned i=0; i<collection.size(); i++){
-            if(collection[i].getName() == name && collection[i].getOwnerId() == ownrId){
+            if(!collection[i].getDeleted() && collection[i].getName() == name && collection[i].getOwnerId() == ownrId){
                 return true;
             }
         }
@@ -130,7 +152,7 @@ namespace WishEngine{
     template <class T>
     bool Collection<T>::hasItem(unsigned ownrId){
         for(unsigned i=0; i<collection.size(); i++){
-            if(collection[i].getOwnerId() == ownrId){
+            if(!collection[i].getDeleted() && collection[i].getOwnerId() == ownrId){
                 return true;
             }
         }

@@ -47,6 +47,7 @@ namespace WishEngine{
         }
         else if(msg->getType() == "DELETEEVERYTHING"){
             clearData();
+            destroySystem();
         }
         else if(msg->getType() == "FULLSCREEN"){
             fullScreen(msg->getValue());
@@ -69,11 +70,7 @@ namespace WishEngine{
             startFrame();
         }
         else if(msg->getType() == "RFRAME"){
-            RenderMessage* rmes = dynamic_cast<RenderMessage*>(msg);
-            if(rmes != nullptr){
-                renderObjects(rmes->getInterpolation());
-            }
-            rmes = nullptr;
+            renderObjects(msg->getNumericValue());
         }
         else if(msg->getType() == "FFRAME"){
             endFrame();
@@ -967,49 +964,41 @@ namespace WishEngine{
         if(components != nullptr && components->find("ANIMATION") != components->end()){
             animations = &dynamic_cast<Collection<AnimationComponent>*>(components->at("ANIMATION"))->getCollection();
         }
-
         if(graphics != nullptr && !std::is_sorted(graphics->begin(), graphics->end(), objectGraphicSorting)){ //If they are not sorted, sort them.
             std::sort(graphics->begin(), graphics->end(), objectGraphicSorting);
             for(unsigned i=0; i<graphics->size(); i++){
-                (*objects)[(*graphics)[i].getOwnerPos()].setComponentPosition(i, (*graphics)[i].getType());
+                GameObject *aux = &(*objects)[(*graphics)[i].getOwnerPos()];
+                if(aux != nullptr){
+                    aux->setComponentPosition(i, (*graphics)[i].getType());
+                }
+                aux = nullptr;
             }
         }
         if(cameras != nullptr && !std::is_sorted(cameras->begin(), cameras->end(), objectCameraSorting)){ //If they are not sorted, sort them.
             std::sort(cameras->begin(), cameras->end(), objectCameraSorting);
             for(unsigned i=0; i<cameras->size(); i++){
-                (*objects)[(*cameras)[i].getOwnerPos()].setComponentPosition(i, (*cameras)[i].getType());
+                GameObject *aux = &(*objects)[(*cameras)[i].getOwnerPos()];
+                if(aux != nullptr){
+                    aux->setComponentPosition(i, (*cameras)[i].getType());
+                }
+                aux = nullptr;
             }
         }
-
-        /**
-            Components we are gonna need:
-                - Dimension (Both the objects and the cameras)
-                - Graphic
-                - Animation
-                - Camera
-
-            Rendering:
-            1) For each camera, get its camera and its dimension.(done)
-            2) Inside the camera for, for each object, get its dimension, graphic and animation (done)
-            3) Check the graphics things to see if its text or what not
-            4) Call the correct function
-        **/
         if(objects != nullptr && graphics != nullptr && cameras != nullptr && dimensions != nullptr){
             for(unsigned i=0; i<cameras->size(); i++){
                 GameObject *cameraObj = &((*objects)[(*cameras)[i].getOwnerPos()]);
-                if(cameraObj->hasComponent("DIMENSION")){
+                if(cameraObj != nullptr && cameraObj->hasComponent("DIMENSION")){
                     DimensionComponent *camDim = &(*dimensions)[cameraObj->getComponentPosition("DIMENSION")];
                     //CameraComponent *camCam = (*cameras)[i];
                     for(unsigned j=0; j<graphics->size(); j++){
                         GameObject *currentObject = &(*objects)[(*graphics)[j].getOwnerPos()];
-                        if(currentObject->getId() != cameraObj->getId()){
+                        if(currentObject != nullptr && currentObject->getId() != cameraObj->getId()){
                             if(currentObject->hasComponent("DIMENSION")){
                                 DimensionComponent *objDim = &(*dimensions)[currentObject->getComponentPosition("DIMENSION")];
                                 AnimationComponent *objAni = nullptr;
                                 if(animations != nullptr && currentObject->hasComponent("ANIMATION")){
                                     objAni = &(*animations)[currentObject->getComponentPosition("ANIMATION")];
                                 }
-
                                 if((*graphics)[j].getIsText()){
                                     if((*graphics)[j].getText().getIsPlain()){
                                         renderPlainText(&(*graphics)[j], objDim, objAni, interpolation, camDim, &(*cameras)[i], "mainWindow");
@@ -1116,6 +1105,7 @@ namespace WishEngine{
                 delete cut;
                 cut = nullptr;
             }
+
 
             dimComp->setX((nearbyint(dimComp->getX()*(interpolation) + dimComp->getpX()*(1-interpolation))));
             dimComp->setX(dimComp->getpX());
@@ -1314,9 +1304,17 @@ namespace WishEngine{
             SDL_RenderPresent((*i).second);
         }
         if(frameCapFlag){
-            int realFT = SDL_GetTicks() - frameTicks;
-            if(realFT < 1000/maxFPS){
-                SDL_Delay(1000/maxFPS - realFT);
+            int realFT = SDL_GetTicks() - frameTicks; //Duration of frame
+            if(realFT < 1000/maxFPS){ //1000/maxFPS is the time a frame should take.
+                double timeToWait = (1000/maxFPS) - realFT; //The time the engine should wait until letting the engine advance.
+                double waitingIntervals = timeToWait / 10; //The time intervals to wait.
+                int timeStart, timeEnd;
+                while(timeToWait > waitingIntervals){ //This still doesn't let to a consistant frame rate, but it works good
+                    timeStart = SDL_GetTicks();       //enough for now.
+                    SDL_Delay(waitingIntervals);
+                    timeEnd = SDL_GetTicks() - timeStart;
+                    timeToWait -= timeEnd;
+                }
             }
             frameTicks = SDL_GetTicks();
         }

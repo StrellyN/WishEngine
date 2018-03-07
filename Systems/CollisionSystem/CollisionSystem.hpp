@@ -42,7 +42,8 @@ namespace WishEngine{
         public:
             CollisionSystem();
             ~CollisionSystem();
-            static bool checkCollision(DimensionComponent *dim1, DimensionComponent *dim2, HitboxComponent *hit1, HitboxComponent *hit2);
+            bool checkCollision(DimensionComponent *dim1, DimensionComponent *dim2, HitboxComponent *hit1, HitboxComponent *hit2);
+            void updateCollisions();
             void update(double dt);
             void handleMessage(Message* msg);
     };

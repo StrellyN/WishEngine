@@ -27,6 +27,7 @@
 #include "System.hpp"
 #include "InputListMessage.hpp"
 #include "InputComponent.hpp"
+#include "ComponentListMessage.hpp"
 #include "Collection.hpp"
 
 namespace WishEngine{

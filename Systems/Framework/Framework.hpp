@@ -32,7 +32,6 @@
 #include "System.hpp"
 #include "GameObject.hpp"
 
-#include "RenderMessage.hpp"
 #include "InputListMessage.hpp"
 #include "ObjectListMessage.hpp"
 #include "ComponentListMessage.hpp"

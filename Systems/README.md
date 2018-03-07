@@ -52,10 +52,6 @@ though and that makes the engine shut down.
 Through the Network Components, it makes it easier for the user to create and delete TCP/UDP connections and to send and receive data through those connections. 
 It communicates with the Framework via messages to access the SDL_Net functionality.
 
-### Physics System
-
-It does nothing right now.
-
 ### Timer System
 
 It's a simple timer that multiplies 1 * deltaTime and adds it to the counter of every Timer Component. Nothing special.

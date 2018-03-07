@@ -31,6 +31,7 @@ namespace WishEngine{
         private:
             std::string systemType;
             std::vector<Message*> postedMessages;
+            int updatePriority = 0;
 
         public:
             virtual ~GameSystem(){
@@ -40,8 +41,10 @@ namespace WishEngine{
             virtual void handleMessage(Message *msg) = 0;
             void destroySystem(){
                 for(unsigned i=0; i<postedMessages.size(); i++){
-                    delete postedMessages[i];
-                    postedMessages[i] = nullptr;
+                    if(postedMessages[i] != nullptr){
+                        delete postedMessages[i];
+                        postedMessages[i] = nullptr;
+                    }
                 }
                 postedMessages.clear();
             }
@@ -56,6 +59,28 @@ namespace WishEngine{
             }
             std::vector<Message*> &getMessages(){
                 return postedMessages;
+            }
+            unsigned getMessagesAmount(){
+                return postedMessages.size();
+            }
+            Message *getMessage(unsigned pos){
+                if(pos < postedMessages.size() && pos >= 0){
+                    return postedMessages[pos];
+                }
+                return nullptr;
+            }
+            void deleteMessage(unsigned pos){
+                if(pos < postedMessages.size() && pos >= 0){
+                    delete postedMessages[pos];
+                    postedMessages[pos] = nullptr;
+                    postedMessages.erase(postedMessages.begin() + pos);
+                }
+            }
+            int getUpdatePriority(){
+                return updatePriority;
+            }
+            void setUpdatePriority(int pri){
+                updatePriority = pri;
             }
     };
 }

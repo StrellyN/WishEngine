@@ -26,6 +26,23 @@
 namespace WishEngine{
     ObjectFactory::ObjectFactory(){
         setSystemType("OBJECTFACTORY");
+        std::fstream initialStateConfig; //Pasar a object factory
+        std::string file;
+        initialStateConfig.open("data/INISTATE.config", std::ios::in); //we open the config file
+        if(initialStateConfig){ //Check if file can be accessed
+            initialStateConfig >> file; //get the state configuration file path from the file
+            initialStateConfig.close(); //close the file
+            loadObjects(file);//Push a state that will read it's object configuration from the file
+        }
+        else{ //If it can't be accessed
+            initialStateConfig.close(); //close the file
+            std::fstream errorLog; //open a stream to the error log
+            errorLog.open("ERROR.txt", std::ios::out); //Open the error log
+            errorLog << "Couldn't access data/INISTATE.config file."; //write the error
+            errorLog.close(); //close the stream
+            postMessage(new Message("QUIT"));
+        }
+        file.clear();
     }
 
     ObjectFactory::~ObjectFactory(){
@@ -57,48 +74,43 @@ namespace WishEngine{
     **/
     void ObjectFactory::deleteEverything(){
         objects.clear();
+        availableObjects.clear();
         for(std::map<std::string, BaseCollection*>::iterator it = componentCollections.begin(); it != componentCollections.end(); it++){
             delete it->second;
             it->second = nullptr;
         }
         componentCollections.clear();
+        destroySystem();
     }
 
     void ObjectFactory::update(double dt){
         //Send the objects and components pointer.
         postMessage(new ObjectListMessage("OBJECTLIST", &objects));
         postMessage(new ComponentListMessage("COMPONENTLIST", &componentCollections));
-
-        //std::cout << objects.size() << std::endl;
+        postMessage(new AvailableObjectsMessage("AVAILABLEOBJECTS", &availableObjects));
     }
 
     void ObjectFactory::handleMessage(Message* msg){
         if(msg->getType() == "LOADOBJECTS"){
             loadObjects(msg->getValue());
         }
-        else if(msg->getType() == "OBJECTDELETED"){
-            deleteObject(Utils::stringToInt(msg->getValue()));
-        }
-        else if(msg->getType() == "DELETEEVERYTHING"){
+        else if(msg->getType() == "GOTOSTATE"){ //Esto hacerlo en la object factory también
             deleteEverything();
+            loadObjects(msg->getValue());
         }
-    }
-
-    void ObjectFactory::deleteObject(unsigned objPos){
-        //Set all the objects components as Deleted
     }
 
     /**
         Method to check if an object name is already in use
     **/
     std::string ObjectFactory::checkObjectName(std::string &name){
-        std::string finalName = name;
-        if(finalName == ""){
-            finalName = "Object";
+        if(name == ""){
+            name = "Object";
         }
+        std::string finalName = name;
         int modifier = 1;
         for(int i=0; i<objects.size(); i++){
-            if(objects[i].getName() == finalName){
+            if(!objects[i].getDeleted() && objects[i].getName() == finalName){
                 finalName = name;
                 finalName += Utils::intToString(modifier);
                 i = -1;
@@ -130,8 +142,23 @@ namespace WishEngine{
                         objectStream >> objName;
                     }
                     objName = checkObjectName(objName);
-                    objects.emplace_back(objName, objEnabled);
-                    objPos = objects.size() - 1;
+                    if(availableObjects.empty()){
+                        objects.emplace_back(objName, objEnabled);
+                        objPos = objects.size() - 1;
+                        if(objPos <= 0){
+                            objects[objPos].setId(0);
+                        }
+                        else{
+                            objects[objPos].setId(objects[objPos-1].getId() + 1);
+                        }
+                    }
+                    else{
+                        objPos = availableObjects[availableObjects.size() - 1];
+                        unsigned oldId = objects[objPos].getId();
+                        objects[objPos] = GameObject(objName, objEnabled);
+                        objects[objPos].setId(oldId);
+                        availableObjects.pop_back();
+                    }
                     objId = objects[objPos].getId();
 
                     //Components

@@ -77,5 +77,15 @@ namespace WishEngine{
             }
             aux = nullptr;
         }
+        else if(mes->getType() == "COMPONENTLIST"){
+            ComponentListMessage *aux = dynamic_cast<ComponentListMessage*>(mes);
+            if(aux != nullptr){
+                components = aux->getComponentList();
+            }
+            aux = nullptr;
+        }
+        else if(mes->getType() == "DELETEEVERYTHING"){
+            destroySystem();
+        }
     }
 }

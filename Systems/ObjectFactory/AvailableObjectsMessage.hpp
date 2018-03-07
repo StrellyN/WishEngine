@@ -21,46 +21,20 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "DirectionVector.hpp"
+#ifndef AVAILABLEOBJECTSMESSAGE_H
+#define AVAILABLEOBJECTSMESSAGE_H
+
+#include "Message.hpp"
 
 namespace WishEngine{
-    DirectionVector::DirectionVector(double x, double y){
-        X = x;
-        Y = y;
-        Z = 0;
-    }
+    class AvailableObjectsMessage : public Message{
+        private:
+            std::vector<unsigned> *availabilityList;
 
-    DirectionVector::DirectionVector(double x, double y, double z){
-        X = x;
-        Y = y;
-        Z = z;
-    }
-
-    DirectionVector::~DirectionVector(){
-
-    }
-
-    double DirectionVector::getX(){
-        return X;
-    }
-
-    double DirectionVector::getY(){
-        return Y;
-    }
-
-    double DirectionVector::getZ(){
-        return Z;
-    }
-
-    void DirectionVector::setX(double x){
-        X = x;
-    }
-
-    void DirectionVector::setY(double y){
-        Y = y;
-    }
-
-    void DirectionVector::setZ(double z){
-        Z = z;
-    }
+        public:
+            AvailableObjectsMessage(std::string mT, std::vector<unsigned> *aList);
+            virtual ~AvailableObjectsMessage();
+            std::vector<unsigned> *getAvailabilityList();
+    };
 }
+#endif // AVAILABLEOBJECTSMESSAGE_H

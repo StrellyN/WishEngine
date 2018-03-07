@@ -24,9 +24,8 @@
 #include "State.hpp"
 
 namespace WishEngine{
-    State::State(std::string configFile){
+    State::State(){
         loadSystems();
-        sendMessage(new Message("LOADOBJECTS", configFile));
     }
 
     State::~State(){
@@ -41,8 +40,11 @@ namespace WishEngine{
                 FreeLibrary(systemsDLL[i]);
             }
             systemsDLL.clear();
-        #else
-
+        #elif defined(__unix__) || defined(__linux__)
+            for(unsigned i=0; i<systemsDLL.size(); i++){
+                dlclose(systemsDLL[i]);
+            }
+            systemsDLL.clear();
         #endif
     }
 
@@ -59,16 +61,38 @@ namespace WishEngine{
             do{
                 HINSTANCE temp = LoadLibrary((R"(systems\)" +  std::string(fileData.cFileName)) .c_str());
 
-                if (temp) {
+                if(temp){
                     ObjProc ProcAdd = (ObjProc)GetProcAddress(temp, "getSystem");
-                    addSystem(ProcAdd());
+                    if(ProcAdd){
+                        addSystem(ProcAdd());
+                        systemsDLL.push_back(temp);
+                    }
                 }
+            }while (FindNextFile(fileHandle, &fileData));
+        #elif defined(__unix__) || defined(__linux__)
+            DIR *dir;
+            struct dirent *ent;
+            if((dir = opendir ("./systems")) != NULL){
+                while((ent = readdir (dir)) != NULL){ //This gives only the file name. ent->d_name
+                    void *lib_handle;
+                    typedef GameSystem* (*ObjProc)(void);
 
-                systemsDLL.push_back(temp);
-            } while (FindNextFile(fileHandle, &fileData));
-        #else
-
+                    lib_handle = dlopen((std::string("./systems/") + std::string(ent->d_name)).c_str(), RTLD_LAZY);
+                    if (lib_handle){
+                        ObjProc fn = (ObjProc)dlsym(lib_handle, "getSystem");
+                        if(fn){
+                            addSystem(fn());
+                            systemsDLL.push_back(lib_handle);
+                        }
+                    }
+                }
+                closedir (dir);
+            }
         #endif
+    }
+
+    bool systemPrioritySorting(GameSystem *a, GameSystem *b){
+        return a->getUpdatePriority() < b->getUpdatePriority();
     }
 
     /**
@@ -79,6 +103,9 @@ namespace WishEngine{
     void State::update(){
         if(systems.empty()){
             quit = true;
+        }
+        else{
+            std::sort(systems.begin(), systems.end(), systemPrioritySorting);
         }
 
         double dt = 0.01, accumulator = 0; //Sets some variables for the timing of the loop, like the current ms
@@ -105,20 +132,20 @@ namespace WishEngine{
                 sendMessage(new Message("HANDLEINPUT"));
                 for(unsigned i=0; i<getSystems().size(); i++){ //Update all the systems and check for quit being true
                     getSystems()[i]->update(dt);
-                    if(getQuit() == true){ //If quit is true quit the state
+                    if(getQuit()){ //If quit is true quit the state
                         break;
                     }
                 }
-                if(getQuit() == true){
+                if(getQuit()){
                     break;
                 }
                 handleMessages();
-                if(getQuit() == true){
+                if(getQuit()){
                     break;
                 }
                 accumulator -= dt; //Substract from the accumulator to avoid the INFINITE WHILE LOOP!!!!
             }
-            if(getQuit() == true){
+            if(getQuit()){
                 break;
             }
             interpolation = accumulator/dt; //Calculate the interpolation value for the rendering (Used to interpolate between the last and current
@@ -131,7 +158,7 @@ namespace WishEngine{
     **/
     void State::render(double interpolation){
         sendMessage(new Message("SFRAME"));
-        sendMessage(new RenderMessage("RFRAME", interpolation));
+        sendMessage(new Message("RFRAME", interpolation));
         sendMessage(new Message("FFRAME"));
     }
 
@@ -140,17 +167,22 @@ namespace WishEngine{
     **/
     void State::handleMessages(){
         for(unsigned i=0; i<systems.size(); i++){
-            std::vector<Message*> &sentMessages = systems[i]->getMessages();
-            for(unsigned j=0; j<sentMessages.size(); j++){
-                sendMessage(sentMessages[j]);
-                sentMessages.erase(sentMessages.begin() + j);
-                j--;
-                if(getQuit())
+            while(systems[i]->getMessagesAmount() > 0){
+                Message *aux = systems[i]->getMessage(0);
+                if(aux != nullptr){
+                    handleMessage(aux); //First it handles it itself
+                    for(unsigned k=0; k<getSystems().size(); k++){ //And finaly to the rest of the systems
+                        getSystems()[k]->handleMessage(aux);
+                    }
+                }
+                aux = nullptr;
+                if(getQuit() || systems[i]->getMessagesAmount() == 0){
                     break;
+                }
+                systems[i]->deleteMessage(0);
             }
             if(getQuit())
                 break;
-            sentMessages.clear();
         }
     }
 
@@ -160,10 +192,6 @@ namespace WishEngine{
     void State::handleMessage(Message *msg){
         if(msg->getType() == "QUIT"){
             setQuit(true);
-        }
-        if(msg->getType() == "GOTOSTATE"){
-            sendMessage(new Message("DELETEEVERYTHING"));
-            sendMessage(new Message("LOADOBJECTS", msg->getValue()));
         }
     }
 
@@ -191,39 +219,6 @@ namespace WishEngine{
     **/
     void State::setQuit(bool q){
         quit = q;
-    }
-
-    /**
-        Method that returns the next state and then sets it to nullptr.
-        This is done to avoid the cycle of comming back to the current
-        state only to inmediately load the next one again.
-    **/
-    State* State::getNextState(){
-        State *aux = nextState;
-        nextState = nullptr;
-        return aux;
-    }
-
-    /**
-        Method that sets the next state and deletes the current next state
-        if necesary.
-    **/
-    void State::setNextState(State* nState){
-        if(nextState != nullptr){
-            delete nextState;
-            nextState = nullptr;
-        }
-        nextState = nState;
-    }
-
-    /**
-        Method used to check if there's a next state.
-    **/
-    bool State::hasNextState(){
-        if(nextState != nullptr){
-            return true;
-        }
-        return false;
     }
 
     /**

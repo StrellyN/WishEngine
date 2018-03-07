@@ -91,7 +91,11 @@ namespace WishEngine{
         IT HAS BEEN FIXED :D
     **/
     void CollisionSystem::update(double dt){
-        if(components != nullptr){
+        postMessage(new Message("CHECKCOLLISIONS"));
+    }
+
+    void CollisionSystem::updateCollisions(){
+        if(components != nullptr && objects != nullptr){
             std::vector<HitboxComponent> *hitboxes = nullptr;
             if(components->find("HITBOX") != components->end()){
                 hitboxes = &dynamic_cast<Collection<HitboxComponent>*>(components->at("HITBOX"))->getCollection();
@@ -100,13 +104,12 @@ namespace WishEngine{
             if(components->find("DIMENSION") != components->end()){
                 dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at("DIMENSION"))->getCollection();
             }
-
             if(hitboxes != nullptr && dimensions != nullptr){
                 DimensionComponent *dim1 = nullptr, *dim2 = nullptr;
                 HitboxComponent *hitI = nullptr, *hitJ = nullptr;
                 for(unsigned i=0; i<hitboxes->size(); i++){
                     unsigned hitObjPos = (*hitboxes)[i].getOwnerPos();
-                    if((*objects)[hitObjPos].getEnabled() && !(*objects)[hitObjPos].getDeleted() && (*objects)[hitObjPos].hasComponent("DIMENSION")){ //If they have a dimention of course
+                    if(hitObjPos < objects->size() && (*objects)[hitObjPos].getEnabled() && !(*objects)[hitObjPos].getDeleted() && (*objects)[hitObjPos].hasComponent("DIMENSION")){ //If they have a dimention of course
                         dim1 = &(*dimensions)[(*objects)[hitObjPos].getComponentPosition("DIMENSION")];
                         hitI = &(*hitboxes)[i];
                         if(hitI->getEnabled() && !hitI->getDeleted() && dim1->getEnabled() && !dim1->getDeleted()){ //If the Object has everything needed to
@@ -121,10 +124,10 @@ namespace WishEngine{
                                 for(unsigned j=0; j<hitboxes->size(); j++){
                                     if(i != j){ //If they aren't the same Object and the second object is enabled
                                         unsigned hit2ObjPos = (*hitboxes)[j].getOwnerPos();
-                                        dim2 = &(*dimensions)[(*objects)[hit2ObjPos].getComponentPosition("DIMENSION")]; //seems like this is the reason for the slow
-                                        hitJ = &(*hitboxes)[j];
-                                        if((*objects)[hit2ObjPos].getEnabled() && !(*objects)[hit2ObjPos].getDeleted() && dim2 != nullptr && dim2->getEnabled() && !dim2->getDeleted()){ //If j has a dimention of course
-                                            if(hitJ != nullptr && hitJ->getEnabled() && !hitJ->getDeleted()){ //And j has a hitbox
+                                        if(hit2ObjPos < objects->size() && (*objects)[hit2ObjPos].getEnabled() && !(*objects)[hit2ObjPos].getDeleted()){ //If j has a dimention of course
+                                            dim2 = &(*dimensions)[(*objects)[hit2ObjPos].getComponentPosition("DIMENSION")]; //seems like this is the reason for the slow
+                                            hitJ = &(*hitboxes)[j];
+                                            if(dim2 != nullptr && dim2->getEnabled() && !dim2->getDeleted() && hitJ != nullptr && hitJ->getEnabled() && !hitJ->getDeleted()){ //And j has a hitbox
                                                 if(checkCollision(dim1, dim2, hitI, hitJ)){
                                                     //Check solid collisions
                                                     if(hitI->getIsSolid() && hitJ->getIsSolid()){
@@ -177,9 +180,9 @@ namespace WishEngine{
                                                 dim1->setY(auxpY);
                                                 dim1->setY(auxY);
                                             }
+                                            hitJ = nullptr;
+                                            dim2 = nullptr;
                                         }
-                                        hitJ = nullptr;
-                                        dim2 = nullptr;
                                     }
                                 }
                                 double newX = auxX, newY = auxY; //This checks which new position is the shortest one to select the
@@ -218,9 +221,10 @@ namespace WishEngine{
                     }
                 }
             }
+            hitboxes = nullptr;
+            dimensions = nullptr;
         }
     }
-
     /**
         Method to handle received messages.
     **/
@@ -238,6 +242,12 @@ namespace WishEngine{
                 objects = rmes->getObjectList();
             }
             rmes = nullptr;
+        }
+        else if(msg->getType() == "CHECKCOLLISIONS"){
+            updateCollisions();
+        }
+        else if(msg->getType() == "DELETEEVERYTHING"){
+            destroySystem();
         }
     }
 }

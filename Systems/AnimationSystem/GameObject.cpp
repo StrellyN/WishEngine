@@ -24,13 +24,9 @@
 #include "GameObject.hpp"
 
 namespace WishEngine{
-    unsigned GameObject::idTracker = 0;
-
     GameObject::GameObject(std::string n, bool isEnabled){
         setEnabled(isEnabled);
         setName(n);
-        id = idTracker;
-        idTracker++;
     }
 
     GameObject::~GameObject(){
@@ -39,6 +35,10 @@ namespace WishEngine{
 
     unsigned GameObject::getId(){
         return id;
+    }
+
+    void GameObject::setId(unsigned i){
+        id = i;
     }
 
     bool GameObject::hasComponent(std::string type, std::string name){
