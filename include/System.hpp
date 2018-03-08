@@ -1,5 +1,5 @@
 /**
-    Copyright 2018 Strelly
+    Copyright 2017 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -29,10 +29,8 @@
 namespace WishEngine{
     class GameSystem{
         private:
-            std::string systemType;
+            S_TYPES systemType;
             std::vector<Message*> postedMessages;
-            int updatePriority = 0;
-
         public:
             virtual ~GameSystem(){
 
@@ -41,46 +39,22 @@ namespace WishEngine{
             virtual void handleMessage(Message *msg) = 0;
             void destroySystem(){
                 for(unsigned i=0; i<postedMessages.size(); i++){
-                    if(postedMessages[i] != nullptr){
-                        delete postedMessages[i];
-                        postedMessages[i] = nullptr;
-                    }
+                    delete postedMessages[i];
+                    postedMessages[i] = nullptr;
                 }
                 postedMessages.clear();
             }
-            std::string &getSystemType(){
+            S_TYPES getSystemType(){
                 return systemType;
             }
-            void setSystemType(std::string type){
+            void setSystemType(S_TYPES type){
                 systemType = type;
             }
-            void postMessage(Message *toPost){
+            void postMessage(Message* toPost){
                 postedMessages.push_back(toPost);
             }
-            std::vector<Message*> &getMessages(){
+            std::vector<Message*>& getMessages(){
                 return postedMessages;
-            }
-            unsigned getMessagesAmount(){
-                return postedMessages.size();
-            }
-            Message *getMessage(unsigned pos){
-                if(pos < postedMessages.size() && pos >= 0){
-                    return postedMessages[pos];
-                }
-                return nullptr;
-            }
-            void deleteMessage(unsigned pos){
-                if(pos < postedMessages.size() && pos >= 0){
-                    delete postedMessages[pos];
-                    postedMessages[pos] = nullptr;
-                    postedMessages.erase(postedMessages.begin() + pos);
-                }
-            }
-            int getUpdatePriority(){
-                return updatePriority;
-            }
-            void setUpdatePriority(int pri){
-                updatePriority = pri;
             }
     };
 }

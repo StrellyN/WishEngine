@@ -1,5 +1,5 @@
 /**
-    Copyright 2018 Strelly
+    Copyright 2017 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -26,6 +26,13 @@
 
 #define TICKS_PER_SECOND 30
 
+namespace WishEngine{
+    enum S_TYPES {INPUT, GRAPHICS, NETWORK, SCRIPTS, PHYSIC, AUDIO, ANIMATIONS, TIMER, COLLISION, STYPESIZE};
+    enum M_TYPES {LOADSTATE, NEWSTATE, QUIT, SFRAME, FFRAME, ADDOBJ, RENDER, EVENTS, HANDLEINPUT, FULLSCREEN, MTYPESIZE};
+    enum E_TYPES {MOUSE_WHEEL, MOUSE_PRESS, KEYBOARD_PRESS, GAMEPAD_ADDED, GAMEPAD_REMOVED, GAMEPAD_PRESS, GAMEPAD_AXIS, MOUSE_MOTION, MOUSE_RELEASE, KEYBOARD_RELEASE, GAMEPAD_RELEASE, EQUIT, ENULL, ETYPESIZE};
+    enum C_TYPES {TIMERC, CAMERA, INPUTC, PLAYER, GRAPHIC, ANIMATION, ANIMATOR, AUDIOC, DIMENTION, HITBOX, PHYSICS, VELOCITY, SCRIPT, GRAVITY, EMITEDFORCE, PUSHABLE, SOLID, UI, PROPERTIES, NETWORKC, CTYPESIZE};
+}
+
 #include <map>
 #include <string>
 #include <iostream>
@@ -43,7 +50,5 @@
 #include <cstdint>
 #include <stdint.h>
 #include <type_traits>
-#include <typeinfo>
-#include <chrono>
 
 #endif // HEADERS

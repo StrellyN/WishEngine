@@ -1,5 +1,5 @@
 /**
-    Copyright 2018 Strelly
+    Copyright 2017 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -25,40 +25,37 @@
 #define STATE_H
 
 #include "System.hpp"
-
-#ifdef _WIN32
-    #include "windows.h"
-#elif defined(__unix__) || defined(__linux__)
-    #include <dlfcn.h>
-    #include <dirent.h>
-#endif
+#include "ObjectFactory.hpp"
+#include "Framework.hpp"
 
 namespace WishEngine{
     class State{
         private:
-            #ifdef _WIN32
-                std::vector<HINSTANCE> systemsDLL;
-            #elif defined(__unix__) || defined(__linux__)
-                std::vector<void*> systemsDLL;
-            #endif
             std::vector<GameSystem*> systems;
+            ObjectFactory *objFac = nullptr;
+            Framework *fw = nullptr;
+            State *nextState = nullptr;
             bool quit = false;
         public:
-            State();
+            State(std::string configFile);
             ~State();
-            void loadSystems();
             void update();
             void render(double interpolation);
             void handleMessage(Message *msg);
             void handleMessages();
             void sendMessage(Message *mes);
+            State* getNextState();
+            void setNextState(State *nState);
+            bool hasNextState();
             void addSystem(GameSystem *nSystem);
-            GameSystem *getSystem(std::string type);
+            GameSystem* getSystem(S_TYPES type);
             std::vector<GameSystem*>& getSystems();
             void setSystems(std::vector<GameSystem*>& nSystems);
-            bool hasSystemType(std::string type);
+            bool hasSystemType(S_TYPES type);
             bool getQuit();
             void setQuit(bool q);
+            ObjectFactory* getObjFac();
+            void setObjFac(ObjectFactory* of);
     };
 }
 #endif // STATE

@@ -1,5 +1,5 @@
 /**
-    Copyright 2018 Strelly
+    Copyright 2017 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -29,13 +29,13 @@
 namespace WishEngine{
     class Engine{
         private:
-            State currentState;
+            State *currentState;
         public:
             Engine();
             ~Engine();
             void update();
-            State &getState();
-            void setState(State &nState);
+            State* getState();
+            void setState(State* nState);
     };
 }
 #endif // ENGINE

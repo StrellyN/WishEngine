@@ -1,5 +1,5 @@
 /**
-    Copyright 2018 Strelly
+    Copyright 2017 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -21,42 +21,27 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "Message.hpp"
+#include "HppHeaders.hpp"
 
 namespace WishEngine{
-    Message::Message(std::string t){
+    Message::Message(M_TYPES t){
         setType(t);
-        value = "";
-        numericValue = 0;
     }
 
-    Message::Message(std::string mT, std::string val){
-        setType(mT);
-        value = val;
-        numericValue = 0;
-    }
-
-    Message::Message(std::string mT, double numVal){
-        setType(mT);
-        value = "";
-        numericValue = numVal;
-    }
-
-    Message::Message(std::string mT, std::string val, double numVal){
+    Message::Message(M_TYPES mT, std::string val){
         setType(mT);
         setValue(val);
-        setNumericValue(numVal);
     }
 
     Message::Message(){
 
     }
 
-    std::string &Message::getType(){
+    M_TYPES Message::getType(){
         return type;
     }
 
-    void Message::setType(std::string t){
+    void Message::setType(M_TYPES t){
         type = t;
     }
 
@@ -66,13 +51,5 @@ namespace WishEngine{
 
     std::string &Message::getValue(){
         return value;
-    }
-
-    double Message::getNumericValue(){
-        return numericValue;
-    }
-
-    void Message::setNumericValue(double numVal){
-        numericValue = numVal;
     }
 }

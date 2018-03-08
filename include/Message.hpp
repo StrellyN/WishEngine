@@ -1,5 +1,5 @@
 /**
-    Copyright 2018 Strelly
+    Copyright 2017 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -24,26 +24,22 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
-#include "Headers.hpp"
+#include "Utils.hpp"
 
 namespace WishEngine{
     class Message{
         private:
-            std::string type, value;
-            double numericValue;
+            M_TYPES type;
+            std::string value;
         public:
-            Message(std::string t);
-            Message(std::string mT, std::string val);
-            Message(std::string mT, double numVal);
-            Message(std::string mT, std::string val, double numVal);
+            Message(M_TYPES t);
+            Message(M_TYPES mT, std::string val);
             Message();
             virtual ~Message(){}
-            std::string &getType();
-            void setType(std::string t);
+            M_TYPES getType();
+            void setType(M_TYPES t);
             std::string &getValue();
             void setValue(std::string val);
-            double getNumericValue();
-            void setNumericValue(double numVal);
     };
 }
 #endif // MESSAGE

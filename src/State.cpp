@@ -1,5 +1,5 @@
 /**
-    Copyright 2018 Strelly
+    Copyright 2017 Strelly
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -21,11 +21,26 @@
     DEALINGS IN THE SOFTWARE.
 **/
 
-#include "State.hpp"
+#include "HppHeaders.hpp"
 
 namespace WishEngine{
-    State::State(){
-        loadSystems();
+    State::State(std::string configFile){
+        //Maybe change the adding of the systems as plugins, so the coder can use
+        //whatever he wants and also modders can code more systems more easily.
+        //ObjectFactory and Framework will always be loaded though.
+        addSystem(new ScriptSystem()); //Add all the systems and everything needed
+        addSystem(new InputSystem());
+        addSystem(new GraphicsSystem());
+        addSystem(new PhysicsSystem());
+        addSystem(new AudioSystem());
+        addSystem(new AnimationSystem());
+        addSystem(new NetworkSystem());
+        addSystem(new TimerSystem());
+        addSystem(new CollisionSystem());
+        ObjectFactory::getObjectFactory()->destroyObjectFactory();
+        setObjFac(ObjectFactory::getObjectFactory());
+        fw = Framework::getFramework();
+        getObjFac()->createObjects(configFile); //We pass the file received to the object factory so it can create everything
     }
 
     State::~State(){
@@ -34,65 +49,12 @@ namespace WishEngine{
             systems[i] = nullptr;
         }
         systems.clear();
-
-        #ifdef _WIN32
-            for(unsigned i=0; i<systemsDLL.size(); i++){
-                FreeLibrary(systemsDLL[i]);
-            }
-            systemsDLL.clear();
-        #elif defined(__unix__) || defined(__linux__)
-            for(unsigned i=0; i<systemsDLL.size(); i++){
-                dlclose(systemsDLL[i]);
-            }
-            systemsDLL.clear();
-        #endif
-    }
-
-    void State::loadSystems(){
-        #ifdef _WIN32
-            WIN32_FIND_DATA fileData;
-            HANDLE fileHandle = FindFirstFile(R"(.\systems\*.dll)", &fileData);
-            typedef GameSystem* (__cdecl *ObjProc)(void);
-
-            if(fileHandle == (void*)ERROR_INVALID_HANDLE || fileHandle == (void*)ERROR_FILE_NOT_FOUND){
-                return;
-            }
-
-            do{
-                HINSTANCE temp = LoadLibrary((R"(systems\)" +  std::string(fileData.cFileName)) .c_str());
-
-                if(temp){
-                    ObjProc ProcAdd = (ObjProc)GetProcAddress(temp, "getSystem");
-                    if(ProcAdd){
-                        addSystem(ProcAdd());
-                        systemsDLL.push_back(temp);
-                    }
-                }
-            }while (FindNextFile(fileHandle, &fileData));
-        #elif defined(__unix__) || defined(__linux__)
-            DIR *dir;
-            struct dirent *ent;
-            if((dir = opendir ("./systems")) != NULL){
-                while((ent = readdir (dir)) != NULL){ //This gives only the file name. ent->d_name
-                    void *lib_handle;
-                    typedef GameSystem* (*ObjProc)(void);
-
-                    lib_handle = dlopen((std::string("./systems/") + std::string(ent->d_name)).c_str(), RTLD_LAZY);
-                    if (lib_handle){
-                        ObjProc fn = (ObjProc)dlsym(lib_handle, "getSystem");
-                        if(fn){
-                            addSystem(fn());
-                            systemsDLL.push_back(lib_handle);
-                        }
-                    }
-                }
-                closedir (dir);
-            }
-        #endif
-    }
-
-    bool systemPrioritySorting(GameSystem *a, GameSystem *b){
-        return a->getUpdatePriority() < b->getUpdatePriority();
+        if(nextState != nullptr){ //Delete the next state if there's any
+            delete nextState;
+            nextState = nullptr;
+        }
+        Framework::getFramework()->clearData();
+        objFac = nullptr;
     }
 
     /**
@@ -101,51 +63,33 @@ namespace WishEngine{
         Made looking at: https://gafferongames.com/post/fix_your_timestep/
     **/
     void State::update(){
-        if(systems.empty()){
-            quit = true;
-        }
-        else{
-            std::sort(systems.begin(), systems.end(), systemPrioritySorting);
-        }
-
         double dt = 0.01, accumulator = 0; //Sets some variables for the timing of the loop, like the current ms
-
-        auto now = std::chrono::high_resolution_clock::now();
-        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-        auto epoch = now_ms.time_since_epoch();
-        auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
-
-        double currentDT = value.count(), newDT, interpolation;
+        double currentDT = fw->getTicks(), newDT, interpolation;
         while(!quit){ //While the state isn't set to quit
-            now = std::chrono::high_resolution_clock::now();
-            now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-            epoch = now_ms.time_since_epoch();
-            value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
-
-            newDT = value.count(); //Get the ticks before all the updates
+            newDT = fw->getTicks(); //Get the ticks before all the updates
             double frameTime = (newDT - currentDT) / double(1000); // Amount of seconds it takes a frame to finish
             if ( frameTime > double(TICKS_PER_SECOND)/double(100) ) // Capping the frame time so the game skips things if it lags too much
                 frameTime = double(TICKS_PER_SECOND)/double(100);
             currentDT = newDT; //Set the current ticks as the new ones for the next frames calculations
             accumulator += frameTime; //Add the time passed to the accumulator
             while( accumulator >= dt ){ //While the accumulator is greater than the fixed time value
-                sendMessage(new Message("HANDLEINPUT"));
+                sendMessage(new Message(M_TYPES::HANDLEINPUT));
                 for(unsigned i=0; i<getSystems().size(); i++){ //Update all the systems and check for quit being true
                     getSystems()[i]->update(dt);
-                    if(getQuit()){ //If quit is true quit the state
+                    if(getQuit() == true){ //If quit is true quit the state
                         break;
                     }
                 }
-                if(getQuit()){
+                if(getQuit() == true){
                     break;
                 }
                 handleMessages();
-                if(getQuit()){
+                if(getQuit() == true){
                     break;
                 }
                 accumulator -= dt; //Substract from the accumulator to avoid the INFINITE WHILE LOOP!!!!
             }
-            if(getQuit()){
+            if(getQuit() == true){
                 break;
             }
             interpolation = accumulator/dt; //Calculate the interpolation value for the rendering (Used to interpolate between the last and current
@@ -157,9 +101,9 @@ namespace WishEngine{
         Method that calls everything needed to render the frame.
     **/
     void State::render(double interpolation){
-        sendMessage(new Message("SFRAME"));
-        sendMessage(new Message("RFRAME", interpolation));
-        sendMessage(new Message("FFRAME"));
+        sendMessage(new Message(M_TYPES::SFRAME));
+        sendMessage(new RenderMessage(M_TYPES::RENDER, interpolation));
+        sendMessage(new Message(M_TYPES::FFRAME));
     }
 
     /**
@@ -167,22 +111,33 @@ namespace WishEngine{
     **/
     void State::handleMessages(){
         for(unsigned i=0; i<systems.size(); i++){
-            while(systems[i]->getMessagesAmount() > 0){
-                Message *aux = systems[i]->getMessage(0);
-                if(aux != nullptr){
-                    handleMessage(aux); //First it handles it itself
-                    for(unsigned k=0; k<getSystems().size(); k++){ //And finaly to the rest of the systems
-                        getSystems()[k]->handleMessage(aux);
-                    }
-                }
-                aux = nullptr;
-                if(getQuit() || systems[i]->getMessagesAmount() == 0){
+            std::vector<Message*> &sentMessages = systems[i]->getMessages();
+            for(unsigned j=0; j<sentMessages.size(); j++){
+                handleMessage(sentMessages[j]);
+                if(getQuit())
                     break;
+                if(sentMessages[j] != nullptr){ //Avoinding the MEMORY LEAKS (It already happened once :( Over 1k messages leaked
+                    delete sentMessages[j];
+                    sentMessages[j] = nullptr;
                 }
-                systems[i]->deleteMessage(0);
             }
-            if(getQuit())
+            sentMessages.clear();
+        }
+        bool clearVector = true;
+        std::vector<Message*> &factoryMessages = ObjectFactory::getObjectFactory()->getMessages();
+        for(unsigned j=0; j<factoryMessages.size(); j++){
+            handleMessage(factoryMessages[j]);
+            if(getQuit()){
+                clearVector = false;
                 break;
+            }
+            if(factoryMessages[j] != nullptr){ //Avoinding the MEMORY LEAKS (It already happened once :( Over 1k messages leaked
+                delete factoryMessages[j];
+                factoryMessages[j] = nullptr;
+            }
+        }
+        if(clearVector){
+            factoryMessages.clear();
         }
     }
 
@@ -190,8 +145,44 @@ namespace WishEngine{
         Method used to handle received messages.
     **/
     void State::handleMessage(Message *msg){
-        if(msg->getType() == "QUIT"){
-            setQuit(true);
+        switch(msg->getType()){ //Check the message type and does whatever it needs to do depending on it
+            case M_TYPES::QUIT:{
+                setQuit(true);
+                break;
+            }
+            case M_TYPES::FULLSCREEN:{ //Fix for it to work
+                std::string windowName = msg->getValue();
+                fw->fullScreen(windowName);
+                break;
+            }
+            case M_TYPES::NEWSTATE:{
+                nextState = new State(msg->getValue());
+                quit = true;
+                break;
+            }
+            case M_TYPES::LOADSTATE:{
+                std::fstream file(msg->getValue(), std::ios::in);
+                if(file){
+                    file.close();
+                    Framework::getFramework()->stopMusic();
+                    ObjectFactory::getObjectFactory()->clearData(); //Destroy all the objects and cameras
+                    int j=0;
+                    for(unsigned i=0; i<Framework::getFramework()->getWindowCount()-1; i++){ //Destroy all the windows (Except main window)
+                        if(Framework::getFramework()->getWindowName(i) == "mainWindow"){
+                            j++;
+                            continue;
+                        }
+                        else{
+                            Framework::getFramework()->deleteWindow(Framework::getFramework()->getWindowName(j));
+                        }
+                    }
+                    ObjectFactory::getObjectFactory()->createObjects(msg->getValue());
+                }
+                else{
+                    file.close();
+                }
+                break;
+            }
         }
     }
 
@@ -200,6 +191,9 @@ namespace WishEngine{
     **/
     void State::sendMessage(Message *mes){
         handleMessage(mes); //First it handles it itself
+        if(objFac != nullptr){
+            objFac->handleMessage(mes); //Then sends it to the object factory
+        }
         for(unsigned i=0; i<getSystems().size(); i++){ //And finaly to the rest of the systems
             getSystems()[i]->handleMessage(mes);
         }
@@ -219,6 +213,39 @@ namespace WishEngine{
     **/
     void State::setQuit(bool q){
         quit = q;
+    }
+
+    /**
+        Method that returns the next state and then sets it to nullptr.
+        This is done to avoid the cycle of comming back to the current
+        state only to inmediately load the next one again.
+    **/
+    State* State::getNextState(){
+        State *aux = nextState;
+        nextState = nullptr;
+        return aux;
+    }
+
+    /**
+        Method that sets the next state and deletes the current next state
+        if necesary.
+    **/
+    void State::setNextState(State* nState){
+        if(nextState != nullptr){
+            delete nextState;
+            nextState = nullptr;
+        }
+        nextState = nState;
+    }
+
+    /**
+        Method used to check if there's a next state.
+    **/
+    bool State::hasNextState(){
+        if(nextState != nullptr){
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -244,7 +271,7 @@ namespace WishEngine{
     /**
         Method used to check if the state has a certain system.
     **/
-    bool State::hasSystemType(std::string type){
+    bool State::hasSystemType(S_TYPES type){
         for(unsigned i=0; i<getSystems().size(); i++){
             if(getSystems()[i]->getSystemType() == type){
                 return true;
@@ -265,12 +292,30 @@ namespace WishEngine{
     /**
         Method that returns a pointer to the system if the state has it.
     **/
-    GameSystem *State::getSystem(std::string type){
+    GameSystem* State::getSystem(S_TYPES type){
         for(unsigned i=0; i<getSystems().size(); i++){
             if(getSystems()[i]->getSystemType() == type){
                 return getSystems()[i];
             }
         }
         return nullptr;
+    }
+
+    /**
+        Method that returns the object factory pointer.
+    **/
+    ObjectFactory* State::getObjFac(){
+        return objFac;
+    }
+
+    /**
+        Method that sets the new object factory, deleteing the old one in the process.
+    **/
+    void State::setObjFac(ObjectFactory* of){
+        if(objFac != nullptr){
+            delete objFac;
+            objFac = nullptr;
+        }
+        objFac = of;
     }
 }
