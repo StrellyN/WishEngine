@@ -40,7 +40,7 @@ namespace WishEngine{
             virtual ~InputSystem();
             void update(double dt);
             void handleInput(std::vector<Event> *inputList);
-            void handleMessage(Message* mes);
+            void handleMessage(Message *mes);
     };
 }
 #endif // INPUTSYSTEM

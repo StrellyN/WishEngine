@@ -52,7 +52,7 @@ namespace WishEngine{
             std::map<std::string, BaseCollection*> &getComponentCollections();
 
             void update(double dt);
-            void handleMessage(Message* msg);
+            void handleMessage(Message *msg);
     };
 }
 #endif // OBJECTFACTORY

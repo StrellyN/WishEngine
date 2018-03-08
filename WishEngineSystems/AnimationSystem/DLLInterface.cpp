@@ -1,13 +1,19 @@
 #include "AnimationSystem.hpp"
 
-#ifdef _WIN32
-	#define EXPORT __declspec(dllexport)
-#elif defined(__unix__) || defined(__linux__)
-	#define EXPORT
-#endif
+WishEngine::AnimationSystem *sys = nullptr;
 
 extern "C"{
     EXPORT WishEngine::GameSystem *getSystem(){
-        return new WishEngine::AnimationSystem();
+        if(sys == nullptr){
+            sys = new WishEngine::AnimationSystem();
+        }
+        return sys;
+    }
+
+    EXPORT void destroySystem(){
+        if(sys != nullptr){
+            delete sys;
+            sys = nullptr;
+        }
     }
 }

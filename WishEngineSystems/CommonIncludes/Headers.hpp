@@ -24,6 +24,12 @@
 #ifndef HEADERS_H
 #define HEADERS_H
 
+#ifdef _WIN32
+	#define EXPORT __declspec(dllexport)
+#elif defined(__unix__) || defined(__linux__)
+	#define EXPORT
+#endif
+
 #define TICKS_PER_SECOND 30
 
 #include <map>

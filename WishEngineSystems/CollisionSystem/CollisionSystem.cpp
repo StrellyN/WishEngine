@@ -47,16 +47,16 @@ namespace WishEngine{
                 double left2 = dim2->getX() + hit2->getOffsetX(), right2 = dim2->getX() + hit2->getOffsetX() + (hit2->getW()*dim2->getScale());
                 double top2 = dim2->getY() + hit2->getOffsetY(), bottom2 = dim2->getY() + hit2->getOffsetY() + (hit2->getH()*dim2->getScale());
 
-                if( bottom1 < top2 ){ //Checks
+                if(bottom1 < top2){ //Checks
                     return false;
                 }
-                if( top1 > bottom2 ){
+                if(top1 > bottom2){
                     return false;
                 }
-                if( right1 < left2 ){
+                if(right1 < left2){
                     return false;
                 }
-                if( left1 > right2 ){
+                if(left1 > right2){
                     return false;
                 }
                 return true;

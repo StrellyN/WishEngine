@@ -43,20 +43,20 @@ namespace WishEngine{
             #endif
             std::vector<GameSystem*> systems;
             bool quit = false;
+            Message handleInput, startFrame, renderFrame, finishFrame;
         public:
             State();
             ~State();
             void loadSystems();
             void update();
             void render(double interpolation);
-            void handleMessage(Message *msg);
+            void handleMessage(Message &msg);
             void handleMessages();
-            void sendMessage(Message *mes);
+            void sendMessage(Message &mes);
             void addSystem(GameSystem *nSystem);
-            GameSystem *getSystem(std::string type);
-            std::vector<GameSystem*>& getSystems();
-            void setSystems(std::vector<GameSystem*>& nSystems);
-            bool hasSystemType(std::string type);
+            GameSystem *getSystem(std::string &type);
+            std::vector<GameSystem*> &getSystems();
+            bool hasSystemType(std::string &type);
             bool getQuit();
             void setQuit(bool q);
     };

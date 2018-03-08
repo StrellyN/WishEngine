@@ -1,13 +1,19 @@
 #include "NetworkSystem.hpp"
 
-#ifdef _WIN32
-	#define EXPORT __declspec(dllexport)
-#elif defined(__unix__) || defined(__linux__)
-	#define EXPORT
-#endif
+WishEngine::NetworkSystem *sys = nullptr;
 
 extern "C"{
     EXPORT WishEngine::GameSystem *getSystem(){
-        return new WishEngine::NetworkSystem();
+        if(sys == nullptr){
+            sys = new WishEngine::NetworkSystem();
+        }
+        return sys;
+    }
+
+    EXPORT void destroySystem(){
+        if(sys != nullptr){
+            delete sys;
+            sys = nullptr;
+        }
     }
 }

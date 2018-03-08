@@ -26,26 +26,35 @@
 namespace WishEngine{
     State::State(){
         loadSystems();
+        handleInput = Message("HANDLEINPUT");
+        startFrame = Message("SFRAME");
+        renderFrame = Message("RFRAME", 0);
+        finishFrame = Message("FFRAME");
     }
 
     State::~State(){
-        for(unsigned i=0; i<systems.size(); i++){ //Delete all the systems
-            delete systems[i];
-            systems[i] = nullptr;
-        }
-        systems.clear();
-
         #ifdef _WIN32
             for(unsigned i=0; i<systemsDLL.size(); i++){
+                typedef void (__cdecl *ObjProc)(void);
+                ObjProc ProcAdd = (ObjProc)GetProcAddress(systemsDLL[i], "destroySystem");
+                if(ProcAdd){
+                    ProcAdd();
+                }
                 FreeLibrary(systemsDLL[i]);
             }
             systemsDLL.clear();
         #elif defined(__unix__) || defined(__linux__)
             for(unsigned i=0; i<systemsDLL.size(); i++){
+                typedef void (*ObjProc)(void);
+                ObjProc fn = (ObjProc)dlsym(systemsDLL[i], "destroySystem");
+                if(fn){
+                    fn();
+                }
                 dlclose(systemsDLL[i]);
             }
             systemsDLL.clear();
         #endif
+        systems.clear();
     }
 
     void State::loadSystems(){
@@ -129,7 +138,7 @@ namespace WishEngine{
             currentDT = newDT; //Set the current ticks as the new ones for the next frames calculations
             accumulator += frameTime; //Add the time passed to the accumulator
             while( accumulator >= dt ){ //While the accumulator is greater than the fixed time value
-                sendMessage(new Message("HANDLEINPUT"));
+                sendMessage(handleInput);
                 for(unsigned i=0; i<getSystems().size(); i++){ //Update all the systems and check for quit being true
                     getSystems()[i]->update(dt);
                     if(getQuit()){ //If quit is true quit the state
@@ -157,9 +166,10 @@ namespace WishEngine{
         Method that calls everything needed to render the frame.
     **/
     void State::render(double interpolation){
-        sendMessage(new Message("SFRAME"));
-        sendMessage(new Message("RFRAME", interpolation));
-        sendMessage(new Message("FFRAME"));
+        sendMessage(startFrame);
+        renderFrame.setNumericValue(interpolation);
+        sendMessage(renderFrame);
+        sendMessage(finishFrame);
     }
 
     /**
@@ -170,10 +180,7 @@ namespace WishEngine{
             while(systems[i]->getMessagesAmount() > 0){
                 Message *aux = systems[i]->getMessage(0);
                 if(aux != nullptr){
-                    handleMessage(aux); //First it handles it itself
-                    for(unsigned k=0; k<getSystems().size(); k++){ //And finaly to the rest of the systems
-                        getSystems()[k]->handleMessage(aux);
-                    }
+                    sendMessage(*aux);
                 }
                 aux = nullptr;
                 if(getQuit() || systems[i]->getMessagesAmount() == 0){
@@ -189,8 +196,8 @@ namespace WishEngine{
     /**
         Method used to handle received messages.
     **/
-    void State::handleMessage(Message *msg){
-        if(msg->getType() == "QUIT"){
+    void State::handleMessage(Message &msg){
+        if(msg.getType() == "QUIT"){
             setQuit(true);
         }
     }
@@ -198,13 +205,11 @@ namespace WishEngine{
     /**
         Method to send messages to all the systems.
     **/
-    void State::sendMessage(Message *mes){
+    void State::sendMessage(Message &mes){
         handleMessage(mes); //First it handles it itself
         for(unsigned i=0; i<getSystems().size(); i++){ //And finaly to the rest of the systems
-            getSystems()[i]->handleMessage(mes);
+            getSystems()[i]->handleMessage(&mes);
         }
-        delete mes; //Then it deletes the message because memory leaks, am I right?
-        mes = nullptr;
     }
 
     /**
@@ -229,22 +234,9 @@ namespace WishEngine{
     }
 
     /**
-        Method that sets the system vector as the new one deleteing
-        the old ones in the process.
-    **/
-    void State::setSystems(std::vector<GameSystem*>& nSystems){
-        for(unsigned i=0; i<systems.size(); i++){ //Delete all the systems
-            delete systems[i];
-            systems[i] = nullptr;
-        }
-        systems.clear(); //Clear the vector
-        systems = nSystems; //Set the new systems
-    }
-
-    /**
         Method used to check if the state has a certain system.
     **/
-    bool State::hasSystemType(std::string type){
+    bool State::hasSystemType(std::string &type){
         for(unsigned i=0; i<getSystems().size(); i++){
             if(getSystems()[i]->getSystemType() == type){
                 return true;
@@ -265,12 +257,11 @@ namespace WishEngine{
     /**
         Method that returns a pointer to the system if the state has it.
     **/
-    GameSystem *State::getSystem(std::string type){
+    GameSystem *State::getSystem(std::string &type){
         for(unsigned i=0; i<getSystems().size(); i++){
             if(getSystems()[i]->getSystemType() == type){
                 return getSystems()[i];
             }
         }
-        return nullptr;
     }
 }
