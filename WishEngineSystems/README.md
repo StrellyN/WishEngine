@@ -55,3 +55,7 @@ It communicates with the Framework via messages to access the SDL_Net functional
 ### Timer System
 
 It's a simple timer that multiplies 1 * deltaTime and adds it to the counter of every Timer Component. Nothing special.
+
+### Timer System
+
+The base system, aka, the plugin framework. Makes everything tick.
