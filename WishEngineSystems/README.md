@@ -2,12 +2,7 @@
 
 ## About
 
-Here you can find all the systems I've personaly developed for the engine.
-
-First of all, sorry for not separating all the hpps from the cpps in systems folders, but I couldn't be asked. Okay, moving on...
-
-For each system there's a "DLLInterface.cpp" which defines and implements a function and exports it so it can be accessed from outside the DLL. The only 
-thing it does is return a pointer to a new system for the main engine to save and access.
+Here you can find all the systems I've personaly developed for the engine, and the base engine itself.
 
 ## Current Systems
 
@@ -56,6 +51,6 @@ It communicates with the Framework via messages to access the SDL_Net functional
 
 It's a simple timer that multiplies 1 * deltaTime and adds it to the counter of every Timer Component. Nothing special.
 
-### Timer System
+### Wish Engine
 
 The base system, aka, the plugin framework. Makes everything tick.
