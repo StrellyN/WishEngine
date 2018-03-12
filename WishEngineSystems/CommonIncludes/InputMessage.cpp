@@ -24,7 +24,7 @@
 #include "InputMessage.hpp"
 
 namespace WishEngine{
-    InputMessage::InputMessage(std::string mT, std::string iT, std::string val){
+    InputMessage::InputMessage(MESSAGETYPES mT, std::string iT, std::string val){
         setType(mT);
         setInputType(iT);
         setValue(val);

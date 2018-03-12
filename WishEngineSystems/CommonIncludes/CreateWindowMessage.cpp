@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     CreateWindowMessage::CreateWindowMessage(std::string ti, std::string na, std::string ic, int x_, int y_, int w_, int h_){
-        setType("CREATEWINDOW");
+        setType(MESSAGETYPES::CREATEWINDOW);
         title = ti;
         name = na;
         icon = ic;

@@ -67,12 +67,12 @@ namespace WishEngine{
                         if(currentInstruction == "SET_TALK_CHAR"){
                             //Set the portrait file
                             std::getline(toLoad, currentInstruction);
-                            ScriptsInterface::getComponent<GraphicComponent>(&thisObj, "GRAPHIC")->setTextureFile(currentInstruction);
+                            ScriptsInterface::getComponent<GraphicComponent>(&thisObj, COMPONENTTYPES::GRAPHIC)->setTextureFile(currentInstruction);
                         }
                         else if(currentInstruction == "SET_TALK_ANIM"){
                             //Set the animation state
                             std::getline(toLoad, currentInstruction);
-                            ScriptsInterface::getComponent<AnimatorComponent>(&thisObj, "ANIMATOR")->setCurrentState(currentInstruction);
+                            ScriptsInterface::getComponent<AnimatorComponent>(&thisObj, COMPONENTTYPES::ANIMATOR)->setCurrentState(currentInstruction);
                         }
                         else if(currentInstruction == "DIAG_OPT"){
                             //There are options comming.

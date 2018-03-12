@@ -40,7 +40,7 @@ namespace WishEngine{
             AudioComponent* currentSong = nullptr; //To be able to modify the volume dynamically each frame if its 3d sound
             double songTimer;
             bool isMusicPlaying, isMusicPaused;
-            std::map<std::string, BaseCollection*> *components = nullptr;
+            std::unordered_map<int, BaseCollection*> *components = nullptr;
             std::vector<GameObject> *objects = nullptr;
 
         public:

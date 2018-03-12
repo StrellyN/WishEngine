@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     AnimatorComponent::AnimatorComponent(){
-        setType("ANIMATOR");
+        setType(COMPONENTTYPES::ANIMATOR);
     }
 
     AnimatorComponent::~AnimatorComponent(){
@@ -69,7 +69,7 @@ namespace WishEngine{
         currentState = state;
     }
 
-    std::map<std::string, AnimationState>& AnimatorComponent::getStates(){
+    std::unordered_map<std::string, AnimationState>& AnimatorComponent::getStates(){
         return states;
     }
 }

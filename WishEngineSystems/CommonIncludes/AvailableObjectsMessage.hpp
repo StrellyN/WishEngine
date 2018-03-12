@@ -32,7 +32,7 @@ namespace WishEngine{
             std::vector<unsigned> *availabilityList;
 
         public:
-            AvailableObjectsMessage(std::string mT, std::vector<unsigned> *aList);
+            AvailableObjectsMessage(MESSAGETYPES mT, std::vector<unsigned> *aList);
             virtual ~AvailableObjectsMessage();
             std::vector<unsigned> *getAvailabilityList();
     };

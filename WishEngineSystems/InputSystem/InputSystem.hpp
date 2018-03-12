@@ -33,7 +33,7 @@
 namespace WishEngine{
     class InputSystem : public GameSystem{
         private:
-            std::map<std::string, BaseCollection*> *components = nullptr;
+            std::unordered_map<int, BaseCollection*> *components = nullptr;
 
         public:
             InputSystem();

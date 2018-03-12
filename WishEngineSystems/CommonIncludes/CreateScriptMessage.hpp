@@ -31,16 +31,16 @@
 namespace WishEngine{
     class CreateScriptMessage : public Message{
         private:
-            Collection<BaseCollection*> *collection = nullptr;
+            std::unordered_map<int, BaseCollection*> *collection = nullptr;
             GameObject *owner = nullptr;
             unsigned ownerPos;
             bool isScriptEnabled;
             std::string name, args;
 
         public:
-            CreateScriptMessage(Collection<BaseCollection*> *col, GameObject *own, unsigned ownPos, bool isEn, std::string n, std::string ar);
+            CreateScriptMessage(std::unordered_map<int, BaseCollection*> *col, GameObject *own, unsigned ownPos, bool isEn, std::string n, std::string ar);
             virtual ~CreateScriptMessage();
-            Collection<BaseCollection*> *getCollection();
+            std::unordered_map<int, BaseCollection*> *getCollection();
             bool getIsScriptEnabled();
             std::string getName();
             std::string getArgs();

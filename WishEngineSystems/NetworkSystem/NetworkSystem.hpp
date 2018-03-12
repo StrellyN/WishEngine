@@ -34,7 +34,7 @@
 namespace WishEngine{
     class NetworkSystem : public GameSystem{
         private:
-            std::map<std::string, BaseCollection*> *components = nullptr;
+            std::unordered_map<int, BaseCollection*> *components = nullptr;
 
         public:
             NetworkSystem();

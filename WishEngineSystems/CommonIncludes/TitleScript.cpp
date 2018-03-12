@@ -17,7 +17,7 @@ namespace WishEngine{
                 if(titleTimer > 3){
                     ScriptsInterface::goToState("data/states/MenuState.config");
                 }
-                GraphicComponent *titleImage = ScriptsInterface::getComponent<GraphicComponent>(&thisObj, "GRAPHIC");
+                GraphicComponent *titleImage = ScriptsInterface::getComponent<GraphicComponent>(&thisObj, COMPONENTTYPES::GRAPHIC);
                 if(titleImage != nullptr && titleTimer > 2){
                     titleImage->setAlpha(255 * (3 - titleTimer));
                 }

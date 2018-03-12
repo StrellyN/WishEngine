@@ -33,7 +33,7 @@ namespace WishEngine{
             std::vector<Event> *inputList;
 
         public:
-            InputListMessage(std::string mT, std::vector<Event> *iList);
+            InputListMessage(MESSAGETYPES mT, std::vector<Event> *iList);
             virtual ~InputListMessage();
             std::vector<Event> *getInputList();
     };

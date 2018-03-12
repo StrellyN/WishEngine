@@ -24,7 +24,7 @@
 #include "AudioMessage.hpp"
 
 namespace WishEngine{
-    AudioMessage::AudioMessage(std::string ty, std::string file, int vol, int loop, int duration, double timer){
+    AudioMessage::AudioMessage(MESSAGETYPES ty, std::string file, int vol, int loop, int duration, double timer){
         setType(ty);
         audioFile = file;
         volume = vol;

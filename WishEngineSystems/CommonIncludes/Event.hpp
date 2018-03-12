@@ -27,17 +27,21 @@
 #include "Headers.hpp"
 
 namespace WishEngine{
+    enum EVENTTYPES{KEYBOARD_PRESS, KEYBOARD_RELEASE, MOUSE_PRESS, MOUSE_RELEASE, GAMEPAD_ADDED, GAMEPAD_REMOVED, GAMEPAD_PRESS,
+                    GAMEPAD_RELEASE, GAMEPAD_AXIS, MOUSE_WHEEL, MOUSE_MOTION, EQUIT, NULLEVENT};
+
     class Event{
         private:
-            std::string type, value;
+            EVENTTYPES type;
+            std::string value;
             int deviceID, xPos, yPos, xRel, yRel;
             unsigned timeStamp, windowID;
         public:
             Event();
-            Event(std::string t, std::string val);
+            Event(EVENTTYPES t, std::string val);
             ~Event();
-            std::string getType();
-            void setType(std::string t);
+            EVENTTYPES getType();
+            void setType(EVENTTYPES t);
             std::string &getValue();
             void setValue(std::string val);
             int getDeviceID();

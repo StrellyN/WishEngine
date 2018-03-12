@@ -36,7 +36,7 @@
 namespace WishEngine{
     class CollisionSystem : public GameSystem{
         private:
-            std::map<std::string, BaseCollection*> *components = nullptr;
+            std::unordered_map<int, BaseCollection*> *components = nullptr;
             std::vector<GameObject> *objects = nullptr;
 
         public:

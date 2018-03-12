@@ -39,7 +39,7 @@ namespace WishEngine{
         private:
             std::vector<GameObject> objects;
             std::vector<unsigned> availableObjects;
-            std::map<std::string, BaseCollection*> componentCollections;
+            std::unordered_map<int, BaseCollection*> componentCollections;
 
         public:
             ObjectFactory();
@@ -49,7 +49,7 @@ namespace WishEngine{
             void loadObjects(std::string file);
             std::string checkObjectName(std::string &name);
             std::vector<GameObject> &getObjects();
-            std::map<std::string, BaseCollection*> &getComponentCollections();
+            std::unordered_map<int, BaseCollection*> &getComponentCollections();
 
             void update(double dt);
             void handleMessage(Message *msg);

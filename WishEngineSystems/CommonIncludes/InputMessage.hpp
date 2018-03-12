@@ -32,7 +32,7 @@ namespace WishEngine{
             std::string inputType;
 
         public:
-            InputMessage(std::string mT, std::string iT, std::string val);
+            InputMessage(MESSAGETYPES mT, std::string iT, std::string val);
             virtual ~InputMessage();
             std::string getInputType();
             void setInputType(std::string iT);

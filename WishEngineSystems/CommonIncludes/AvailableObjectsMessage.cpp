@@ -24,7 +24,7 @@
 #include "AvailableObjectsMessage.hpp"
 
 namespace WishEngine{
-    AvailableObjectsMessage::AvailableObjectsMessage(std::string mT, std::vector<unsigned> *aList){
+    AvailableObjectsMessage::AvailableObjectsMessage(MESSAGETYPES mT, std::vector<unsigned> *aList){
         setType(mT);
         availabilityList = aList;
     }

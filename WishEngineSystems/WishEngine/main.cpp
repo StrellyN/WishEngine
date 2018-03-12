@@ -41,11 +41,6 @@ int main(int argc, char *argv[]){
             - Implement space partition
             - Implement system dependencies
 
-        Look into:
-            - To save a state just save the objects in the object factory in another vector or something, and then
-              restore them, that simple (Need to create a copy constructor for the components or find a way to copy them).
-              Proposition to copy components: memcpy(newcomponent, componenttobecopied, sizeof componenttobecopied);
-
         When multiple windows becomes a real thing:
             - Multiple windows event handling check https://wiki.libsdl.org/SDL_WindowEvent
             - Attach the UI component to a window and a camera? Or multiple ones using std::maps?

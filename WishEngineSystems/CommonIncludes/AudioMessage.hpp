@@ -34,7 +34,7 @@ namespace WishEngine{
             double songTimer;
 
         public:
-            AudioMessage(std::string ty, std::string file, int vol, int loop, int duration, double timer);
+            AudioMessage(MESSAGETYPES ty, std::string file, int vol, int loop, int duration, double timer);
             virtual ~AudioMessage();
             std::string &getAudioFile();
             int getVolume();

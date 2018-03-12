@@ -56,13 +56,13 @@ namespace WishEngine{
                     }
                 }
                 std::vector<DimensionComponent> *dimensions = nullptr;
-                if(components->find("DIMENSION") != components->end()){
-                    dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at("DIMENSION"))->getCollection();
+                if(components->find(COMPONENTTYPES::DIMENSION) != components->end()){
+                    dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at(COMPONENTTYPES::DIMENSION))->getCollection();
                 }
                 if(emitter != nullptr && emitter->getEnabled()){ //If the emitter of the song is enabled and the song is dynamic
                     if(listener != nullptr && listener->getEnabled()){ //If the listener is enabled too
-                        DimensionComponent* listenerDim = &(*dimensions)[listener->getComponentPosition("DIMENSION")];
-                        DimensionComponent* emitterDim = &(*dimensions)[emitter->getComponentPosition("DIMENSION")];
+                        DimensionComponent* listenerDim = &(*dimensions)[listener->getComponentPosition(COMPONENTTYPES::DIMENSION)];
+                        DimensionComponent* emitterDim = &(*dimensions)[emitter->getComponentPosition(COMPONENTTYPES::DIMENSION)];
                         DirectionVector listener(listenerDim->getX(), listenerDim->getY());
                         DirectionVector emitter(emitterDim->getX(), emitterDim->getY());
                         DirectionVector offset(comp->getOffset().getX(), comp->getOffset().getY());
@@ -90,12 +90,12 @@ namespace WishEngine{
                 if(fadeIn){ //And fadein is active
                     //Send a MusicMessage
                     //Framework::getFramework()->fadeInMusic(comp->getAudioFile(), volume, loops, duration); //Fade in the music
-                    postMessage(new AudioMessage("FADEINMUSIC", comp->getAudioFile(), volume, loops, duration, 0));
+                    postMessage(new AudioMessage(MESSAGETYPES::FADEINMUSIC, comp->getAudioFile(), volume, loops, duration, 0));
                 }
                 else{
                     //Send a MusicMessage
                     //Framework::getFramework()->playMusic(comp->getAudioFile(), volume, loops); //If not, just play it normally
-                    postMessage(new AudioMessage("PLAYMUSIC", comp->getAudioFile(), volume, loops, 0, 0));
+                    postMessage(new AudioMessage(MESSAGETYPES::PLAYMUSIC, comp->getAudioFile(), volume, loops, 0, 0));
                 }
                 currentSong = comp; //Set the current song to the new one for volume updates in case of dynamic song
                 currentSong->setIsCurrentSong(false);
@@ -103,7 +103,7 @@ namespace WishEngine{
             else{ //If its not a song
                 //Send a MusicMessage
                 //Framework::getFramework()->playSound(comp->getAudioFile(), volume, loops); //Just play the sound
-                postMessage(new AudioMessage("PLAYSOUND", comp->getAudioFile(), volume, loops, 0, 0));
+                postMessage(new AudioMessage(MESSAGETYPES::PLAYSOUND, comp->getAudioFile(), volume, loops, 0, 0));
                 comp->setIsPlaying(false);
             }
         }
@@ -134,13 +134,13 @@ namespace WishEngine{
                     }
                 }
                 std::vector<DimensionComponent> *dimensions = nullptr;
-                if(components->find("DIMENSION") != components->end()){
-                    dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at("DIMENSION"))->getCollection();
+                if(components->find(COMPONENTTYPES::DIMENSION) != components->end()){
+                    dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at(COMPONENTTYPES::DIMENSION))->getCollection();
                 }
                 if(emitter != nullptr && emitter->getEnabled()){ //If the emitter of the song is enabled and the song is dynamic
                     if(listener != nullptr && listener->getEnabled()){ //If the listener is enabled too
-                        DimensionComponent* listenerDim = &(*dimensions)[listener->getComponentPosition("DIMENSION")];
-                        DimensionComponent* emitterDim = &(*dimensions)[emitter->getComponentPosition("DIMENSION")];
+                        DimensionComponent* listenerDim = &(*dimensions)[listener->getComponentPosition(COMPONENTTYPES::DIMENSION)];
+                        DimensionComponent* emitterDim = &(*dimensions)[emitter->getComponentPosition(COMPONENTTYPES::DIMENSION)];
                         DirectionVector listener(listenerDim->getX(), listenerDim->getY());
                         DirectionVector emitter(emitterDim->getX(), emitterDim->getY());
                         DirectionVector offset(comp->getOffset().getX(), comp->getOffset().getY());
@@ -167,14 +167,14 @@ namespace WishEngine{
                 if(fadeIn){ //And fadein is active
                     //Send a MusicMessage
                     //Framework::getFramework()->fadeInMusicPos(comp->getAudioFile(), volume, loops, duration, songTimer); //Fade in the music
-                    postMessage(new AudioMessage("FADEINMUSICPOS", comp->getAudioFile(), volume, loops, duration, songTimer));
+                    postMessage(new AudioMessage(MESSAGETYPES::FADEINMUSICPOS, comp->getAudioFile(), volume, loops, duration, songTimer));
                 }
                 else{
                     //Send a MusicMessage
                     //Framework::getFramework()->playMusic(comp->getAudioFile(), volume, loops); //If not, just play it normally
-                    postMessage(new AudioMessage("PLAYMUSIC", comp->getAudioFile(), volume, loops, 0, 0));
+                    postMessage(new AudioMessage(MESSAGETYPES::PLAYMUSIC, comp->getAudioFile(), volume, loops, 0, 0));
                     //Framework::getFramework()->setMusicPos(songTimer);
-                    postMessage(new AudioMessage("SETMUSICPOS", "", 0, 0, 0, songTimer));
+                    postMessage(new AudioMessage(MESSAGETYPES::SETMUSICPOS, "", 0, 0, 0, songTimer));
                 }
                 currentSong = comp; //Set the current song to the new one for volume updates in case of dynamic song
                 currentSong->setIsCurrentSong(false);
@@ -182,7 +182,7 @@ namespace WishEngine{
             else{ //If its not a song
                 //Send a MusicMessage
                 //Framework::getFramework()->playSound(comp->getAudioFile(), volume, loops); //Just play the sound
-                postMessage(new AudioMessage("PLAYSOUND", comp->getAudioFile(), volume, loops, 0, 0));
+                postMessage(new AudioMessage(MESSAGETYPES::PLAYSOUND, comp->getAudioFile(), volume, loops, 0, 0));
                 comp->setIsPlaying(false);
             }
         }
@@ -199,7 +199,7 @@ namespace WishEngine{
             else{ //If not, set the real volume
                 //Send a MusicMessage
                 //Framework::getFramework()->setMusicVolume(volume);
-                postMessage(new AudioMessage("SETMUSICVOLUME", "", volume, 0, 0, 0));
+                postMessage(new AudioMessage(MESSAGETYPES::SETMUSICVOLUME, "", volume, 0, 0, 0));
             }
         }
     }
@@ -211,7 +211,7 @@ namespace WishEngine{
     void AudioSystem::fadeOutMusic(int duration){
         //Send a MusicMessage
         //Framework::getFramework()->fadeOutMusic(duration);
-        postMessage(new AudioMessage("FADEOUTMUSIC", "", 0, 0, duration, 0));
+        postMessage(new AudioMessage(MESSAGETYPES::FADEOUTMUSIC, "", 0, 0, duration, 0));
         currentSong->setIsCurrentSong(false);
         currentSong = nullptr;
         songTimer = 0;
@@ -224,12 +224,12 @@ namespace WishEngine{
         if(comp->getIsSong()){
             //Send a MusicMessage
             //Framework::getFramework()->deleteMusic(comp->getAudioFile());
-            postMessage(new AudioMessage("DELETEMUSIC", comp->getAudioFile(), 0, 0, 0, 0));
+            postMessage(new AudioMessage(MESSAGETYPES::DELETEMUSIC, comp->getAudioFile(), 0, 0, 0, 0));
         }
         else{
             //Send a MusicMessage
             //Framework::getFramework()->deleteSound(comp->getAudioFile());
-            postMessage(new AudioMessage("DELETESOUND", comp->getAudioFile(), 0, 0, 0, 0));
+            postMessage(new AudioMessage(MESSAGETYPES::DELETESOUND, comp->getAudioFile(), 0, 0, 0, 0));
         }
     }
 
@@ -239,7 +239,7 @@ namespace WishEngine{
     void AudioSystem::pauseMusic(){
         //Send a MusicMessage
         //Framework::getFramework()->pauseMusic();
-        postMessage(new Message("PAUSEMUSIC"));
+        postMessage(new Message(MESSAGETYPES::PAUSEMUSIC));
     }
 
     /**
@@ -248,7 +248,7 @@ namespace WishEngine{
     void AudioSystem::resumeMusic(){
         //Send a MusicMessage
         //Framework::getFramework()->resumeMusic();
-        postMessage(new Message("RESUMEMUSIC"));
+        postMessage(new Message(MESSAGETYPES::RESUMEMUSIC));
     }
 
     /**
@@ -257,7 +257,7 @@ namespace WishEngine{
     void AudioSystem::stopMusic(){
         //Send a MusicMessage
         //Framework::getFramework()->stopMusic();
-        postMessage(new Message("STOPMUSIC"));
+        postMessage(new Message(MESSAGETYPES::STOPMUSIC));
         if(currentSong != nullptr){
             currentSong->setIsCurrentSong(false);
         }
@@ -311,8 +311,8 @@ namespace WishEngine{
 
         if(components != nullptr && objects != nullptr){
             std::vector<AudioComponent> *audios = nullptr;
-            if(components->find("AUDIO") != components->end()){
-                audios = &dynamic_cast<Collection<AudioComponent>*>(components->at("AUDIO"))->getCollection();
+            if(components->find(COMPONENTTYPES::AUDIO) != components->end()){
+                audios = &dynamic_cast<Collection<AudioComponent>*>(components->at(COMPONENTTYPES::AUDIO))->getCollection();
             }
             if(audios != nullptr){
                 for(unsigned i=0; i<audios->size(); i++){
@@ -368,13 +368,13 @@ namespace WishEngine{
 
                 songTimer += 1*dt; //Multiplying delta time by 1 makes it so the song timer advances a second each real second that passes, making it reliable.
                 std::vector<DimensionComponent> *dimensions = nullptr;
-                if(components->find("DIMENSION") != components->end()){
-                    dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at("DIMENSION"))->getCollection();
+                if(components->find(COMPONENTTYPES::DIMENSION) != components->end()){
+                    dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at(COMPONENTTYPES::DIMENSION))->getCollection();
                 }
                 if(currentSong->getIsDynamic() && listener != nullptr && dimensions != nullptr){ //The usefulness of saving the current song! Calculate the volume depending on the distance of the emitter
                     int newVolume = 0;           //and the listener!
-                    DimensionComponent* listenerDim = &(*dimensions)[listener->getComponentPosition("DIMENSION")];
-                    DimensionComponent* emitterDim = &(*dimensions)[emitter->getComponentPosition("DIMENSION")];
+                    DimensionComponent* listenerDim = &(*dimensions)[listener->getComponentPosition(COMPONENTTYPES::DIMENSION)];
+                    DimensionComponent* emitterDim = &(*dimensions)[emitter->getComponentPosition(COMPONENTTYPES::DIMENSION)];
                     if(listenerDim != nullptr && emitterDim != nullptr){
                         DirectionVector listener(listenerDim->getX(), listenerDim->getY());
                         DirectionVector emitter(emitterDim->getX(), emitterDim->getY());
@@ -393,18 +393,18 @@ namespace WishEngine{
                         emitterDim = nullptr;
                         //Send MusicMessage
                         //Framework::getFramework()->setMusicVolume(newVolume);
-                        postMessage(new AudioMessage("SETMUSICVOLUME", "", newVolume, 0, 0, 0));
+                        postMessage(new AudioMessage(MESSAGETYPES::SETMUSICVOLUME, "", newVolume, 0, 0, 0));
                     }
                     else{
                         //Send MusicMessage
                         //Framework::getFramework()->setMusicVolume(currentSong->getMaxVolume());
-                        postMessage(new AudioMessage("SETMUSICVOLUME", "", currentSong->getMaxVolume(), 0, 0, 0));
+                        postMessage(new AudioMessage(MESSAGETYPES::SETMUSICVOLUME, "", currentSong->getMaxVolume(), 0, 0, 0));
                     }
                 }
                 else{
                     //Send MusicMessage
                     //Framework::getFramework()->setMusicVolume(currentSong->getMaxVolume());
-                    postMessage(new AudioMessage("SETMUSICVOLUME", "", currentSong->getMaxVolume(), 0, 0, 0));
+                    postMessage(new AudioMessage(MESSAGETYPES::SETMUSICVOLUME, "", currentSong->getMaxVolume(), 0, 0, 0));
                 }
                 dimensions = nullptr;
                 listener = nullptr;
@@ -420,21 +420,21 @@ namespace WishEngine{
         Method to handle received messages present in every system.
     **/
     void AudioSystem::handleMessage(Message* msg){
-        if(msg->getType() == "OBJECTLIST"){
+        if(msg->getType() == MESSAGETYPES::OBJECTLIST){
             ObjectListMessage* rmes = dynamic_cast<ObjectListMessage*>(msg);
             if(rmes != nullptr){
                 objects = rmes->getObjectList();
             }
             rmes = nullptr;
         }
-        else if(msg->getType() == "COMPONENTLIST"){
+        else if(msg->getType() == MESSAGETYPES::COMPONENTLIST){
             ComponentListMessage* rmes = dynamic_cast<ComponentListMessage*>(msg);
             if(rmes != nullptr){
                 components = rmes->getComponentList();
             }
             rmes = nullptr;
         }
-        else if(msg->getType() == "DELETEEVERYTHING"){
+        else if(msg->getType() == MESSAGETYPES::DELETEEVERYTHING){
             destroySystem();
         }
     }

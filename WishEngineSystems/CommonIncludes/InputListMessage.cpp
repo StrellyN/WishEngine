@@ -24,7 +24,7 @@
 #include "InputListMessage.hpp"
 
 namespace WishEngine{
-    InputListMessage::InputListMessage(std::string mT, std::vector<Event> *iList){
+    InputListMessage::InputListMessage(MESSAGETYPES mT, std::vector<Event> *iList){
         setType(mT);
         inputList = iList;
     }

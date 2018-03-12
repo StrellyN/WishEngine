@@ -41,7 +41,7 @@ namespace WishEngine{
         id = i;
     }
 
-    bool GameObject::hasComponent(std::string type, std::string name){
+    bool GameObject::hasComponent(int type, std::string name){
         if(!getDeleted()){
             for(unsigned i=0; i<components.size(); i++){
                 if(components[i].componentType == type){
@@ -54,7 +54,7 @@ namespace WishEngine{
         return false;
     }
 
-    unsigned GameObject::getComponentPosition(std::string type, std::string name){
+    unsigned GameObject::getComponentPosition(int type, std::string name){
         if(!getDeleted()){
             for(unsigned i=0; i<components.size(); i++){
                 if(components[i].componentType == type){
@@ -67,7 +67,7 @@ namespace WishEngine{
         return -1;
     }
 
-    void GameObject::setComponentPosition(unsigned newPos, std::string type, std::string name){
+    void GameObject::setComponentPosition(unsigned newPos, int type, std::string name){
         for(unsigned i=0; i<components.size(); i++){
             if(components[i].componentType == type){
                 if(name == "" || components[i].componentName == name){

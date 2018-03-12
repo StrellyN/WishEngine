@@ -41,147 +41,147 @@ namespace WishEngine{
     }
 
     void Framework::handleMessage(Message *msg){
-        if(msg->getType() == "HANDLEINPUT"){
+        if(msg->getType() == MESSAGETYPES::HANDLEINPUT){
             getEvents();
-            postMessage(new InputListMessage("INPUTLIST", &frameEvents));
+            postMessage(new InputListMessage(MESSAGETYPES::INPUTLIST, &frameEvents));
         }
-        else if(msg->getType() == "DELETEEVERYTHING"){
+        else if(msg->getType() == MESSAGETYPES::DELETEEVERYTHING){
             clearData();
             destroySystem();
         }
-        else if(msg->getType() == "FULLSCREEN"){
+        else if(msg->getType() == MESSAGETYPES::FULLSCREEN){
             fullScreen(msg->getValue());
         }
-        else if(msg->getType() == "OBJECTLIST"){
+        else if(msg->getType() == MESSAGETYPES::OBJECTLIST){
             ObjectListMessage* rmes = dynamic_cast<ObjectListMessage*>(msg);
             if(rmes != nullptr){
                 objects = rmes->getObjectList();
             }
             rmes = nullptr;
         }
-        else if(msg->getType() == "COMPONENTLIST"){
+        else if(msg->getType() == MESSAGETYPES::COMPONENTLIST){
             ComponentListMessage* rmes = dynamic_cast<ComponentListMessage*>(msg);
             if(rmes != nullptr){
                 components = rmes->getComponentList();
             }
             rmes = nullptr;
         }
-        else if(msg->getType() == "SFRAME"){
+        else if(msg->getType() == MESSAGETYPES::SFRAME){
             startFrame();
         }
-        else if(msg->getType() == "RFRAME"){
+        else if(msg->getType() == MESSAGETYPES::RFRAME){
             renderObjects(msg->getNumericValue());
         }
-        else if(msg->getType() == "FFRAME"){
+        else if(msg->getType() == MESSAGETYPES::FFRAME){
             endFrame();
         }
-        else if(msg->getType() == "CONNECTNET"){
+        else if(msg->getType() == MESSAGETYPES::CONNECTNET){
             NetworkMessage *aux = dynamic_cast<NetworkMessage*>(msg);
             if(aux != nullptr){
                 connectNet(aux->getComp());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "UPDATENET"){
+        else if(msg->getType() == MESSAGETYPES::UPDATENET){
             NetworkMessage *aux = dynamic_cast<NetworkMessage*>(msg);
             if(aux != nullptr){
                 updateNet(aux->getComp());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "DISCONNECTNET"){
+        else if(msg->getType() == MESSAGETYPES::DISCONNECTNET){
             NetworkMessage *aux = dynamic_cast<NetworkMessage*>(msg);
             if(aux != nullptr){
                 deleteNet(aux->getComp());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "FADEINMUSIC"){
+        else if(msg->getType() == MESSAGETYPES::FADEINMUSIC){
             AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
             if(aux != nullptr){
                 fadeInMusic(aux->getAudioFile(), aux->getVolume(), aux->getLoops(), aux->getFadeDuration());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "FADEOUTMUSIC"){
+        else if(msg->getType() == MESSAGETYPES::FADEOUTMUSIC){
             AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
             if(aux != nullptr){
                 fadeOutMusic(aux->getFadeDuration());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "FADEINMUSICPOS"){
+        else if(msg->getType() == MESSAGETYPES::FADEINMUSICPOS){
             AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
             if(aux != nullptr){
                 fadeInMusicPos(aux->getAudioFile(), aux->getVolume(), aux->getLoops(), aux->getFadeDuration(), aux->getSongTimer());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "PLAYMUSIC"){
+        else if(msg->getType() == MESSAGETYPES::PLAYMUSIC){
             AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
             if(aux != nullptr){
                 playMusic(aux->getAudioFile(), aux->getVolume(), aux->getLoops());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "PLAYSOUND"){
+        else if(msg->getType() == MESSAGETYPES::PLAYSOUND){
             AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
             if(aux != nullptr){
                 playSound(aux->getAudioFile(), aux->getVolume(), aux->getLoops());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "SETMUSICPOS"){
+        else if(msg->getType() == MESSAGETYPES::SETMUSICPOS){
             AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
             if(aux != nullptr){
                 setMusicPos(aux->getSongTimer());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "SETMUSICVOLUME"){
+        else if(msg->getType() == MESSAGETYPES::SETMUSICVOLUME){
             AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
             if(aux != nullptr){
                 setMusicVolume(aux->getVolume());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "DELETEMUSIC"){
+        else if(msg->getType() == MESSAGETYPES::DELETEMUSIC){
             AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
             if(aux != nullptr){
                 deleteMusic(aux->getAudioFile());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "DELETESOUND"){
+        else if(msg->getType() == MESSAGETYPES::DELETESOUND){
             AudioMessage *aux = dynamic_cast<AudioMessage*>(msg);
             if(aux != nullptr){
                 deleteMusic(aux->getAudioFile());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "PAUSEMUSIC"){
+        else if(msg->getType() == MESSAGETYPES::PAUSEMUSIC){
             pauseMusic();
         }
-        else if(msg->getType() == "RESUMEMUSIC"){
+        else if(msg->getType() == MESSAGETYPES::RESUMEMUSIC){
             resumeMusic();
         }
-        else if(msg->getType() == "STOPMUSIC"){
+        else if(msg->getType() == MESSAGETYPES::STOPMUSIC){
             stopMusic();
         }
-        else if(msg->getType() == "CREATEWINDOW"){
+        else if(msg->getType() == MESSAGETYPES::CREATEWINDOW){
             CreateWindowMessage *aux = dynamic_cast<CreateWindowMessage*>(msg);
             if(aux != nullptr){
                 createWindow(aux->getTitle(), aux->getName(), aux->getIcon(), aux->getX(), aux->getY(), aux->getW(), aux->getH());
             }
             aux = nullptr;
         }
-        else if(msg->getType() == "DELETEWINDOW"){
+        else if(msg->getType() == MESSAGETYPES::DELETEWINDOW){
             deleteWindow(msg->getValue());
         }
-        else if(msg->getType() == "SETMAXFPS"){
+        else if(msg->getType() == MESSAGETYPES::SETMAXFPS){
             setMaxFPS(Utils::stringToInt(msg->getValue()));
         }
-        else if(msg->getType() == "SETFRAMECAPFLAG"){
+        else if(msg->getType() == MESSAGETYPES::SETFRAMECAPFLAG){
             setFrameCapFlag(Utils::stringToInt(msg->getValue()));
         }
         //Create a message for each shit like render text, render texture, music,window, network, input, etc...
@@ -199,7 +199,7 @@ namespace WishEngine{
     }
 
     void Framework::startFrame(){
-        for(std::map<std::string, SDL_Renderer*>::iterator i=renderPool.begin(); i!=renderPool.end(); i++){
+        for(std::unordered_map<std::string, SDL_Renderer*>::iterator i=renderPool.begin(); i!=renderPool.end(); i++){
             SDL_RenderClear((*i).second);
         }
         if(frameCapFlag){
@@ -949,20 +949,20 @@ namespace WishEngine{
 
     void Framework::renderObjects(double interpolation){
         std::vector<GraphicComponent> *graphics = nullptr; //Gets the objects
-        if(components != nullptr && components->find("GRAPHIC") != components->end()){
-            graphics = &dynamic_cast<Collection<GraphicComponent>*>(components->at("GRAPHIC"))->getCollection();
+        if(components != nullptr && components->find(COMPONENTTYPES::GRAPHIC) != components->end()){
+            graphics = &dynamic_cast<Collection<GraphicComponent>*>(components->at(COMPONENTTYPES::GRAPHIC))->getCollection();
         }
         std::vector<CameraComponent> *cameras = nullptr; //Gets the objects
-        if(components != nullptr && components->find("CAMERA") != components->end()){
-            cameras = &dynamic_cast<Collection<CameraComponent>*>(components->at("CAMERA"))->getCollection();
+        if(components != nullptr && components->find(COMPONENTTYPES::CAMERA) != components->end()){
+            cameras = &dynamic_cast<Collection<CameraComponent>*>(components->at(COMPONENTTYPES::CAMERA))->getCollection();
         }
         std::vector<DimensionComponent> *dimensions = nullptr; //Gets the objects
-        if(components != nullptr && components->find("DIMENSION") != components->end()){
-            dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at("DIMENSION"))->getCollection();
+        if(components != nullptr && components->find(COMPONENTTYPES::DIMENSION) != components->end()){
+            dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at(COMPONENTTYPES::DIMENSION))->getCollection();
         }
         std::vector<AnimationComponent> *animations = nullptr; //Gets the objects
-        if(components != nullptr && components->find("ANIMATION") != components->end()){
-            animations = &dynamic_cast<Collection<AnimationComponent>*>(components->at("ANIMATION"))->getCollection();
+        if(components != nullptr && components->find(COMPONENTTYPES::ANIMATION) != components->end()){
+            animations = &dynamic_cast<Collection<AnimationComponent>*>(components->at(COMPONENTTYPES::ANIMATION))->getCollection();
         }
         if(graphics != nullptr && !std::is_sorted(graphics->begin(), graphics->end(), objectGraphicSorting)){ //If they are not sorted, sort them.
             std::sort(graphics->begin(), graphics->end(), objectGraphicSorting);
@@ -987,17 +987,17 @@ namespace WishEngine{
         if(objects != nullptr && graphics != nullptr && cameras != nullptr && dimensions != nullptr){
             for(unsigned i=0; i<cameras->size(); i++){
                 GameObject *cameraObj = &((*objects)[(*cameras)[i].getOwnerPos()]);
-                if(cameraObj != nullptr && cameraObj->hasComponent("DIMENSION")){
-                    DimensionComponent *camDim = &(*dimensions)[cameraObj->getComponentPosition("DIMENSION")];
+                if(cameraObj != nullptr && cameraObj->hasComponent(COMPONENTTYPES::DIMENSION)){
+                    DimensionComponent *camDim = &(*dimensions)[cameraObj->getComponentPosition(COMPONENTTYPES::DIMENSION)];
                     //CameraComponent *camCam = (*cameras)[i];
                     for(unsigned j=0; j<graphics->size(); j++){
                         GameObject *currentObject = &(*objects)[(*graphics)[j].getOwnerPos()];
                         if(currentObject != nullptr && currentObject->getId() != cameraObj->getId()){
-                            if(currentObject->hasComponent("DIMENSION")){
-                                DimensionComponent *objDim = &(*dimensions)[currentObject->getComponentPosition("DIMENSION")];
+                            if(currentObject->hasComponent(COMPONENTTYPES::DIMENSION)){
+                                DimensionComponent *objDim = &(*dimensions)[currentObject->getComponentPosition(COMPONENTTYPES::DIMENSION)];
                                 AnimationComponent *objAni = nullptr;
-                                if(animations != nullptr && currentObject->hasComponent("ANIMATION")){
-                                    objAni = &(*animations)[currentObject->getComponentPosition("ANIMATION")];
+                                if(animations != nullptr && currentObject->hasComponent(COMPONENTTYPES::ANIMATION)){
+                                    objAni = &(*animations)[currentObject->getComponentPosition(COMPONENTTYPES::ANIMATION)];
                                 }
                                 if((*graphics)[j].getIsText()){
                                     if((*graphics)[j].getText().getIsPlain()){
@@ -1300,7 +1300,7 @@ namespace WishEngine{
     }
 
     void Framework::endFrame(){
-        for(std::map<std::string, SDL_Renderer*>::iterator i=renderPool.begin(); i!=renderPool.end(); i++){
+        for(std::unordered_map<std::string, SDL_Renderer*>::iterator i=renderPool.begin(); i!=renderPool.end(); i++){
             SDL_RenderPresent((*i).second);
         }
         if(frameCapFlag){
@@ -1331,24 +1331,24 @@ namespace WishEngine{
         frameEvents.clear();
         while(SDL_PollEvent(&fEvent)){
             Event ev;
-            std::string type = "NULL";
+            EVENTTYPES type = EVENTTYPES::NULLEVENT;
             int mX = 0, mY = 0;
             switch(fEvent.type){
                 case SDL_KEYDOWN:
-                    type = "KEYBOARD_PRESS";
+                    type = EVENTTYPES::KEYBOARD_PRESS;
                     ev.setTimeStamp(fEvent.key.timestamp);
                     ev.setValue(SDL_GetKeyName(fEvent.key.keysym.sym));
                     ev.setWindowID(fEvent.key.windowID);
                     break;
                 case SDL_KEYUP:
-                    type = "KEYBOARD_RELEASE";
+                    type = EVENTTYPES::KEYBOARD_RELEASE;
                     ev.setTimeStamp(fEvent.key.timestamp);
                     ev.setValue(SDL_GetKeyName(fEvent.key.keysym.sym));
                     ev.setWindowID(fEvent.key.windowID);
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     SDL_GetMouseState(&mX, &mY);
-                    type = "MOUSE_PRESS";
+                    type = EVENTTYPES::MOUSE_PRESS;
                     ev.setDeviceID(fEvent.button.which);
                     switch(fEvent.button.button){
                         case SDL_BUTTON_LEFT:
@@ -1372,7 +1372,7 @@ namespace WishEngine{
                     break;
                 case SDL_MOUSEBUTTONUP:
                     SDL_GetMouseState(&mX, &mY);
-                    type = "MOUSE_RELEASE";
+                    type = EVENTTYPES::MOUSE_RELEASE;
                     ev.setDeviceID(fEvent.button.which);
                     switch(fEvent.button.button){
                         case SDL_BUTTON_LEFT:
@@ -1395,7 +1395,7 @@ namespace WishEngine{
                     ev.setWindowID(fEvent.button.windowID);
                     break;
                 case SDL_JOYDEVICEADDED:
-                    type = "GAMEPAD_ADDED";
+                    type = EVENTTYPES::GAMEPAD_ADDED;
                     ev.setTimeStamp(fEvent.jdevice.timestamp);
                     ev.setDeviceID(fEvent.jdevice.which);
                     JoystickStruct aux;
@@ -1404,7 +1404,7 @@ namespace WishEngine{
                     joysticks.push_back(aux);
                     break;
                 case SDL_JOYDEVICEREMOVED:
-                    type = "GAMEPAD_REMOVED";
+                    type = EVENTTYPES::GAMEPAD_REMOVED;
                     ev.setTimeStamp(fEvent.jdevice.timestamp);
                     ev.setDeviceID(fEvent.jdevice.which);
                     for(unsigned i=0; i<joysticks.size(); i++){
@@ -1416,19 +1416,19 @@ namespace WishEngine{
                     }
                     break;
                 case SDL_JOYBUTTONDOWN:
-                    type = "GAMEPAD_PRESS";
+                    type = EVENTTYPES::GAMEPAD_PRESS;
                     ev.setValue(Utils::intToString(fEvent.jbutton.button));
                     ev.setTimeStamp(fEvent.jdevice.timestamp);
                     ev.setDeviceID(fEvent.jdevice.which);
                     break;
                 case SDL_JOYBUTTONUP:
-                    type = "GAMEPAD_RELEASE";
+                    type = EVENTTYPES::GAMEPAD_RELEASE;
                     ev.setValue(Utils::intToString(fEvent.jbutton.button));
                     ev.setTimeStamp(fEvent.jdevice.timestamp);
                     ev.setDeviceID(fEvent.jdevice.which);
                     break;
                 case SDL_JOYAXISMOTION:
-                    type = "GAMEPAD_AXIS"; //which axis, direction and value
+                    type = EVENTTYPES::GAMEPAD_AXIS; //which axis, direction and value
                     ev.setTimeStamp(fEvent.jaxis.timestamp);
                     if(fEvent.jaxis.axis == 0){ //If axis != 1 it's the X axis
                         if(fEvent.jaxis.value < -JOYSTICK_DEADZONE)
@@ -1436,10 +1436,10 @@ namespace WishEngine{
                         else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
                             ev.setValue("Joystick X Right");
                         else{
-                            type = "GAMEPAD_RELEASE";
+                            type = EVENTTYPES::GAMEPAD_RELEASE;
                             ev.setValue("Joystick X Left");
                             Event aux;
-                            aux.setType("GAMEPAD_RELEASE");
+                            aux.setType(EVENTTYPES::GAMEPAD_RELEASE);
                             aux.setValue("Joystick X Right");
                             frameEvents.push_back(aux);
                         }
@@ -1451,10 +1451,10 @@ namespace WishEngine{
                         else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
                             ev.setValue("Joystick Y Down");
                         else{
-                            type = "GAMEPAD_RELEASE";
+                            type = EVENTTYPES::GAMEPAD_RELEASE;
                             ev.setValue("Joystick Y Up");
                             Event aux;
-                            aux.setType("GAMEPAD_RELEASE");
+                            aux.setType(EVENTTYPES::GAMEPAD_RELEASE);
                             aux.setValue("Joystick Y Down");
                             frameEvents.push_back(aux);
                         }
@@ -1466,10 +1466,10 @@ namespace WishEngine{
                         else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
                             ev.setValue("Joystick X2 Down");
                         else{
-                            type = "GAMEPAD_RELEASE";
+                            type = EVENTTYPES::GAMEPAD_RELEASE;
                             ev.setValue("Joystick X2 Up");
                             Event aux;
-                            aux.setType("GAMEPAD_RELEASE");
+                            aux.setType(EVENTTYPES::GAMEPAD_RELEASE);
                             aux.setValue("Joystick X2 Down");
                             frameEvents.push_back(aux);
                         }
@@ -1481,10 +1481,10 @@ namespace WishEngine{
                         else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
                             ev.setValue("Joystick Y2 Down");
                         else{
-                            type = "GAMEPAD_RELEASE";
+                            type = EVENTTYPES::GAMEPAD_RELEASE;
                             ev.setValue("Joystick Y2 Up");
                             Event aux;
-                            aux.setType("GAMEPAD_RELEASE");
+                            aux.setType(EVENTTYPES::GAMEPAD_RELEASE);
                             aux.setValue("Joystick Y2 Down");
                             frameEvents.push_back(aux);
                         }
@@ -1493,7 +1493,7 @@ namespace WishEngine{
                     ev.setDeviceID(fEvent.jaxis.which);
                     break;
                 case SDL_MOUSEWHEEL:
-                    type = "MOUSE_WHEEL";
+                    type = EVENTTYPES::MOUSE_WHEEL;
                     ev.setTimeStamp(fEvent.wheel.timestamp);
                     ev.setXPos(fEvent.wheel.x);
                     ev.setYPos(fEvent.wheel.y);
@@ -1501,7 +1501,7 @@ namespace WishEngine{
                     ev.setWindowID(fEvent.wheel.windowID);
                     break;
                 case SDL_MOUSEMOTION:
-                    type = "MOUSE_MOTION";
+                    type = EVENTTYPES::MOUSE_MOTION;
                     ev.setXPos(fEvent.motion.x);
                     ev.setYPos(fEvent.motion.y);
                     ev.setXRel(fEvent.motion.xrel);
@@ -1511,17 +1511,17 @@ namespace WishEngine{
                     ev.setWindowID(fEvent.motion.windowID);
                     break;
                 case SDL_QUIT:
-                    type = "QUIT";
+                    type = EVENTTYPES::EQUIT;
                     break;
                 case SDL_WINDOWEVENT:
                     switch(fEvent.window.event){ //Expand for all the window events and maybe include the ids for closing single windows etc...
                         case SDL_WINDOWEVENT_CLOSE:
-                            type = "QUIT"; //For now until I expand this.
+                            type = EVENTTYPES::EQUIT; //For now until I expand this.
                             break;
                     }
             }
             ev.setType(type);
-            if(ev.getType() != "NULL"){
+            if(ev.getType() != EVENTTYPES::NULLEVENT){
                 frameEvents.push_back(ev);
             }
         }
@@ -1598,7 +1598,7 @@ namespace WishEngine{
     }
 
     std::string Framework::getWindowName(unsigned pos){
-        std::map<std::string, SDL_Window*>::iterator it = windowPool.begin();
+        std::unordered_map<std::string, SDL_Window*>::iterator it = windowPool.begin();
         for(unsigned i=0; i<pos; i++){
             it++;
         }
@@ -1678,19 +1678,19 @@ namespace WishEngine{
 
     void Framework::clearData(){
         stopMusic();
-        for(std::map<std::string, SDL_Texture*>::iterator i=texturePool.begin(); i!=texturePool.end(); i++){
+        for(std::unordered_map<std::string, SDL_Texture*>::iterator i=texturePool.begin(); i!=texturePool.end(); i++){
             SDL_DestroyTexture(i->second);
         }
         texturePool.clear();
-        for(std::map<std::string, Mix_Music*>::iterator i=musicPool.begin(); i!=musicPool.end(); i++){
+        for(std::unordered_map<std::string, Mix_Music*>::iterator i=musicPool.begin(); i!=musicPool.end(); i++){
             Mix_FreeMusic(i->second);
         }
         musicPool.clear();
-        for(std::map<std::string, Mix_Chunk*>::iterator i=chunkPool.begin(); i!=chunkPool.end(); i++){
+        for(std::unordered_map<std::string, Mix_Chunk*>::iterator i=chunkPool.begin(); i!=chunkPool.end(); i++){
             Mix_FreeChunk(i->second);
         }
         chunkPool.clear();
-        for(std::map<std::string, TTF_Font*>::iterator i=fontPool.begin(); i!=fontPool.end(); i++){
+        for(std::unordered_map<std::string, TTF_Font*>::iterator i=fontPool.begin(); i!=fontPool.end(); i++){
             TTF_CloseFont(i->second);
         }
         fontPool.clear();
@@ -1719,11 +1719,11 @@ namespace WishEngine{
             SDL_JoystickClose(joysticks[i].pad);
         }
         joysticks.clear();
-        for(std::map<std::string, SDL_Renderer*>::iterator i=renderPool.begin(); i!=renderPool.end(); i++){
+        for(std::unordered_map<std::string, SDL_Renderer*>::iterator i=renderPool.begin(); i!=renderPool.end(); i++){
             SDL_DestroyRenderer(i->second);
         }
         renderPool.clear();
-        for(std::map<std::string, SDL_Window*>::iterator i=windowPool.begin(); i!=windowPool.end(); i++){
+        for(std::unordered_map<std::string, SDL_Window*>::iterator i=windowPool.begin(); i!=windowPool.end(); i++){
             SDL_DestroyWindow(i->second);
         }
         windowPool.clear();

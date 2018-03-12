@@ -30,9 +30,7 @@
 	#define EXPORT
 #endif
 
-#define TICKS_PER_SECOND 30
-
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <iostream>
 #include <vector>
@@ -48,8 +46,6 @@
 #include <fstream>
 #include <cstdint>
 #include <stdint.h>
-#include <type_traits>
-#include <typeinfo>
 #include <chrono>
 
 #endif // HEADERS

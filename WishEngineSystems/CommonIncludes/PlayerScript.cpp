@@ -112,7 +112,7 @@ class PlayerScript : public ScriptComponent{
 		**/
         void execute(GameObject &thisObj, double deltaT){
             if(playerDim == nullptr){
-                playerDim = ScriptsInterface::getComponent<DimensionComponent>(&thisObj, "DIMENSION");
+                playerDim = ScriptsInterface::getComponent<DimensionComponent>(&thisObj, COMPONENTTYPES::DIMENSION);
 
                 //Side hitbox
                 ScriptsInterface::insertObject("PlayerSideHitbox", true);
@@ -421,9 +421,9 @@ class PlayerScript : public ScriptComponent{
                 playerDim->setX(playerDim->getX()+(horizontalSpeed*deltaT));
                 playerDim->setY(playerDim->getY()+(verticalSpeed*deltaT));
 
-                DimensionComponent *sideHitBox = ScriptsInterface::getComponent<DimensionComponent>(ScriptsInterface::getObject("PlayerSideHitbox"), "DIMENSION"),
-                                   *botHitBox = ScriptsInterface::getComponent<DimensionComponent>(ScriptsInterface::getObject("PlayerBottomHitbox"), "DIMENSION"),
-                                   *botHitBox2 = ScriptsInterface::getComponent<DimensionComponent>(ScriptsInterface::getObject("PlayerBottomHitbox2"), "DIMENSION");
+                DimensionComponent *sideHitBox = ScriptsInterface::getComponent<DimensionComponent>(ScriptsInterface::getObject("PlayerSideHitbox"), COMPONENTTYPES::DIMENSION),
+                                   *botHitBox = ScriptsInterface::getComponent<DimensionComponent>(ScriptsInterface::getObject("PlayerBottomHitbox"), COMPONENTTYPES::DIMENSION),
+                                   *botHitBox2 = ScriptsInterface::getComponent<DimensionComponent>(ScriptsInterface::getObject("PlayerBottomHitbox2"), COMPONENTTYPES::DIMENSION);
                 if(sideHitBox != nullptr && botHitBox != nullptr && botHitBox2 != nullptr){
                     //Check directions to change position and size
                     if(hDirection == false){
@@ -444,15 +444,15 @@ class PlayerScript : public ScriptComponent{
                 botHitBox2 = nullptr;
 
                 //Hit boxes checking for state changing
-                HitboxComponent *botHit = ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject("PlayerBottomHitbox"), "HITBOX"),
-                                *botHit2 = ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject("PlayerBottomHitbox2"), "HITBOX"),
-                                *sideHit = ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject("PlayerSideHitbox"), "HITBOX");
+                HitboxComponent *botHit = ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject("PlayerBottomHitbox"), COMPONENTTYPES::HITBOX),
+                                *botHit2 = ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject("PlayerBottomHitbox2"), COMPONENTTYPES::HITBOX),
+                                *sideHit = ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject("PlayerSideHitbox"), COMPONENTTYPES::HITBOX);
 
                 if(sideHit != nullptr){
                     wallSlidable = false;
                     bool solidWall = false;
                     for(unsigned i=0; i<sideHit->getCollisionList().size(); i++){
-                        if(sideHit->getCollisionList()[i].name != "Player" && ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject(sideHit->getCollisionList()[i].name), "HITBOX")->getIsSolid()){
+                        if(sideHit->getCollisionList()[i].name != "Player" && ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject(sideHit->getCollisionList()[i].name), COMPONENTTYPES::HITBOX)->getIsSolid()){
                             if(playerState == 4){
                                 //change animation
                                 wallSlidable = true;
@@ -477,7 +477,7 @@ class PlayerScript : public ScriptComponent{
                 if(botHit != nullptr){
                     bool fall = true;
                     for(unsigned i=0; i<botHit->getCollisionList().size(); i++){
-                        if(botHit->getCollisionList()[i].name != "Player" && ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject(botHit->getCollisionList()[i].name), "HITBOX")->getIsSolid()){
+                        if(botHit->getCollisionList()[i].name != "Player" && ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject(botHit->getCollisionList()[i].name), COMPONENTTYPES::HITBOX)->getIsSolid()){
                             if(playerState == 4 || playerState == 7){
                                 //change animation
                                 playerState = 1;
@@ -504,7 +504,7 @@ class PlayerScript : public ScriptComponent{
                         }
                     }
                     for(unsigned i=0; i<botHit2->getCollisionList().size(); i++){
-                        if(botHit2->getCollisionList()[i].name != "Player" && ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject(botHit2->getCollisionList()[i].name), "HITBOX")->getIsSolid()){
+                        if(botHit2->getCollisionList()[i].name != "Player" && ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject(botHit2->getCollisionList()[i].name), COMPONENTTYPES::HITBOX)->getIsSolid()){
                             if(allEqual && (playerState == 4 || playerState == 7)){
                                 playerState = 1;
                                 jumpsLeft = maxJumps;

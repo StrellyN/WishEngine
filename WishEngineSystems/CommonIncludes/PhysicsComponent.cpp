@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     PhysicsComponent::PhysicsComponent(){
-        setType("PHYSICS");
+        setType(COMPONENTTYPES::PHYSICS);
         isPushable = false;
         hasGravity = false;
         emitsForce = false;
@@ -39,7 +39,7 @@ namespace WishEngine{
     }
 
     PhysicsComponent::PhysicsComponent(bool pushable, bool gravity, bool emits, double gravForce, double gravX, double gravY, double emittForce, double effDist, double emittX, double emittY){
-        setType("PHYSICS");
+        setType(COMPONENTTYPES::PHYSICS);
         isPushable = pushable;
         hasGravity = gravity;
         emitsForce = emits;

@@ -33,7 +33,7 @@ namespace WishEngine{
             NetworkComponent *netComp;
 
         public:
-            NetworkMessage(std::string ty, NetworkComponent *comp);
+            NetworkMessage(MESSAGETYPES ty, NetworkComponent *comp);
             virtual ~NetworkMessage();
             NetworkComponent *getComp();
     };

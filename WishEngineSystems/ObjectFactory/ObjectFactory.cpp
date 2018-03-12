@@ -40,7 +40,7 @@ namespace WishEngine{
             errorLog.open("ERROR.txt", std::ios::out); //Open the error log
             errorLog << "Couldn't access data/INISTATE.config file."; //write the error
             errorLog.close(); //close the stream
-            postMessage(new Message("QUIT"));
+            postMessage(new Message(MESSAGETYPES::QUIT));
         }
         file.clear();
     }
@@ -52,7 +52,7 @@ namespace WishEngine{
 
     void ObjectFactory::clearData(){
         objects.clear();
-        for(std::map<std::string, BaseCollection*>::iterator it = componentCollections.begin(); it != componentCollections.end(); it++){
+        for(std::unordered_map<int, BaseCollection*>::iterator it = componentCollections.begin(); it != componentCollections.end(); it++){
             delete it->second;
             it->second = nullptr;
         }
@@ -75,7 +75,7 @@ namespace WishEngine{
     void ObjectFactory::deleteEverything(){
         objects.clear();
         availableObjects.clear();
-        for(std::map<std::string, BaseCollection*>::iterator it = componentCollections.begin(); it != componentCollections.end(); it++){
+        for(std::unordered_map<int, BaseCollection*>::iterator it = componentCollections.begin(); it != componentCollections.end(); it++){
             delete it->second;
             it->second = nullptr;
         }
@@ -85,16 +85,16 @@ namespace WishEngine{
 
     void ObjectFactory::update(double dt){
         //Send the objects and components pointer.
-        postMessage(new ObjectListMessage("OBJECTLIST", &objects));
-        postMessage(new ComponentListMessage("COMPONENTLIST", &componentCollections));
-        postMessage(new AvailableObjectsMessage("AVAILABLEOBJECTS", &availableObjects));
+        postMessage(new ObjectListMessage(MESSAGETYPES::OBJECTLIST, &objects));
+        postMessage(new ComponentListMessage(MESSAGETYPES::COMPONENTLIST, &componentCollections));
+        postMessage(new AvailableObjectsMessage(MESSAGETYPES::AVAILABLEOBJECTS, &availableObjects));
     }
 
     void ObjectFactory::handleMessage(Message* msg){
-        if(msg->getType() == "LOADOBJECTS"){
+        if(msg->getType() == MESSAGETYPES::LOADOBJECTS){
             loadObjects(msg->getValue());
         }
-        else if(msg->getType() == "GOTOSTATE"){ //Esto hacerlo en la object factory también
+        else if(msg->getType() == MESSAGETYPES::GOTOSTATE){ //Esto hacerlo en la object factory también
             deleteEverything();
             loadObjects(msg->getValue());
         }
@@ -174,13 +174,13 @@ namespace WishEngine{
                             objectStream >> y;
                             objectStream >> w;
                             objectStream >> h;
-                            if(componentCollections.count("ANIMATION") == 0){
-                                componentCollections["ANIMATION"] = new Collection<AnimationComponent>("ANIMATION");
+                            if(componentCollections.count(COMPONENTTYPES::ANIMATION) == 0){
+                                componentCollections[COMPONENTTYPES::ANIMATION] = new Collection<AnimationComponent>(COMPONENTTYPES::ANIMATION);
                             }
-                            Collection<AnimationComponent> *col = dynamic_cast<Collection<AnimationComponent>*>(componentCollections["ANIMATION"]);
+                            Collection<AnimationComponent> *col = dynamic_cast<Collection<AnimationComponent>*>(componentCollections[COMPONENTTYPES::ANIMATION]);
                             unsigned result = col->addItem(AnimationComponent(x, y, w, h), objId);
                             if(result){
-                                unsigned compPos = col->getCollection().size()-1;
+                                unsigned compPos = result-1;
                                 std::string compN = col->getCollection()[compPos].getName();
                                 objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                 col->getCollection()[compPos].setEnabled(compEnabled);
@@ -231,13 +231,13 @@ namespace WishEngine{
                                     newAnimator.addAnimationState(stateName, newState); //We add the state
                                 }
                             }
-                            if(componentCollections.count("ANIMATOR") == 0){
-                                componentCollections["ANIMATOR"] = new Collection<AnimatorComponent>("ANIMATOR");
+                            if(componentCollections.count(COMPONENTTYPES::ANIMATOR) == 0){
+                                componentCollections[COMPONENTTYPES::ANIMATOR] = new Collection<AnimatorComponent>(COMPONENTTYPES::ANIMATOR);
                             }
-                            Collection<AnimatorComponent> *col = dynamic_cast<Collection<AnimatorComponent>*>(componentCollections["ANIMATOR"]);
+                            Collection<AnimatorComponent> *col = dynamic_cast<Collection<AnimatorComponent>*>(componentCollections[COMPONENTTYPES::ANIMATOR]);
                             unsigned result = col->addItem(newAnimator, objId);
                             if(result){
-                                unsigned compPos = col->getCollection().size()-1;
+                                unsigned compPos = result-1;
                                 std::string compN = col->getCollection()[compPos].getName();
                                 objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                 col->getCollection()[compPos].setEnabled(compEnabled);
@@ -256,13 +256,13 @@ namespace WishEngine{
                             objectStream >> isSong;
                             objectStream >> isPlaying;
                             objectStream >> loops;
-                            if(componentCollections.count("AUDIO") == 0){
-                                componentCollections["AUDIO"] = new Collection<AudioComponent>("AUDIO");
+                            if(componentCollections.count(COMPONENTTYPES::AUDIO) == 0){
+                                componentCollections[COMPONENTTYPES::AUDIO] = new Collection<AudioComponent>(COMPONENTTYPES::AUDIO);
                             }
-                            Collection<AudioComponent> *col = dynamic_cast<Collection<AudioComponent>*>(componentCollections["AUDIO"]);
+                            Collection<AudioComponent> *col = dynamic_cast<Collection<AudioComponent>*>(componentCollections[COMPONENTTYPES::AUDIO]);
                             unsigned result = col->addItem(AudioComponent(audioFile, isSong, isPlaying, loops), objId);
                             if(result){
-                                unsigned compPos = col->getCollection().size()-1;
+                                unsigned compPos = result-1;
                                 std::string compN = col->getCollection()[compPos].getName();
                                 objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                 col->getCollection()[compPos].setEnabled(compEnabled);
@@ -278,13 +278,13 @@ namespace WishEngine{
                             objectStream >> prior;
                             objectStream >> x;
                             objectStream >> y;
-                            if(componentCollections.count("CAMERA") == 0){
-                                componentCollections["CAMERA"] = new Collection<CameraComponent>("CAMERA");
+                            if(componentCollections.count(COMPONENTTYPES::CAMERA) == 0){
+                                componentCollections[COMPONENTTYPES::CAMERA] = new Collection<CameraComponent>(COMPONENTTYPES::CAMERA);
                             }
-                            Collection<CameraComponent> *col = dynamic_cast<Collection<CameraComponent>*>(componentCollections["CAMERA"]);
+                            Collection<CameraComponent> *col = dynamic_cast<Collection<CameraComponent>*>(componentCollections[COMPONENTTYPES::CAMERA]);
                             unsigned result = col->addItem(CameraComponent(prior, x, y), objId);
                             if(result){
-                                unsigned compPos = col->getCollection().size()-1;
+                                unsigned compPos = result-1;
                                 std::string compN = col->getCollection()[compPos].getName();
                                 objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                 col->getCollection()[compPos].setEnabled(compEnabled);
@@ -300,13 +300,13 @@ namespace WishEngine{
                             objectStream >> y;
                             objectStream >> w;
                             objectStream >> h;
-                            if(componentCollections.count("DIMENSION") == 0){
-                                componentCollections["DIMENSION"] = new Collection<DimensionComponent>("DIMENSION");
+                            if(componentCollections.count(COMPONENTTYPES::DIMENSION) == 0){
+                                componentCollections[COMPONENTTYPES::DIMENSION] = new Collection<DimensionComponent>(COMPONENTTYPES::DIMENSION);
                             }
-                            Collection<DimensionComponent> *col = dynamic_cast<Collection<DimensionComponent>*>(componentCollections["DIMENSION"]);
+                            Collection<DimensionComponent> *col = dynamic_cast<Collection<DimensionComponent>*>(componentCollections[COMPONENTTYPES::DIMENSION]);
                             unsigned result = col->addItem(DimensionComponent(x, y, w, h), objId);
                             if(result){
-                                unsigned compPos = col->getCollection().size()-1;
+                                unsigned compPos = result-1;
                                 std::string compN = col->getCollection()[compPos].getName();
                                 objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                 col->getCollection()[compPos].setEnabled(compEnabled);
@@ -322,13 +322,13 @@ namespace WishEngine{
                             objectStream >> isU;
                             objectStream >> type;
                             if(type == 1){
-                                if(componentCollections.count("GRAPHIC") == 0){
-                                    componentCollections["GRAPHIC"] = new Collection<GraphicComponent>("GRAPHIC");
+                                if(componentCollections.count(COMPONENTTYPES::GRAPHIC) == 0){
+                                    componentCollections[COMPONENTTYPES::GRAPHIC] = new Collection<GraphicComponent>(COMPONENTTYPES::GRAPHIC);
                                 }
-                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections["GRAPHIC"]);
+                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections[COMPONENTTYPES::GRAPHIC]);
                                 unsigned result = col->addItem(GraphicComponent(isU), objId);
                                 if(result){
-                                    unsigned compPos = col->getCollection().size()-1;
+                                    unsigned compPos = result-1;
                                     std::string compN = col->getCollection()[compPos].getName();
                                     objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                     col->getCollection()[compPos].setEnabled(compEnabled);
@@ -344,13 +344,13 @@ namespace WishEngine{
                                 objectStream >> b;
                                 objectStream >> a;
                                 objectStream >> pr;
-                                if(componentCollections.count("GRAPHIC") == 0){
-                                    componentCollections["GRAPHIC"] = new Collection<GraphicComponent>("GRAPHIC");
+                                if(componentCollections.count(COMPONENTTYPES::GRAPHIC) == 0){
+                                    componentCollections[COMPONENTTYPES::GRAPHIC] = new Collection<GraphicComponent>(COMPONENTTYPES::GRAPHIC);
                                 }
-                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections["GRAPHIC"]);
+                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections[COMPONENTTYPES::GRAPHIC]);
                                 unsigned result = col->addItem(GraphicComponent(isU, r, g, b, a, pr), objId);
                                 if(result){
-                                    unsigned compPos = col->getCollection().size()-1;
+                                    unsigned compPos = result-1;
                                     std::string compN = col->getCollection()[compPos].getName();
                                     objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                     col->getCollection()[compPos].setEnabled(compEnabled);
@@ -365,13 +365,13 @@ namespace WishEngine{
                                 objectStream >> textureFile;
                                 objectStream >> a;
                                 objectStream >> pr;
-                                if(componentCollections.count("GRAPHIC") == 0){
-                                    componentCollections["GRAPHIC"] = new Collection<GraphicComponent>("GRAPHIC");
+                                if(componentCollections.count(COMPONENTTYPES::GRAPHIC) == 0){
+                                    componentCollections[COMPONENTTYPES::GRAPHIC] = new Collection<GraphicComponent>(COMPONENTTYPES::GRAPHIC);
                                 }
-                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections["GRAPHIC"]);
+                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections[COMPONENTTYPES::GRAPHIC]);
                                 unsigned result = col->addItem(GraphicComponent(isU, textureFile, a, pr), objId);
                                 if(result){
-                                    unsigned compPos = col->getCollection().size()-1;
+                                    unsigned compPos = result-1;
                                     std::string compN = col->getCollection()[compPos].getName();
                                     objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                     col->getCollection()[compPos].setEnabled(compEnabled);
@@ -406,13 +406,13 @@ namespace WishEngine{
                                 objectStream >> a;
                                 objectStream >> priority;
                                 objectStream >> isPlain;
-                                if(componentCollections.count("GRAPHIC") == 0){
-                                    componentCollections["GRAPHIC"] = new Collection<GraphicComponent>("GRAPHIC");
+                                if(componentCollections.count(COMPONENTTYPES::GRAPHIC) == 0){
+                                    componentCollections[COMPONENTTYPES::GRAPHIC] = new Collection<GraphicComponent>(COMPONENTTYPES::GRAPHIC);
                                 }
-                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections["GRAPHIC"]);
+                                Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections[COMPONENTTYPES::GRAPHIC]);
                                 unsigned result = col->addItem(GraphicComponent(isU, text, font, maxlines, linespacing, fontsize, r, g, b, a, priority, isPlain), objId);
                                 if(result){
-                                    unsigned compPos = col->getCollection().size()-1;
+                                    unsigned compPos = result-1;
                                     std::string compN = col->getCollection()[compPos].getName();
                                     objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                     col->getCollection()[compPos].setEnabled(compEnabled);
@@ -432,13 +432,13 @@ namespace WishEngine{
                             objectStream >> h;
                             objectStream >> isSolid;
                             objectStream >> checkForColl;
-                            if(componentCollections.count("HITBOX") == 0){
-                                componentCollections["HITBOX"] = new Collection<HitboxComponent>("HITBOX");
+                            if(componentCollections.count(COMPONENTTYPES::HITBOX) == 0){
+                                componentCollections[COMPONENTTYPES::HITBOX] = new Collection<HitboxComponent>(COMPONENTTYPES::HITBOX);
                             }
-                            Collection<HitboxComponent> *col = dynamic_cast<Collection<HitboxComponent>*>(componentCollections["HITBOX"]);
+                            Collection<HitboxComponent> *col = dynamic_cast<Collection<HitboxComponent>*>(componentCollections[COMPONENTTYPES::HITBOX]);
                             unsigned result = col->addItem(HitboxComponent(offx, offy, w, h, isSolid, checkForColl), objId);
                             if(result){
-                                unsigned compPos = col->getCollection().size()-1;
+                                unsigned compPos = result-1;
                                 std::string compN = col->getCollection()[compPos].getName();
                                 objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                 col->getCollection()[compPos].setEnabled(compEnabled);
@@ -454,13 +454,13 @@ namespace WishEngine{
                             int type;
                             objectStream >> type;
                             if(type == 0){
-                                if(componentCollections.count("NETWORK") == 0){
-                                    componentCollections["NETWORK"] = new Collection<NetworkComponent>("NETWORK");
+                                if(componentCollections.count(COMPONENTTYPES::NETWORK) == 0){
+                                    componentCollections[COMPONENTTYPES::NETWORK] = new Collection<NetworkComponent>(COMPONENTTYPES::NETWORK);
                                 }
-                                Collection<NetworkComponent> *col = dynamic_cast<Collection<NetworkComponent>*>(componentCollections["NETWORK"]);
+                                Collection<NetworkComponent> *col = dynamic_cast<Collection<NetworkComponent>*>(componentCollections[COMPONENTTYPES::NETWORK]);
                                 unsigned result = col->addItem(NetworkComponent(), objId);
                                 if(result){
-                                    unsigned compPos = col->getCollection().size()-1;
+                                    unsigned compPos = result-1;
                                     std::string compN = col->getCollection()[compPos].getName();
                                     objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                     col->getCollection()[compPos].setEnabled(compEnabled);
@@ -475,13 +475,13 @@ namespace WishEngine{
                                 objectStream >> maxPacketSize;
                                 objectStream >> elapsedTime;
                                 objectStream >> maxConnections;
-                                if(componentCollections.count("NETWORK") == 0){
-                                    componentCollections["NETWORK"] = new Collection<NetworkComponent>("NETWORK");
+                                if(componentCollections.count(COMPONENTTYPES::NETWORK) == 0){
+                                    componentCollections[COMPONENTTYPES::NETWORK] = new Collection<NetworkComponent>(COMPONENTTYPES::NETWORK);
                                 }
-                                Collection<NetworkComponent> *col = dynamic_cast<Collection<NetworkComponent>*>(componentCollections["NETWORK"]);
+                                Collection<NetworkComponent> *col = dynamic_cast<Collection<NetworkComponent>*>(componentCollections[COMPONENTTYPES::NETWORK]);
                                 unsigned result = col->addItem(NetworkComponent(isS, isT, maxPacketSize, elapsedTime, maxConnections), objId);
                                 if(result){
-                                    unsigned compPos = col->getCollection().size()-1;
+                                    unsigned compPos = result-1;
                                     std::string compN = col->getCollection()[compPos].getName();
                                     objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                     col->getCollection()[compPos].setEnabled(compEnabled);
@@ -512,13 +512,13 @@ namespace WishEngine{
                                 objectStream >> emitX;
                                 objectStream >> emitY;
                             }
-                            if(componentCollections.count("PHYSICS") == 0){
-                                componentCollections["PHYSICS"] = new Collection<PhysicsComponent>("PHYSICS");
+                            if(componentCollections.count(COMPONENTTYPES::PHYSICS) == 0){
+                                componentCollections[COMPONENTTYPES::PHYSICS] = new Collection<PhysicsComponent>(COMPONENTTYPES::PHYSICS);
                             }
-                            Collection<PhysicsComponent> *col = dynamic_cast<Collection<PhysicsComponent>*>(componentCollections["PHYSICS"]);
+                            Collection<PhysicsComponent> *col = dynamic_cast<Collection<PhysicsComponent>*>(componentCollections[COMPONENTTYPES::PHYSICS]);
                             unsigned result = col->addItem(PhysicsComponent(isPushable, hasGravity, emitsForce, gravityForce, gravX, gravY, emittedForce, effectDistance, emitX, emitY), objId);
                             if(result){
-                                unsigned compPos = col->getCollection().size()-1;
+                                unsigned compPos = result-1;
                                 std::string compN = col->getCollection()[compPos].getName();
                                 objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                 col->getCollection()[compPos].setEnabled(compEnabled);
@@ -537,13 +537,13 @@ namespace WishEngine{
                                 aux.addProperty(property);
                                 objectStream >> property;
                             }
-                            if(componentCollections.count("PROPERTIES") == 0){
-                                componentCollections["PROPERTIES"] = new Collection<PropertiesComponent>("PROPERTIES");
+                            if(componentCollections.count(COMPONENTTYPES::PROPERTIES) == 0){
+                                componentCollections[COMPONENTTYPES::PROPERTIES] = new Collection<PropertiesComponent>(COMPONENTTYPES::PROPERTIES);
                             }
-                            Collection<PropertiesComponent> *col = dynamic_cast<Collection<PropertiesComponent>*>(componentCollections["PROPERTIES"]);
+                            Collection<PropertiesComponent> *col = dynamic_cast<Collection<PropertiesComponent>*>(componentCollections[COMPONENTTYPES::PROPERTIES]);
                             unsigned result = col->addItem(aux, objId);
                             if(result){
-                                unsigned compPos = col->getCollection().size()-1;
+                                unsigned compPos = result-1;
                                 std::string compN = col->getCollection()[compPos].getName();
                                 objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                 col->getCollection()[compPos].setEnabled(compEnabled);
@@ -558,22 +558,17 @@ namespace WishEngine{
                             objectStream >> compEnabled;
                             objectStream >> name;
                             std::getline(objectStream, args);
-                            if(componentCollections.count("SCRIPT") == 0){
-                                componentCollections["SCRIPT"] = new Collection<BaseCollection*>("SCRIPT");
-                            }
-                            Collection<BaseCollection*> *col = dynamic_cast<Collection<BaseCollection*>*>(componentCollections["SCRIPT"]);
-                            postMessage(new CreateScriptMessage(col, &objects[objPos], objPos, compEnabled, name, args));
-                            col = nullptr;
+                            postMessage(new CreateScriptMessage(&componentCollections, &objects[objPos], objPos, compEnabled, name, args));
                         }
                         if(compName == "INPUT"){
                             objectStream >> compEnabled;
-                            if(componentCollections.count("INPUT") == 0){
-                                componentCollections["INPUT"] = new Collection<InputComponent>("INPUT");
+                            if(componentCollections.count(COMPONENTTYPES::INPUT) == 0){
+                                componentCollections[COMPONENTTYPES::INPUT] = new Collection<InputComponent>(COMPONENTTYPES::INPUT);
                             }
-                            Collection<InputComponent> *col = dynamic_cast<Collection<InputComponent>*>(componentCollections["INPUT"]);
+                            Collection<InputComponent> *col = dynamic_cast<Collection<InputComponent>*>(componentCollections[COMPONENTTYPES::INPUT]);
                             unsigned result = col->addItem(InputComponent(), objId);
                             if(result){
-                                unsigned compPos = col->getCollection().size()-1;
+                                unsigned compPos = result-1;
                                 std::string compN = col->getCollection()[compPos].getName();
                                 objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                 col->getCollection()[compPos].setEnabled(compEnabled);
@@ -590,13 +585,13 @@ namespace WishEngine{
                             objectStream >> maxTime;
                             objectStream >> countDown;
                             objectStream >> paused;
-                            if(componentCollections.count("TIMER") == 0){
-                                componentCollections["TIMER"] = new Collection<TimerComponent>("TIMER");
+                            if(componentCollections.count(COMPONENTTYPES::TIMER) == 0){
+                                componentCollections[COMPONENTTYPES::TIMER] = new Collection<TimerComponent>(COMPONENTTYPES::TIMER);
                             }
-                            Collection<TimerComponent> *col = dynamic_cast<Collection<TimerComponent>*>(componentCollections["TIMER"]);
+                            Collection<TimerComponent> *col = dynamic_cast<Collection<TimerComponent>*>(componentCollections[COMPONENTTYPES::TIMER]);
                             unsigned result = col->addItem(TimerComponent(counter, maxTime, countDown, paused), objId);
                             if(result){
-                                unsigned compPos = col->getCollection().size()-1;
+                                unsigned compPos = result-1;
                                 std::string compN = col->getCollection()[compPos].getName();
                                 objects[objPos].getComponents().emplace_back(col->getCollection()[compPos].getType(), compN, compPos);
                                 col->getCollection()[compPos].setEnabled(compEnabled);

@@ -58,10 +58,10 @@ class GameScript : public ScriptComponent{
 		**/
         void execute(GameObject &thisObj, double deltaT){
             if(player == nullptr){
-                player = ScriptsInterface::getComponent<PlayerScript>(ScriptsInterface::getObject("Player"), "SCRIPT", "PlayerScript");
+                player = ScriptsInterface::getComponent<PlayerScript>(ScriptsInterface::getObject("Player"), SCRIPTTYPES::PLAYERSCRIPT);
             }
             if(dialogueManager == nullptr){
-                dialogueManager = ScriptsInterface::getComponent<DialogueManagerScript>(ScriptsInterface::getObject("DialogueBox"), "SCRIPT", "DialogueManagerScript");
+                dialogueManager = ScriptsInterface::getComponent<DialogueManagerScript>(ScriptsInterface::getObject("DialogueBox"), SCRIPTTYPES::DIALOGUEMANAGERSCRIPT);
             }
 
             //Load or create the config file with FPS and inputs
@@ -108,19 +108,19 @@ class GameScript : public ScriptComponent{
         }
 
         void handleInput(GameObject &thisObj){
-            InputComponent *inputs = ScriptsInterface::getComponent<InputComponent>(&thisObj, "INPUT");
+            InputComponent *inputs = ScriptsInterface::getComponent<InputComponent>(&thisObj, COMPONENTTYPES::INPUT);
             if(inputs != nullptr){
                 for(unsigned i=0; i<inputs->getInputs().size(); i++){
                     bool press = false, release = false;
-                    if(inputs->getInputs()[i].getType() == "KEYBOARD_PRESS" ||
-                       inputs->getInputs()[i].getType() == "GAMEPAD_PRESS" ||
-                       inputs->getInputs()[i].getType() == "MOUSE_PRESS" ||
-                       inputs->getInputs()[i].getType() == "GAMEPAD_AXIS"){
+                    if(inputs->getInputs()[i].getType() == EVENTTYPES::KEYBOARD_PRESS ||
+                       inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_PRESS ||
+                       inputs->getInputs()[i].getType() == EVENTTYPES::MOUSE_PRESS ||
+                       inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_AXIS){
                         press = true;
                     }
-                    if(inputs->getInputs()[i].getType() == "KEYBOARD_RELEASE" ||
-                       inputs->getInputs()[i].getType() == "GAMEPAD_RELEASE" ||
-                       inputs->getInputs()[i].getType() == "MOUSE_RELEASE"){
+                    if(inputs->getInputs()[i].getType() == EVENTTYPES::KEYBOARD_RELEASE ||
+                       inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_RELEASE ||
+                       inputs->getInputs()[i].getType() == EVENTTYPES::MOUSE_RELEASE){
                         release = true;
                     }
                     if(!dialogue && !cutscene){
@@ -194,13 +194,14 @@ class GameScript : public ScriptComponent{
                                 //Check for the collision list of player for an interactive object
                                 //if is npc, set the dialogue file and enable the object
                                 //also set the dialogue flag so the game enters in the state.
-                                HitboxComponent *playerHit = ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject("Player"), "HITBOX");
+                                HitboxComponent *playerHit = ScriptsInterface::getComponent<HitboxComponent>(ScriptsInterface::getObject("Player"), COMPONENTTYPES::HITBOX);
                                 if(playerHit != nullptr){
                                     for(unsigned k=0; k<playerHit->getCollisionList().size(); k++){
                                         //Checking if its NPC
-                                        NPCScript *npc = ScriptsInterface::getComponent<NPCScript>(ScriptsInterface::getObject(playerHit->getCollisionList()[k].name), "SCRIPT", "NPCScript");
+                                        NPCScript *npc = ScriptsInterface::getComponent<NPCScript>(ScriptsInterface::getObject(playerHit->getCollisionList()[k].name), SCRIPTTYPES::NPCSCRIPT);
                                         if(npc != nullptr){
                                             if(npc->getDialogueFile() != ""){
+                                                //Stop movement
                                                 dialogueManager->setFile(npc->getDialogueFile());
                                                 ScriptsInterface::getObject("DialogueBox")->setEnabled(true);
                                                 dialogue = true;

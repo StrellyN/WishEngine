@@ -36,7 +36,7 @@
 namespace WishEngine{
     class AnimationSystem : public GameSystem{
         private:
-            std::map<std::string, BaseCollection*> *components = nullptr; //In the handle message it'll receive the components
+            std::unordered_map<int, BaseCollection*> *components = nullptr; //In the handle message it'll receive the components
             std::vector<GameObject> *objects = nullptr;
 
         public:

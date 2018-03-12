@@ -58,7 +58,7 @@ namespace WishEngine{
             bool frameCapFlag;
             int maxFPS, frameTicks;
             std::vector<GameObject> *objects = nullptr;
-            std::map<std::string, BaseCollection*> *components = nullptr;
+            std::unordered_map<int, BaseCollection*> *components = nullptr;
 
             //Inputs
             std::vector<Event> frameEvents;
@@ -67,18 +67,18 @@ namespace WishEngine{
             std::vector<JoystickStruct> joysticks;
 
             //Window
-            std::map<std::string, SDL_Window*> windowPool;
-            std::map<std::string, SDL_Renderer*> renderPool;
+            std::unordered_map<std::string, SDL_Window*> windowPool;
+            std::unordered_map<std::string, SDL_Renderer*> renderPool;
 
             //Textures
-            std::map<std::string, SDL_Texture*> texturePool;
+            std::unordered_map<std::string, SDL_Texture*> texturePool;
 
             //Audio
-            std::map<std::string, Mix_Music*> musicPool;
-            std::map<std::string, Mix_Chunk*> chunkPool;
+            std::unordered_map<std::string, Mix_Music*> musicPool;
+            std::unordered_map<std::string, Mix_Chunk*> chunkPool;
 
             //Text
-            std::map<std::string, TTF_Font*> fontPool;
+            std::unordered_map<std::string, TTF_Font*> fontPool;
 
             //Networking
             std::vector<TCPsocket> tcpSockets;

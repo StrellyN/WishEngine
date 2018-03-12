@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     NetworkComponent::NetworkComponent(){
-        setType("NETWORK");
+        setType(COMPONENTTYPES::NETWORK);
         ip = "";
         maxPacketSize = 0;
         maxConnections = 0;
@@ -41,7 +41,7 @@ namespace WishEngine{
     }
 
     NetworkComponent::NetworkComponent(bool isS, bool isT, unsigned maxSize, unsigned elapsedTime, unsigned maxC){
-        setType("NETWORK");
+        setType(COMPONENTTYPES::NETWORK);
         ip = "";
         maxPacketSize = maxSize;
         maxConnections = maxC;

@@ -27,17 +27,20 @@
 #include "Object.hpp"
 
 namespace WishEngine{
+    enum COMPONENTTYPES{ANIMATION, ANIMATOR, AUDIO, CAMERA, DIMENSION, GRAPHIC, HITBOX, INPUT, NETWORK, PHYSICS, PROPERTIES,
+                        SCRIPT, TIMER, CAMOUNT};
+
     class Component : public Object{
         private:
-            std::string type;
+            COMPONENTTYPES type;
             unsigned ownerId, ownerPos;
         public:
             virtual ~Component(){
             }
-            std::string &getType(){
+            COMPONENTTYPES getType(){
                 return type;
             }
-            void setType(std::string t){
+            void setType(COMPONENTTYPES t){
                 type = t;
             }
             unsigned getOwnerId(){

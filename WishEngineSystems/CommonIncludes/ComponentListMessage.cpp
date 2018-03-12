@@ -24,7 +24,7 @@
 #include "ComponentListMessage.hpp"
 
 namespace WishEngine{
-    ComponentListMessage::ComponentListMessage(std::string mT, std::map<std::string, BaseCollection*> *cList){
+    ComponentListMessage::ComponentListMessage(MESSAGETYPES mT, std::unordered_map<int, BaseCollection*> *cList){
         setType(mT);
         componentList = cList;
     }
@@ -33,7 +33,7 @@ namespace WishEngine{
         componentList = nullptr;
     }
 
-    std::map<std::string, BaseCollection*> *ComponentListMessage::getComponentList(){
+    std::unordered_map<int, BaseCollection*> *ComponentListMessage::getComponentList(){
         return componentList;
     }
 }

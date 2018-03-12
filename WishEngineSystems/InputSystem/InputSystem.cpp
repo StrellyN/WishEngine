@@ -46,8 +46,8 @@ namespace WishEngine{
     **/
     void InputSystem::handleInput(std::vector<Event> *inputList){
         std::vector<InputComponent> *inputs = nullptr;
-        if(components != nullptr && components->find("INPUT") != components->end()){
-            inputs = &dynamic_cast<Collection<InputComponent>*>(components->at("INPUT"))->getCollection();
+        if(components != nullptr && components->find(COMPONENTTYPES::INPUT) != components->end()){
+            inputs = &dynamic_cast<Collection<InputComponent>*>(components->at(COMPONENTTYPES::INPUT))->getCollection();
         }
         if(inputs != nullptr){
             for(unsigned i=0; i<inputs->size(); i++){
@@ -59,8 +59,8 @@ namespace WishEngine{
         inputs = nullptr;
 
         for(unsigned i=0; i<inputList->size(); i++){
-            if((*inputList)[i].getType() == "QUIT"){ //Checks if it quit, and if it is sends the quit message
-                postMessage(new Message("QUIT"));
+            if((*inputList)[i].getType() == EVENTTYPES::EQUIT){ //Checks if it quit, and if it is sends the quit message
+                postMessage(new Message(MESSAGETYPES::QUIT));
                 break;
             }
         }
@@ -70,21 +70,21 @@ namespace WishEngine{
         Method that handles received messages.
     **/
     void InputSystem::handleMessage(Message* mes){
-        if(mes->getType() == "INPUTLIST"){
+        if(mes->getType() == MESSAGETYPES::INPUTLIST){
             InputListMessage *aux = dynamic_cast<InputListMessage*>(mes);
             if(aux != nullptr){
                 handleInput(aux->getInputList());
             }
             aux = nullptr;
         }
-        else if(mes->getType() == "COMPONENTLIST"){
+        else if(mes->getType() == MESSAGETYPES::COMPONENTLIST){
             ComponentListMessage *aux = dynamic_cast<ComponentListMessage*>(mes);
             if(aux != nullptr){
                 components = aux->getComponentList();
             }
             aux = nullptr;
         }
-        else if(mes->getType() == "DELETEEVERYTHING"){
+        else if(mes->getType() == MESSAGETYPES::DELETEEVERYTHING){
             destroySystem();
         }
     }

@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     Event::Event(){
-        setType("NULL");
+        setType(EVENTTYPES::NULLEVENT);
         setValue("NULL");
         xPos = 0;
         xRel = 0;
@@ -36,7 +36,7 @@ namespace WishEngine{
         windowID = -1;
     }
 
-    Event::Event(std::string t, std::string val){
+    Event::Event(EVENTTYPES t, std::string val){
         setType(t);
         setValue(val);
         xPos = 0;
@@ -58,11 +58,11 @@ namespace WishEngine{
         Do the list
     **/
 
-    std::string Event::getType(){
+    EVENTTYPES Event::getType(){
         return type;
     }
 
-    void Event::setType(std::string t){
+    void Event::setType(EVENTTYPES t){
         type = t;
     }
 

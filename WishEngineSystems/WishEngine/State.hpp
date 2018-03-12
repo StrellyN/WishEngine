@@ -26,6 +26,8 @@
 
 #include "../CommonIncludes/System.hpp"
 
+#define TICKS_PER_SECOND 30
+
 #ifdef _WIN32
     #include "windows.h"
 #elif defined(__unix__) || defined(__linux__)

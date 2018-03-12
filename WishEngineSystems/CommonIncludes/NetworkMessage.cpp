@@ -24,7 +24,7 @@
 #include "NetworkMessage.hpp"
 
 namespace WishEngine{
-    NetworkMessage::NetworkMessage(std::string ty, NetworkComponent *comp){
+    NetworkMessage::NetworkMessage(MESSAGETYPES ty, NetworkComponent *comp){
         setType(ty);
         netComp = comp;
     }

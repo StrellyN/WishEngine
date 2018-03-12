@@ -27,7 +27,7 @@ namespace WishEngine{
     GraphicComponent::GraphicComponent(bool isU){
         priority = 0;
         isUi = isU;
-        setType("GRAPHIC");
+        setType(COMPONENTTYPES::GRAPHIC);
         isTexture = false;
         isText = false;
         color = Color();
@@ -35,7 +35,7 @@ namespace WishEngine{
     }
 
     GraphicComponent::GraphicComponent(bool isU, int r, int g, int b, int a, int pr){
-        setType("GRAPHIC");
+        setType(COMPONENTTYPES::GRAPHIC);
         isUi = isU;
         color = Color(r,g,b,a);
         priority = pr;
@@ -45,7 +45,7 @@ namespace WishEngine{
     }
 
     GraphicComponent::GraphicComponent(bool isU, std::string tFile, int a, int pr){
-        setType("GRAPHIC");
+        setType(COMPONENTTYPES::GRAPHIC);
         isUi = isU;
         color = Color(0,0,0,a);
         priority = pr;
@@ -55,7 +55,7 @@ namespace WishEngine{
     }
 
     GraphicComponent::GraphicComponent(bool isU, std::string t, std::string font, int maxLines, int lineSpacing, int fontSize, int r, int g, int b, int a, int pr, bool isPlain){
-        setType("GRAPHIC");
+        setType(COMPONENTTYPES::GRAPHIC);
         isUi = isU;
         priority = pr;
         isTexture = false;

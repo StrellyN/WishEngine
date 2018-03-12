@@ -91,26 +91,26 @@ namespace WishEngine{
         IT HAS BEEN FIXED :D
     **/
     void CollisionSystem::update(double dt){
-        postMessage(new Message("CHECKCOLLISIONS"));
+        postMessage(new Message(MESSAGETYPES::CHECKCOLLISIONS));
     }
 
     void CollisionSystem::updateCollisions(){
         if(components != nullptr && objects != nullptr){
             std::vector<HitboxComponent> *hitboxes = nullptr;
-            if(components->find("HITBOX") != components->end()){
-                hitboxes = &dynamic_cast<Collection<HitboxComponent>*>(components->at("HITBOX"))->getCollection();
+            if(components->find(COMPONENTTYPES::HITBOX) != components->end()){
+                hitboxes = &dynamic_cast<Collection<HitboxComponent>*>(components->at(COMPONENTTYPES::HITBOX))->getCollection();
             }
             std::vector<DimensionComponent> *dimensions = nullptr;
-            if(components->find("DIMENSION") != components->end()){
-                dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at("DIMENSION"))->getCollection();
+            if(components->find(COMPONENTTYPES::DIMENSION) != components->end()){
+                dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at(COMPONENTTYPES::DIMENSION))->getCollection();
             }
             if(hitboxes != nullptr && dimensions != nullptr){
                 DimensionComponent *dim1 = nullptr, *dim2 = nullptr;
                 HitboxComponent *hitI = nullptr, *hitJ = nullptr;
                 for(unsigned i=0; i<hitboxes->size(); i++){
                     unsigned hitObjPos = (*hitboxes)[i].getOwnerPos();
-                    if(hitObjPos < objects->size() && (*objects)[hitObjPos].getEnabled() && !(*objects)[hitObjPos].getDeleted() && (*objects)[hitObjPos].hasComponent("DIMENSION")){ //If they have a dimention of course
-                        dim1 = &(*dimensions)[(*objects)[hitObjPos].getComponentPosition("DIMENSION")];
+                    if(hitObjPos < objects->size() && (*objects)[hitObjPos].getEnabled() && !(*objects)[hitObjPos].getDeleted() && (*objects)[hitObjPos].hasComponent(COMPONENTTYPES::DIMENSION)){ //If they have a dimention of course
+                        dim1 = &(*dimensions)[(*objects)[hitObjPos].getComponentPosition(COMPONENTTYPES::DIMENSION)];
                         hitI = &(*hitboxes)[i];
                         if(hitI->getEnabled() && !hitI->getDeleted() && dim1->getEnabled() && !dim1->getDeleted()){ //If the Object has everything needed to
                             hitI->getCollisionList().clear();
@@ -125,7 +125,7 @@ namespace WishEngine{
                                     if(i != j){ //If they aren't the same Object and the second object is enabled
                                         unsigned hit2ObjPos = (*hitboxes)[j].getOwnerPos();
                                         if(hit2ObjPos < objects->size() && (*objects)[hit2ObjPos].getEnabled() && !(*objects)[hit2ObjPos].getDeleted()){ //If j has a dimention of course
-                                            dim2 = &(*dimensions)[(*objects)[hit2ObjPos].getComponentPosition("DIMENSION")]; //seems like this is the reason for the slow
+                                            dim2 = &(*dimensions)[(*objects)[hit2ObjPos].getComponentPosition(COMPONENTTYPES::DIMENSION)]; //seems like this is the reason for the slow
                                             hitJ = &(*hitboxes)[j];
                                             if(dim2 != nullptr && dim2->getEnabled() && !dim2->getDeleted() && hitJ != nullptr && hitJ->getEnabled() && !hitJ->getDeleted()){ //And j has a hitbox
                                                 if(checkCollision(dim1, dim2, hitI, hitJ)){
@@ -229,24 +229,24 @@ namespace WishEngine{
         Method to handle received messages.
     **/
     void CollisionSystem::handleMessage(Message* msg){
-        if(msg->getType() == "COMPONENTLIST"){
+        if(msg->getType() == MESSAGETYPES::COMPONENTLIST){
             ComponentListMessage* rmes = dynamic_cast<ComponentListMessage*>(msg);
             if(rmes != nullptr){
                 components = rmes->getComponentList();
             }
             rmes = nullptr;
         }
-        else if(msg->getType() == "OBJECTLIST"){
+        else if(msg->getType() == MESSAGETYPES::OBJECTLIST){
             ObjectListMessage* rmes = dynamic_cast<ObjectListMessage*>(msg);
             if(rmes != nullptr){
                 objects = rmes->getObjectList();
             }
             rmes = nullptr;
         }
-        else if(msg->getType() == "CHECKCOLLISIONS"){
+        else if(msg->getType() == MESSAGETYPES::CHECKCOLLISIONS){
             updateCollisions();
         }
-        else if(msg->getType() == "DELETEEVERYTHING"){
+        else if(msg->getType() == MESSAGETYPES::DELETEEVERYTHING){
             destroySystem();
         }
     }

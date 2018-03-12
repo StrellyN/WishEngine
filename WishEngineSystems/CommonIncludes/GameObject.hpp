@@ -28,10 +28,11 @@
 
 namespace WishEngine{
     struct ComponentInformation{
-        std::string componentType, componentName;
+        int componentType;
+        std::string componentName;
         unsigned componentPosition;
 
-        ComponentInformation(std::string type, std::string name, unsigned pos){
+        ComponentInformation(int type, std::string name, unsigned pos){
             componentType = type;
             componentName = name;
             componentPosition = pos;
@@ -49,9 +50,9 @@ namespace WishEngine{
             virtual ~GameObject();
             void setId(unsigned i);
             unsigned getId();
-            bool hasComponent(std::string type, std::string name = "");
-            unsigned getComponentPosition(std::string type, std::string name = "");
-            void setComponentPosition(unsigned newPos, std::string type, std::string name = "");
+            bool hasComponent(int type, std::string name = "");
+            unsigned getComponentPosition(int type, std::string name = "");
+            void setComponentPosition(unsigned newPos, int type, std::string name = "");
             std::vector<ComponentInformation> &getComponents();
     };
 }

@@ -24,19 +24,19 @@
 #ifndef COLLECTION_H
 #define COLLECTION_H
 
-#include "Utils.hpp"
+#include "Component.hpp"
 
 namespace WishEngine{
     class BaseCollection{
         private:
-            std::string type;
+            int type;
 
         public:
             virtual ~BaseCollection(){}
-            void setType(std::string ty){
+            void setType(int ty){
                 type = ty;
             }
-            std::string &getType(){
+            int getType(){
                 return type;
             }
     };
@@ -48,7 +48,7 @@ namespace WishEngine{
             std::vector<unsigned> availablePositions;
 
         public:
-            Collection(std::string ty="");
+            Collection(int ty);
             virtual ~Collection();
             unsigned addItem(T item, unsigned ownrId, std::string name = "");
             T &getItem(unsigned ownrId, std::string name);
@@ -60,10 +60,7 @@ namespace WishEngine{
     };
 
     template <class T>
-    Collection<T>::Collection(std::string ty){
-        if(ty == ""){
-            ty = "NOTYPE";
-        }
+    Collection<T>::Collection(int ty){
         setType(ty);
     }
 
@@ -75,7 +72,7 @@ namespace WishEngine{
 
     template <class T>
     unsigned Collection<T>::addItem(T item, unsigned ownrId, std::string name){
-        if(item.getType() != "AUDIO" && hasItem(ownrId)){
+        if(item.getType() != COMPONENTTYPES::AUDIO && hasItem(ownrId)){
             return 0;
         }
         int i=1;

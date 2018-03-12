@@ -42,11 +42,11 @@ class CameraScriptFollowing : public ScriptComponent{
 		**/
         void execute(GameObject &thisObj, double deltaT){
             GameObject *toFollow = ScriptsInterface::getObject(objectToFollow);
-            DimensionComponent *camDimention = ScriptsInterface::getComponent<DimensionComponent>(&thisObj, "DIMENSION"),
+            DimensionComponent *camDimention = ScriptsInterface::getComponent<DimensionComponent>(&thisObj, COMPONENTTYPES::DIMENSION),
                                *followDimention = nullptr;
-            PlayerScript *playerScript = ScriptsInterface::getComponent<PlayerScript>(toFollow, "SCRIPT", "PlayerScript");
+            PlayerScript *playerScript = ScriptsInterface::getComponent<PlayerScript>(toFollow, SCRIPTTYPES::PLAYERSCRIPT);
             if(toFollow != nullptr){
-                followDimention = ScriptsInterface::getComponent<DimensionComponent>(toFollow, "DIMENSION");
+                followDimention = ScriptsInterface::getComponent<DimensionComponent>(toFollow, COMPONENTTYPES::DIMENSION);
             }
 
 

@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     PropertiesComponent::PropertiesComponent(){
-        setType("PROPERTIES");
+        setType(COMPONENTTYPES::PROPERTIES);
     }
 
     PropertiesComponent::~PropertiesComponent(){

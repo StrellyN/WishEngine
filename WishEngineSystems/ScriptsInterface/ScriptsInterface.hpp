@@ -37,9 +37,12 @@
 #include "../CommonIncludes/ComponentHeaders.hpp"
 
 namespace WishEngine{
+    enum SCRIPTTYPES{CAMERASCRIPTFOLLOWING = COMPONENTTYPES::CAMOUNT, DIALOGUEMANAGERSCRIPT, MAPMANAGERSCRIPT, MENUSCRIPT,
+                     NPCSCRIPT, PLAYERSCRIPT, PAUSESCRIPT, OPTIONSSCRIPT, GAMESCRIPT, TITLESCRIPT};
+
     class ScriptsInterface : public GameSystem{
         private:
-            static std::map<std::string, BaseCollection*> *components;
+            static std::unordered_map<int, BaseCollection*> *components;
             static std::vector<GameObject> *objects;
             static std::vector<unsigned> *availableObjects;
             static std::vector<Message*> *postedM;
@@ -49,7 +52,7 @@ namespace WishEngine{
             virtual ~ScriptsInterface();
             void update(double dt);
             void handleMessage(Message* mes);
-            void createScript(Collection<BaseCollection*> *col, GameObject *own, unsigned ownPos, bool isEn, std::string n, std::string ar);
+            void createScript(std::unordered_map<int, BaseCollection*> *col, GameObject *own, unsigned ownPos, bool isEn, std::string n, std::string ar);
 
             static unsigned getObjectQuantity();
 
@@ -65,9 +68,9 @@ namespace WishEngine{
             template <class T>
             static unsigned insertComponent(unsigned oId, T component, std::string name = "");
             template <class T>
-            static T *getComponent(GameObject *obj, std::string type, std::string name = "");
+            static T *getComponent(GameObject *obj, int type, std::string name = "");
             template <class T>
-            static unsigned deleteComponent(GameObject *obj, std::string type, std::string name = "");
+            static unsigned deleteComponent(GameObject *obj, int type, std::string name = "");
 
             static void deleteWindow(std::string name);
             static void createWindow(std::string title, std::string name, std::string icon, int x, int y, int w, int h);

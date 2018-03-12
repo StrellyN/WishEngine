@@ -26,10 +26,10 @@
 namespace WishEngine{
     State::State(){
         loadSystems();
-        handleInput = Message("HANDLEINPUT");
-        startFrame = Message("SFRAME");
-        renderFrame = Message("RFRAME", 0);
-        finishFrame = Message("FFRAME");
+        handleInput = Message(MESSAGETYPES::HANDLEINPUT);
+        startFrame = Message(MESSAGETYPES::SFRAME);
+        renderFrame = Message(MESSAGETYPES::RFRAME, 0);
+        finishFrame = Message(MESSAGETYPES::FFRAME);
     }
 
     State::~State(){
@@ -197,7 +197,7 @@ namespace WishEngine{
         Method used to handle received messages.
     **/
     void State::handleMessage(Message &msg){
-        if(msg.getType() == "QUIT"){
+        if(msg.getType() == MESSAGETYPES::QUIT){
             setQuit(true);
         }
     }

@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     DimensionComponent::DimensionComponent(double x, double y, int w, int h){
-        setType("DIMENSION");
+        setType(COMPONENTTYPES::DIMENSION);
         setX(x);
         setY(y);
         setZ(0);
@@ -39,7 +39,7 @@ namespace WishEngine{
     }
 
     DimensionComponent::DimensionComponent(double x, double y, double z, int w, int h, int l){
-        setType("Dimension");
+        setType(COMPONENTTYPES::DIMENSION);
         setX(x);
         setY(y);
         setZ(z);

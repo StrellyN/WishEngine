@@ -100,43 +100,43 @@ class MenuScript : public ScriptComponent{
                 menuOptions.push_back(ScriptsInterface::getObject("NewGame"));
                 menuOptions.push_back(ScriptsInterface::getObject("Options"));
                 menuOptions.push_back(ScriptsInterface::getObject("QuitGame"));
-                ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], "GRAPHIC")->getText().getIndividualCharacterColor()[0].setA(255);
+                ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], COMPONENTTYPES::GRAPHIC)->getText().getIndividualCharacterColor()[0].setA(255);
             }
 
             handleInput(thisObj);
         }
 
         void handleInput(GameObject &thisObj){
-            InputComponent *inputs = ScriptsInterface::getComponent<InputComponent>(&thisObj, "INPUT");
+            InputComponent *inputs = ScriptsInterface::getComponent<InputComponent>(&thisObj, COMPONENTTYPES::INPUT);
             if(inputs != nullptr){
                 for(unsigned i=0; i<inputs->getInputs().size(); i++){
                     bool press = false, release = false;
-                    if(inputs->getInputs()[i].getType() == "KEYBOARD_PRESS" ||
-                       inputs->getInputs()[i].getType() == "GAMEPAD_PRESS" ||
-                       inputs->getInputs()[i].getType() == "MOUSE_PRESS" ||
-                       inputs->getInputs()[i].getType() == "GAMEPAD_AXIS"){
+                    if(inputs->getInputs()[i].getType() == EVENTTYPES::KEYBOARD_PRESS ||
+                       inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_PRESS ||
+                       inputs->getInputs()[i].getType() == EVENTTYPES::MOUSE_PRESS ||
+                       inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_AXIS){
                         press = true;
                     }
-                    if(inputs->getInputs()[i].getType() == "KEYBOARD_RELEASE" ||
-                       inputs->getInputs()[i].getType() == "GAMEPAD_RELEASE" ||
-                       inputs->getInputs()[i].getType() == "MOUSE_RELEASE"){
+                    if(inputs->getInputs()[i].getType() == EVENTTYPES::KEYBOARD_RELEASE ||
+                       inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_RELEASE ||
+                       inputs->getInputs()[i].getType() == EVENTTYPES::MOUSE_RELEASE){
                         release = true;
                     }
                     if(press && inputs->getInputs()[i].getValue() == controlsAssigned[0]){
                         if(!up){
-                            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], "GRAPHIC")->getText().getIndividualCharacterColor()[0].setA(128);
+                            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], COMPONENTTYPES::GRAPHIC)->getText().getIndividualCharacterColor()[0].setA(128);
                             selectedOption--;
                             if(selectedOption < 0) selectedOption = menuOptions.size()-1;
-                            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], "GRAPHIC")->getText().getIndividualCharacterColor()[0].setA(255);
+                            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], COMPONENTTYPES::GRAPHIC)->getText().getIndividualCharacterColor()[0].setA(255);
                         }
                         up = true;
                     }
                     if(press && inputs->getInputs()[i].getValue() == controlsAssigned[3]){
                         if(!down){
-                            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], "GRAPHIC")->getText().getIndividualCharacterColor()[0].setA(128);
+                            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], COMPONENTTYPES::GRAPHIC)->getText().getIndividualCharacterColor()[0].setA(128);
                             selectedOption++;
                             if(selectedOption > menuOptions.size()-1) selectedOption = 0;
-                            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], "GRAPHIC")->getText().getIndividualCharacterColor()[0].setA(255);
+                            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], COMPONENTTYPES::GRAPHIC)->getText().getIndividualCharacterColor()[0].setA(255);
                         }
                         down = true;
                     }

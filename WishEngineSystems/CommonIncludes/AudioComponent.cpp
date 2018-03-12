@@ -27,7 +27,7 @@ namespace WishEngine{
     unsigned AudioComponent::listener = -1;
 
     AudioComponent::AudioComponent(std::string audioF, bool isS, bool isP, int lps){
-        setType("AUDIO");
+        setType(COMPONENTTYPES::AUDIO);
         if(lps < -1){
             lps = -1;
         }

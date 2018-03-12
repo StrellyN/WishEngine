@@ -40,8 +40,8 @@ namespace WishEngine{
     void TimerSystem::update(double dt){
         if(components != nullptr){
             std::vector<TimerComponent> *timers = nullptr;
-            if(components->find("TIMER") != components->end()){
-                timers = &dynamic_cast<Collection<TimerComponent>*>(components->at("TIMER"))->getCollection();
+            if(components->find(COMPONENTTYPES::TIMER) != components->end()){
+                timers = &dynamic_cast<Collection<TimerComponent>*>(components->at(COMPONENTTYPES::TIMER))->getCollection();
             }
 
             if(timers != nullptr){
@@ -64,14 +64,14 @@ namespace WishEngine{
     }
 
     void TimerSystem::handleMessage(Message *msg){
-        if(msg->getType() == "COMPONENTLIST"){
+        if(msg->getType() == MESSAGETYPES::COMPONENTLIST){
             ComponentListMessage* rmes = dynamic_cast<ComponentListMessage*>(msg);
             if(rmes != nullptr){
                 components = rmes->getComponentList();
             }
             rmes = nullptr;
         }
-        else if(msg->getType() == "DELETEEVERYTHING"){
+        else if(msg->getType() == MESSAGETYPES::DELETEEVERYTHING){
             destroySystem();
         }
     }

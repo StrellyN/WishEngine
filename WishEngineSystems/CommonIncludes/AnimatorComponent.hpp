@@ -30,7 +30,7 @@
 namespace WishEngine{
     class AnimatorComponent : public Component{ //User modifyable State machine that changes the animation Component through the animation System
         private:
-            std::map<std::string, AnimationState> states;
+            std::unordered_map<std::string, AnimationState> states;
             std::string currentState;
         public:
             AnimatorComponent();
@@ -40,7 +40,7 @@ namespace WishEngine{
             void deleteAnimationState(std::string name);
             std::string &getCurrentState();
             void setCurrentState(std::string state);
-            std::map<std::string, AnimationState>& getStates();
+            std::unordered_map<std::string, AnimationState>& getStates();
     };
 }
 #endif // ANIMATORCOMPONENT

@@ -27,19 +27,28 @@
 #include "Headers.hpp"
 
 namespace WishEngine{
+    enum MESSAGETYPES{QUIT, SFRAME, RFRAME, FFRAME, HANDLEINPUT
+                      //New message types bellow
+                      ,INPUTLIST, COMPONENTLIST, OBJECTLIST, DELETEEVERYTHING, CREATEWINDOW,
+                      FULLSCREEN, CONNECTNET, UPDATENET, DISCONNECTNET, FADEINMUSIC, FADEOUTMUSIC, FADEINMUSICPOS, PLAYMUSIC,
+                      PLAYSOUND, SETMUSICPOS, SETMUSICVOLUME, DELETEMUSIC, DELETESOUND, PAUSEMUSIC, RESUMEMUSIC, STOPMUSIC,
+                      DELETEWINDOW, SETMAXFPS, SETFRAMECAPFLAG, CREATESCRIPT, AVAILABLEOBJECTS, LOADOBJECTS, GOTOSTATE,
+                      CHECKCOLLISIONS};
+
     class Message{
         private:
-            std::string type, value;
+            MESSAGETYPES type;
+            std::string value;
             double numericValue;
         public:
-            Message(std::string t);
-            Message(std::string mT, std::string val);
-            Message(std::string mT, double numVal);
-            Message(std::string mT, std::string val, double numVal);
+            Message(MESSAGETYPES t);
+            Message(MESSAGETYPES mT, std::string val);
+            Message(MESSAGETYPES mT, double numVal);
+            Message(MESSAGETYPES mT, std::string val, double numVal);
             Message();
             virtual ~Message(){}
-            std::string &getType();
-            void setType(std::string t);
+            MESSAGETYPES getType();
+            void setType(MESSAGETYPES t);
             std::string &getValue();
             void setValue(std::string val);
             double getNumericValue();

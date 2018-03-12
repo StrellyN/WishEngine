@@ -35,8 +35,8 @@ namespace WishEngine{
 
     void NetworkSystem::update(double dt){
         std::vector<NetworkComponent> *networks = nullptr;
-        if(components != nullptr && components->find("NETWORK") != components->end()){
-            networks = &dynamic_cast<Collection<NetworkComponent>*>(components->at("NETWORK"))->getCollection();
+        if(components != nullptr && components->find(COMPONENTTYPES::NETWORK) != components->end()){
+            networks = &dynamic_cast<Collection<NetworkComponent>*>(components->at(COMPONENTTYPES::NETWORK))->getCollection();
         }
 
         if(networks != nullptr){
@@ -48,17 +48,17 @@ namespace WishEngine{
                         if(netComp->getIsConnected()){ //Do the checks for packet sending and receiving
                             if(netComp->getDisconnect()){ //Disconnect the component and delete all its stuffs in the framework
                                 //Framework::getFramework()->deleteNet(netComp);
-                                postMessage(new NetworkMessage("DISCONNECTNET", netComp));
+                                postMessage(new NetworkMessage(MESSAGETYPES::DISCONNECTNET, netComp));
                             }
                             else{ //The checks continue :)
                                 //Framework::getFramework()->updateNet(netComp);
-                                postMessage(new NetworkMessage("UPDATENET", netComp));
+                                postMessage(new NetworkMessage(MESSAGETYPES::UPDATENET, netComp));
                             }
                         }
                         else{ //Check if you need to connect.
                             if(netComp->getAttemptConnection()){ //Try to connect
                                 //Framework::getFramework()->connectNet(netComp);
-                                postMessage(new NetworkMessage("CONNECTNET", netComp));
+                                postMessage(new NetworkMessage(MESSAGETYPES::CONNECTNET, netComp));
                             }
                         }
                     }
@@ -71,14 +71,14 @@ namespace WishEngine{
     }
 
     void NetworkSystem::handleMessage(Message *msg){
-        if(msg->getType() == "COMPONENTLIST"){
+        if(msg->getType() == MESSAGETYPES::COMPONENTLIST){
             ComponentListMessage* rmes = dynamic_cast<ComponentListMessage*>(msg);
             if(rmes != nullptr){
                 components = rmes->getComponentList();
             }
             rmes = nullptr;
         }
-        else if(msg->getType() == "DELETEEVERYTHING"){
+        else if(msg->getType() == MESSAGETYPES::DELETEEVERYTHING){
             destroySystem();
         }
     }

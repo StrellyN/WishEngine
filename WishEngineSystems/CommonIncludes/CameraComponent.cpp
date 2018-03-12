@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     CameraComponent::CameraComponent(int pri){
-        setType("CAMERA");
+        setType(COMPONENTTYPES::CAMERA);
         priority = pri;
         rect.setX(0);
         rect.setY(0);
@@ -33,7 +33,7 @@ namespace WishEngine{
     }
 
     CameraComponent::CameraComponent(int pri, double x, double y){
-        setType("CAMERA");
+        setType(COMPONENTTYPES::CAMERA);
         priority = pri;
         rect.setX(x);
         rect.setY(y);
@@ -41,7 +41,7 @@ namespace WishEngine{
     }
 
     CameraComponent::CameraComponent(int pri, double x, double y, double z){
-        setType("CAMERA");
+        setType(COMPONENTTYPES::CAMERA);
         priority = pri;
         rect.setX(x);
         rect.setY(y);

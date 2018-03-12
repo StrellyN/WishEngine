@@ -24,7 +24,7 @@
 #include "ObjectListMessage.hpp"
 
 namespace WishEngine{
-    ObjectListMessage::ObjectListMessage(std::string mT, std::vector<GameObject> *oList){
+    ObjectListMessage::ObjectListMessage(MESSAGETYPES mT, std::vector<GameObject> *oList){
         setType(mT);
         objectList = oList;
     }

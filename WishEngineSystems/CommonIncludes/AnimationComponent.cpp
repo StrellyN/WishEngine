@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     AnimationComponent::AnimationComponent(double x, double y, double w, double h){
-        setType("ANIMATION");
+        setType(COMPONENTTYPES::ANIMATION);
         rect.setX(x);
         rect.setY(y);
         rect.setW(w);

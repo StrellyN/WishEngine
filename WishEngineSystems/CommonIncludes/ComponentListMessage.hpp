@@ -30,12 +30,12 @@
 namespace WishEngine{
     class ComponentListMessage : public Message{
         private:
-            std::map<std::string, BaseCollection*> *componentList;
+            std::unordered_map<int, BaseCollection*> *componentList;
 
         public:
-            ComponentListMessage(std::string mT, std::map<std::string, BaseCollection*> *cList);
+            ComponentListMessage(MESSAGETYPES mT, std::unordered_map<int, BaseCollection*> *cList);
             virtual ~ComponentListMessage();
-            std::map<std::string, BaseCollection*> *getComponentList();
+            std::unordered_map<int, BaseCollection*> *getComponentList();
     };
 }
 #endif // COMPONENTLISTMESSAGE_H

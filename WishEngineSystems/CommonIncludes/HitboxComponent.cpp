@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     HitboxComponent::HitboxComponent(double offX, double offY, double w, double h, bool solid, bool checkCollisions){
-        setType("HITBOX");
+        setType(COMPONENTTYPES::HITBOX);
         offset = DirectionVector(offX, offY);
         W = w;
         H = h;
@@ -35,7 +35,7 @@ namespace WishEngine{
     }
 
     HitboxComponent::HitboxComponent(double offX, double offY, double offZ, double w, double h, double l, bool solid, bool checkCollisions){
-        setType("HITBOX");
+        setType(COMPONENTTYPES::HITBOX);
         offset = DirectionVector(offX, offY, offZ);
         W = w;
         H = h;

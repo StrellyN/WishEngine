@@ -33,7 +33,7 @@ namespace WishEngine{
             std::vector<GameObject> *objectList;
 
         public:
-            ObjectListMessage(std::string mT, std::vector<GameObject> *oList);
+            ObjectListMessage(MESSAGETYPES mT, std::vector<GameObject> *oList);
             virtual ~ObjectListMessage();
             std::vector<GameObject> *getObjectList();
     };

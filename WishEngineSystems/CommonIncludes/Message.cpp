@@ -24,25 +24,25 @@
 #include "Message.hpp"
 
 namespace WishEngine{
-    Message::Message(std::string t){
+    Message::Message(MESSAGETYPES t){
         setType(t);
         value = "";
         numericValue = 0;
     }
 
-    Message::Message(std::string mT, std::string val){
+    Message::Message(MESSAGETYPES mT, std::string val){
         setType(mT);
         value = val;
         numericValue = 0;
     }
 
-    Message::Message(std::string mT, double numVal){
+    Message::Message(MESSAGETYPES mT, double numVal){
         setType(mT);
         value = "";
         numericValue = numVal;
     }
 
-    Message::Message(std::string mT, std::string val, double numVal){
+    Message::Message(MESSAGETYPES mT, std::string val, double numVal){
         setType(mT);
         setValue(val);
         setNumericValue(numVal);
@@ -52,11 +52,11 @@ namespace WishEngine{
 
     }
 
-    std::string &Message::getType(){
+    MESSAGETYPES Message::getType(){
         return type;
     }
 
-    void Message::setType(std::string t){
+    void Message::setType(MESSAGETYPES t){
         type = t;
     }
 

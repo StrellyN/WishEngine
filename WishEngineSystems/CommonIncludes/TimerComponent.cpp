@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     TimerComponent::TimerComponent(double counterTime, double maxT, bool countingDown, bool pause){
-        setType("TIMER");
+        setType(COMPONENTTYPES::TIMER);
         counter = counterTime;
         maxTime = maxT;
         countDown = countingDown;

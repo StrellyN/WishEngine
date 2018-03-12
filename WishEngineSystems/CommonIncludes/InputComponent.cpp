@@ -25,7 +25,7 @@
 
 namespace WishEngine{
     InputComponent::InputComponent(){
-        setType("INPUT");
+        setType(COMPONENTTYPES::INPUT);
     }
 
     InputComponent::~InputComponent(){

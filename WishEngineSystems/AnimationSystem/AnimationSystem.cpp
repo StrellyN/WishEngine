@@ -42,18 +42,18 @@ namespace WishEngine{
     void AnimationSystem::update(double dt){
         std::vector<AnimationComponent> *animations = nullptr;
         std::vector<AnimatorComponent> *animators = nullptr;
-        if(components != nullptr && components->find("ANIMATION") != components->end()){
-            animations = &dynamic_cast<Collection<AnimationComponent>*>(components->at("ANIMATION"))->getCollection();
+        if(components != nullptr && components->find(COMPONENTTYPES::ANIMATION) != components->end()){
+            animations = &dynamic_cast<Collection<AnimationComponent>*>(components->at(COMPONENTTYPES::ANIMATION))->getCollection();
         }
-        if(components != nullptr && components->find("ANIMATOR") != components->end()){
-            animators = &dynamic_cast<Collection<AnimatorComponent>*>(components->at("ANIMATOR"))->getCollection();
+        if(components != nullptr && components->find(COMPONENTTYPES::ANIMATOR) != components->end()){
+            animators = &dynamic_cast<Collection<AnimatorComponent>*>(components->at(COMPONENTTYPES::ANIMATOR))->getCollection();
         }
 
         if(objects != nullptr && animations != nullptr && animators != nullptr){
             for(unsigned i=0; i<animators->size(); i++){
                 unsigned animatorObjPos = (*animators)[i].getOwnerPos();
-                if(!(*objects)[animatorObjPos].getDeleted() && (*objects)[animatorObjPos].getEnabled() && (*objects)[animatorObjPos].hasComponent("ANIMATION")){
-                    unsigned animationPos = (*objects)[animatorObjPos].getComponentPosition("ANIMATION");
+                if(!(*objects)[animatorObjPos].getDeleted() && (*objects)[animatorObjPos].getEnabled() && (*objects)[animatorObjPos].hasComponent(COMPONENTTYPES::ANIMATION)){
+                    unsigned animationPos = (*objects)[animatorObjPos].getComponentPosition(COMPONENTTYPES::ANIMATION);
                     if((*animators)[i].getEnabled() && !(*animators)[i].getDeleted() && (*animations)[animationPos].getEnabled() && !(*animations)[animationPos].getDeleted()){
                         AnimationState* animState = (*animators)[i].getAnimationState((*animators)[i].getCurrentState());
                         if(animState != nullptr){
@@ -105,21 +105,21 @@ namespace WishEngine{
         Method to handle received messages present in every system.
     **/
     void AnimationSystem::handleMessage(Message* msg){
-        if(msg->getType() == "COMPONENTLIST"){
+        if(msg->getType() == MESSAGETYPES::COMPONENTLIST){
             ComponentListMessage* rmes = dynamic_cast<ComponentListMessage*>(msg);
             if(rmes != nullptr){
                 components = rmes->getComponentList();
             }
             rmes = nullptr;
         }
-        else if(msg->getType() == "OBJECTLIST"){
+        else if(msg->getType() == MESSAGETYPES::OBJECTLIST){
             ObjectListMessage* rmes = dynamic_cast<ObjectListMessage*>(msg);
             if(rmes != nullptr){
                 objects = rmes->getObjectList();
             }
             rmes = nullptr;
         }
-        else if(msg->getType() == "DELETEEVERYTHING"){
+        else if(msg->getType() == MESSAGETYPES::DELETEEVERYTHING){
             destroySystem();
         }
     }

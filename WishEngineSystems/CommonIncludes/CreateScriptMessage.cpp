@@ -24,8 +24,8 @@
 #include "CreateScriptMessage.hpp"
 
 namespace WishEngine{
-    CreateScriptMessage::CreateScriptMessage(Collection<BaseCollection*> *col, GameObject *own, unsigned ownPos, bool isEn, std::string n, std::string ar){
-        setType("CREATESCRIPT");
+    CreateScriptMessage::CreateScriptMessage(std::unordered_map<int, BaseCollection*> *col, GameObject *own, unsigned ownPos, bool isEn, std::string n, std::string ar){
+        setType(MESSAGETYPES::CREATESCRIPT);
         collection = col;
         owner = own;
         ownerPos = ownPos;
@@ -39,7 +39,7 @@ namespace WishEngine{
         owner = nullptr;
     }
 
-    Collection<BaseCollection*> *CreateScriptMessage::getCollection(){
+    std::unordered_map<int, BaseCollection*> *CreateScriptMessage::getCollection(){
         return collection;
     }
 

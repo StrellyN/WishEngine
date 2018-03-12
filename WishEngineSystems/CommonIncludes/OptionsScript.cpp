@@ -42,26 +42,26 @@ class OptionsScript : public ScriptComponent{
         void reWrite(){
             std::string rep = "UP: ";
             rep = rep + controlsAssigned[0];
-            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[0], "GRAPHIC")->getText().setText(rep, 255, 255, 255, 128, 42);
+            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[0], COMPONENTTYPES::GRAPHIC)->getText().setText(rep, 255, 255, 255, 128, 42);
             rep = "LEFT: " + controlsAssigned[1];
-            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[1], "GRAPHIC")->getText().setText(rep, 255, 255, 255, 128, 42);
+            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[1], COMPONENTTYPES::GRAPHIC)->getText().setText(rep, 255, 255, 255, 128, 42);
             rep = "RIGHT: " + controlsAssigned[2];
-            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[2], "GRAPHIC")->getText().setText(rep, 255, 255, 255, 128, 42);
+            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[2], COMPONENTTYPES::GRAPHIC)->getText().setText(rep, 255, 255, 255, 128, 42);
             rep = "DOWN: " + controlsAssigned[3];
-            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[3], "GRAPHIC")->getText().setText(rep, 255, 255, 255, 128, 42);
+            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[3], COMPONENTTYPES::GRAPHIC)->getText().setText(rep, 255, 255, 255, 128, 42);
             rep = "SELECT/JUMP: " + controlsAssigned[4];
-            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[4], "GRAPHIC")->getText().setText(rep, 255, 255, 255, 128, 42);
+            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[4], COMPONENTTYPES::GRAPHIC)->getText().setText(rep, 255, 255, 255, 128, 42);
             rep = "DASH: " + controlsAssigned[5];
-            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[5], "GRAPHIC")->getText().setText(rep, 255, 255, 255, 128, 42);
+            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[5], COMPONENTTYPES::GRAPHIC)->getText().setText(rep, 255, 255, 255, 128, 42);
             rep = "ACTION: " + controlsAssigned[6];
-            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[6], "GRAPHIC")->getText().setText(rep, 255, 255, 255, 128, 42);
+            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[6], COMPONENTTYPES::GRAPHIC)->getText().setText(rep, 255, 255, 255, 128, 42);
             rep = "BACK/QUIT: " + controlsAssigned[7];
-            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[7], "GRAPHIC")->getText().setText(rep, 255, 255, 255, 128, 42);
+            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[7], COMPONENTTYPES::GRAPHIC)->getText().setText(rep, 255, 255, 255, 128, 42);
             rep = "FULLSCREEN: " + controlsAssigned[8];
-            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[8], "GRAPHIC")->getText().setText(rep, 255, 255, 255, 128, 42);
+            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[8], COMPONENTTYPES::GRAPHIC)->getText().setText(rep, 255, 255, 255, 128, 42);
             //rep = "FPS: << " + Utils::intToString(ScriptsInterface::getMaxFPS()) + " >>";
             //dynamic_cast<GraphicComponent*>(menuOptions[9]->getComponent(C_TYPES::GRAPHIC))->getText().setText(rep, 255, 255, 255, 128, 42);
-            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], "GRAPHIC")->getText().getIndividualCharacterColor()[0].setA(255);
+            ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], COMPONENTTYPES::GRAPHIC)->getText().getIndividualCharacterColor()[0].setA(255);
         }
 
         void save(){
@@ -79,7 +79,7 @@ class OptionsScript : public ScriptComponent{
 
         void execute(GameObject &thisObj, double deltaT){
             if(player == nullptr){
-                player = ScriptsInterface::getComponent<PlayerScript>(ScriptsInterface::getObject("Player"), "SCRIPT", "PlayerScript");
+                player = ScriptsInterface::getComponent<PlayerScript>(ScriptsInterface::getObject("Player"), SCRIPTTYPES::PLAYERSCRIPT);
             }
 
             //Load or create the config file with FPS and inputs
@@ -152,38 +152,38 @@ class OptionsScript : public ScriptComponent{
         }
 
         void handleInput(GameObject &thisObj){
-            InputComponent *inputs = ScriptsInterface::getComponent<InputComponent>(&thisObj, "INPUT");
+            InputComponent *inputs = ScriptsInterface::getComponent<InputComponent>(&thisObj, COMPONENTTYPES::INPUT);
             if(inputs != nullptr){
                 if(!testing && !menuOptions.empty()){
                     if(!editing){
                         for(unsigned i=0; i<inputs->getInputs().size(); i++){
                             bool press = false, release = false;
-                            if(inputs->getInputs()[i].getType() == "KEYBOARD_PRESS" ||
-                               inputs->getInputs()[i].getType() == "GAMEPAD_PRESS" ||
-                               inputs->getInputs()[i].getType() == "MOUSE_PRESS" ||
-                               inputs->getInputs()[i].getType() == "GAMEPAD_AXIS"){
+                            if(inputs->getInputs()[i].getType() == EVENTTYPES::KEYBOARD_PRESS ||
+                               inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_PRESS ||
+                               inputs->getInputs()[i].getType() == EVENTTYPES::MOUSE_PRESS ||
+                               inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_AXIS){
                                 press = true;
                             }
-                            if(inputs->getInputs()[i].getType() == "KEYBOARD_RELEASE" ||
-                               inputs->getInputs()[i].getType() == "GAMEPAD_RELEASE" ||
-                               inputs->getInputs()[i].getType() == "MOUSE_RELEASE"){
+                            if(inputs->getInputs()[i].getType() == EVENTTYPES::KEYBOARD_RELEASE ||
+                               inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_RELEASE ||
+                               inputs->getInputs()[i].getType() == EVENTTYPES::MOUSE_RELEASE){
                                 release = true;
                             }
                             if(press && inputs->getInputs()[i].getValue() == controlsAssigned[0]){
                                 if(!up){
-                                    ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], "GRAPHIC")->getText().getIndividualCharacterColor()[0].setA(128);
+                                    ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], COMPONENTTYPES::GRAPHIC)->getText().getIndividualCharacterColor()[0].setA(128);
                                     selectedOption--;
                                     if(selectedOption < 0) selectedOption = menuOptions.size()-1;
-                                    ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], "GRAPHIC")->getText().getIndividualCharacterColor()[0].setA(255);
+                                    ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], COMPONENTTYPES::GRAPHIC)->getText().getIndividualCharacterColor()[0].setA(255);
                                 }
                                 up = true;
                             }
                             if(press && inputs->getInputs()[i].getValue() == controlsAssigned[3]){
                                 if(!down){
-                                    ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], "GRAPHIC")->getText().getIndividualCharacterColor()[0].setA(128);
+                                    ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], COMPONENTTYPES::GRAPHIC)->getText().getIndividualCharacterColor()[0].setA(128);
                                     selectedOption++;
                                     if(selectedOption > menuOptions.size()-1) selectedOption = 0;
-                                    ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], "GRAPHIC")->getText().getIndividualCharacterColor()[0].setA(255);
+                                    ScriptsInterface::getComponent<GraphicComponent>(menuOptions[selectedOption], COMPONENTTYPES::GRAPHIC)->getText().getIndividualCharacterColor()[0].setA(255);
                                 }
                                 down = true;
                             }
@@ -241,7 +241,7 @@ class OptionsScript : public ScriptComponent{
                                     canEdit = false;
                                 }
                                 if(selectedOption == 10){
-                                    ScriptsInterface::getComponent<GraphicComponent>(ScriptsInterface::getObject("StateText"), "GRAPHIC")->getText().setText("Right now: Testing", 255, 255, 255, 255, 42);
+                                    ScriptsInterface::getComponent<GraphicComponent>(ScriptsInterface::getObject("StateText"), COMPONENTTYPES::GRAPHIC)->getText().setText("Right now: Testing", 255, 255, 255, 255, 42);
                                     testing = true;
                                 }
                                 if(selectedOption == 11){
@@ -276,15 +276,15 @@ class OptionsScript : public ScriptComponent{
                     else{
                         for(unsigned i=0; i<inputs->getInputs().size(); i++){
                             bool press = false, release = false;
-                            if(inputs->getInputs()[i].getType() == "KEYBOARD_PRESS" ||
-                               inputs->getInputs()[i].getType() == "GAMEPAD_PRESS" ||
-                               inputs->getInputs()[i].getType() == "MOUSE_PRESS" ||
-                               inputs->getInputs()[i].getType() == "GAMEPAD_AXIS"){
+                            if(inputs->getInputs()[i].getType() == EVENTTYPES::KEYBOARD_PRESS ||
+                               inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_PRESS ||
+                               inputs->getInputs()[i].getType() == EVENTTYPES::MOUSE_PRESS ||
+                               inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_AXIS){
                                 press = true;
                             }
-                            if(inputs->getInputs()[i].getType() == "KEYBOARD_RELEASE" ||
-                               inputs->getInputs()[i].getType() == "GAMEPAD_RELEASE" ||
-                               inputs->getInputs()[i].getType() == "MOUSE_RELEASE"){
+                            if(inputs->getInputs()[i].getType() == EVENTTYPES::KEYBOARD_RELEASE ||
+                               inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_RELEASE ||
+                               inputs->getInputs()[i].getType() == EVENTTYPES::MOUSE_RELEASE){
                                 release = true;
                             }
                             if(!canEdit && release && inputs->getInputs()[i].getValue() == controlsAssigned[4]){
@@ -329,15 +329,15 @@ class OptionsScript : public ScriptComponent{
                 else if(testing && player != nullptr){
                     for(unsigned i=0; i<inputs->getInputs().size(); i++){
                         bool press = false, release = false;
-                        if(inputs->getInputs()[i].getType() == "KEYBOARD_PRESS" ||
-                           inputs->getInputs()[i].getType() == "GAMEPAD_PRESS" ||
-                           inputs->getInputs()[i].getType() == "MOUSE_PRESS" ||
-                           inputs->getInputs()[i].getType() == "GAMEPAD_AXIS"){
+                        if(inputs->getInputs()[i].getType() == EVENTTYPES::KEYBOARD_PRESS ||
+                           inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_PRESS ||
+                           inputs->getInputs()[i].getType() == EVENTTYPES::MOUSE_PRESS ||
+                           inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_AXIS){
                             press = true;
                         }
-                        if(inputs->getInputs()[i].getType() == "KEYBOARD_RELEASE" ||
-                           inputs->getInputs()[i].getType() == "GAMEPAD_RELEASE" ||
-                           inputs->getInputs()[i].getType() == "MOUSE_RELEASE"){
+                        if(inputs->getInputs()[i].getType() == EVENTTYPES::KEYBOARD_RELEASE ||
+                           inputs->getInputs()[i].getType() == EVENTTYPES::GAMEPAD_RELEASE ||
+                           inputs->getInputs()[i].getType() == EVENTTYPES::MOUSE_RELEASE){
                             release = true;
                         }
                         if(press && inputs->getInputs()[i].getValue() == controlsAssigned[0]){
@@ -414,7 +414,7 @@ class OptionsScript : public ScriptComponent{
                         }
                         if(press && inputs->getInputs()[i].getValue() == controlsAssigned[7]){
                             if(!exitHold){
-                                ScriptsInterface::getComponent<GraphicComponent>(ScriptsInterface::getObject("StateText"), "GRAPHIC")->getText().setText("Right now: Editing", 255, 255, 255, 255, 42);
+                                ScriptsInterface::getComponent<GraphicComponent>(ScriptsInterface::getObject("StateText"), COMPONENTTYPES::GRAPHIC)->getText().setText("Right now: Editing", 255, 255, 255, 255, 42);
                                 testing = false;
                                 exitHold = true;
                             }
