@@ -37,8 +37,7 @@
 #include "../CommonIncludes/ComponentHeaders.hpp"
 
 namespace WishEngine{
-    enum SCRIPTTYPES{CAMERASCRIPTFOLLOWING = COMPONENTTYPES::CAMOUNT, DIALOGUEMANAGERSCRIPT, MAPMANAGERSCRIPT, MENUSCRIPT,
-                     NPCSCRIPT, PLAYERSCRIPT, PAUSESCRIPT, OPTIONSSCRIPT, GAMESCRIPT, TITLESCRIPT};
+    enum SCRIPTTYPES{};
 
     class ScriptsInterface : public GameSystem{
         private:

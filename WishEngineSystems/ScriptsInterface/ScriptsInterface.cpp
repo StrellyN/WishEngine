@@ -23,17 +23,7 @@
 
 #include "ScriptsInterface.hpp"
 
-//Here I include all the scripts.cpps
-#include "../CommonIncludes/TitleScript.cpp"
-#include "../CommonIncludes/CameraScriptFollowing.cpp"
-#include "../CommonIncludes/DialogueManagerScript.cpp"
-#include "../CommonIncludes/MapManagerScript.cpp"
-#include "../CommonIncludes/MenuScript.cpp"
-#include "../CommonIncludes/NPCScript.cpp"
-#include "../CommonIncludes/PlayerScript.cpp"
-#include "../CommonIncludes/PauseScript.cpp"
-#include "../CommonIncludes/OptionsScript.cpp"
-#include "../CommonIncludes/GameScript.cpp"
+//Here I include all the scripts source files
 
 namespace WishEngine{
     std::unordered_map<int, BaseCollection*> *ScriptsInterface::components = nullptr;
@@ -108,38 +98,8 @@ namespace WishEngine{
                             dynamic_cast<Collection<YourScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
                         }
                         **/
-                        if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::CAMERASCRIPTFOLLOWING){
-                            dynamic_cast<Collection<CameraScriptFollowing>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::DIALOGUEMANAGERSCRIPT){
-                            dynamic_cast<Collection<DialogueManagerScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::MAPMANAGERSCRIPT){
-                            dynamic_cast<Collection<MapManagerScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::MENUSCRIPT){
-                            dynamic_cast<Collection<MenuScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::NPCSCRIPT){
-                            dynamic_cast<Collection<NPCScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType ==  SCRIPTTYPES::PLAYERSCRIPT){
-                            dynamic_cast<Collection<PlayerScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::PAUSESCRIPT){
-                            dynamic_cast<Collection<PauseScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::OPTIONSSCRIPT){
-                            dynamic_cast<Collection<OptionsScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::GAMESCRIPT){
-                            dynamic_cast<Collection<GameScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::TITLESCRIPT){
-                            dynamic_cast<Collection<TitleScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
                         //End of custom scripts
-                        else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
+                        if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
                             dynamic_cast<Collection<AnimationComponent>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
                         }
                         else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::CAMERA){
@@ -196,38 +156,8 @@ namespace WishEngine{
                             dynamic_cast<Collection<YourScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
                         }
                         **/
-                        if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::CAMERASCRIPTFOLLOWING){
-                            dynamic_cast<Collection<CameraScriptFollowing>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::DIALOGUEMANAGERSCRIPT){
-                            dynamic_cast<Collection<DialogueManagerScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::MAPMANAGERSCRIPT){
-                            dynamic_cast<Collection<MapManagerScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::MENUSCRIPT){
-                            dynamic_cast<Collection<MenuScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::NPCSCRIPT){
-                            dynamic_cast<Collection<NPCScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType ==  SCRIPTTYPES::PLAYERSCRIPT){
-                            dynamic_cast<Collection<PlayerScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::PAUSESCRIPT){
-                            dynamic_cast<Collection<PauseScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::OPTIONSSCRIPT){
-                            dynamic_cast<Collection<OptionsScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::GAMESCRIPT){
-                            dynamic_cast<Collection<GameScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
-                        else if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::TITLESCRIPT){
-                            dynamic_cast<Collection<TitleScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
-                        }
                         //End of custom scripts
-                        else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
+                        if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
                             dynamic_cast<Collection<AnimationComponent>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
                         }
                         else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::CAMERA){
@@ -439,176 +369,6 @@ namespace WishEngine{
                 }
                 coli = nullptr;
             }**/
-            if(n == "TitleScript"){
-                if(col->count(SCRIPTTYPES::TITLESCRIPT) == 0){
-                    (*col)[SCRIPTTYPES::TITLESCRIPT] = new Collection<TitleScript>(SCRIPTTYPES::TITLESCRIPT);
-                }
-                Collection<TitleScript> *coli = dynamic_cast<Collection<TitleScript>*>((*col)[SCRIPTTYPES::TITLESCRIPT]);
-                if(coli != nullptr){
-                    unsigned result = coli->addItem(TitleScript(), own->getId(), n);
-                    if(result){
-                        std::string compN = coli->getCollection()[result-1].getName();
-                        own->getComponents().emplace_back(SCRIPTTYPES::TITLESCRIPT, compN, result-1);
-                        coli->getCollection()[result-1].setEnabled(isEn);
-                        coli->getCollection()[result-1].setOwnerId(own->getId());
-                        coli->getCollection()[result-1].setOwnerPos(ownPos);
-                    }
-                }
-                coli = nullptr;
-            }
-            else if(n == "CameraScriptFollowing"){
-                if(col->count(SCRIPTTYPES::CAMERASCRIPTFOLLOWING) == 0){
-                    (*col)[SCRIPTTYPES::CAMERASCRIPTFOLLOWING] = new Collection<CameraScriptFollowing>(SCRIPTTYPES::CAMERASCRIPTFOLLOWING);
-                }
-                Collection<CameraScriptFollowing> *coli = dynamic_cast<Collection<CameraScriptFollowing>*>((*col)[SCRIPTTYPES::CAMERASCRIPTFOLLOWING]);
-                if(coli != nullptr){
-                    unsigned result = coli->addItem(CameraScriptFollowing(), own->getId(), n);
-                    if(result){
-                        std::string compN = coli->getCollection()[result-1].getName();
-                        own->getComponents().emplace_back(SCRIPTTYPES::CAMERASCRIPTFOLLOWING, compN, result-1);
-                        coli->getCollection()[result-1].setEnabled(isEn);
-                        coli->getCollection()[result-1].setOwnerId(own->getId());
-                        coli->getCollection()[result-1].setOwnerPos(ownPos);
-                    }
-                }
-                coli = nullptr;
-            }
-            else if(n == "DialogueManagerScript"){
-                if(col->count(SCRIPTTYPES::DIALOGUEMANAGERSCRIPT) == 0){
-                    (*col)[SCRIPTTYPES::DIALOGUEMANAGERSCRIPT] = new Collection<DialogueManagerScript>(SCRIPTTYPES::DIALOGUEMANAGERSCRIPT);
-                }
-                Collection<DialogueManagerScript> *coli = dynamic_cast<Collection<DialogueManagerScript>*>((*col)[SCRIPTTYPES::DIALOGUEMANAGERSCRIPT]);
-                if(coli != nullptr){
-                    unsigned result = coli->addItem(DialogueManagerScript(), own->getId(), n);
-                    if(result){
-                        std::string compN = coli->getCollection()[result-1].getName();
-                        own->getComponents().emplace_back(SCRIPTTYPES::DIALOGUEMANAGERSCRIPT, compN, result-1);
-                        coli->getCollection()[result-1].setEnabled(isEn);
-                        coli->getCollection()[result-1].setOwnerId(own->getId());
-                        coli->getCollection()[result-1].setOwnerPos(ownPos);
-                    }
-                }
-                coli = nullptr;
-            }
-            else if(n == "MapManagerScript"){
-                if(col->count(SCRIPTTYPES::MAPMANAGERSCRIPT) == 0){
-                    (*col)[SCRIPTTYPES::MAPMANAGERSCRIPT] = new Collection<MapManagerScript>(SCRIPTTYPES::MAPMANAGERSCRIPT);
-                }
-                Collection<MapManagerScript> *coli = dynamic_cast<Collection<MapManagerScript>*>((*col)[SCRIPTTYPES::MAPMANAGERSCRIPT]);
-                if(coli != nullptr){
-                    unsigned result = coli->addItem(MapManagerScript(), own->getId(), n);
-                    if(result){
-                        std::string compN = coli->getCollection()[result-1].getName();
-                        own->getComponents().emplace_back(SCRIPTTYPES::MAPMANAGERSCRIPT, compN, result-1);
-                        coli->getCollection()[result-1].setEnabled(isEn);
-                        coli->getCollection()[result-1].setOwnerId(own->getId());
-                        coli->getCollection()[result-1].setOwnerPos(ownPos);
-                    }
-                }
-                coli = nullptr;
-            }
-            else if(n == "NPCScript"){
-                if(col->count(SCRIPTTYPES::NPCSCRIPT) == 0){
-                    (*col)[SCRIPTTYPES::NPCSCRIPT] = new Collection<NPCScript>(SCRIPTTYPES::NPCSCRIPT);
-                }
-                Collection<NPCScript> *coli = dynamic_cast<Collection<NPCScript>*>((*col)[SCRIPTTYPES::NPCSCRIPT]);
-                if(coli != nullptr){
-                    unsigned result = coli->addItem(NPCScript(ar), own->getId(), n);
-                    if(result){
-                        std::string compN = coli->getCollection()[result-1].getName();
-                        own->getComponents().emplace_back(SCRIPTTYPES::NPCSCRIPT, compN, result-1);
-                        coli->getCollection()[result-1].setEnabled(isEn);
-                        coli->getCollection()[result-1].setOwnerId(own->getId());
-                        coli->getCollection()[result-1].setOwnerPos(ownPos);
-                    }
-                }
-                coli = nullptr;
-            }
-            else if(n == "OptionsScript"){
-                if(col->count(SCRIPTTYPES::OPTIONSSCRIPT) == 0){
-                    (*col)[SCRIPTTYPES::OPTIONSSCRIPT] = new Collection<OptionsScript>(SCRIPTTYPES::OPTIONSSCRIPT);
-                }
-                Collection<OptionsScript> *coli = dynamic_cast<Collection<OptionsScript>*>((*col)[SCRIPTTYPES::OPTIONSSCRIPT]);
-                if(coli != nullptr){
-                    unsigned result = coli->addItem(OptionsScript(), own->getId(), n);
-                    if(result){
-                        std::string compN = coli->getCollection()[result-1].getName();
-                        own->getComponents().emplace_back(SCRIPTTYPES::OPTIONSSCRIPT, compN, result-1);
-                        coli->getCollection()[result-1].setEnabled(isEn);
-                        coli->getCollection()[result-1].setOwnerId(own->getId());
-                        coli->getCollection()[result-1].setOwnerPos(ownPos);
-                    }
-                }
-                coli = nullptr;
-            }
-            else if(n == "PauseScript"){
-                if(col->count(SCRIPTTYPES::PAUSESCRIPT) == 0){
-                    (*col)[SCRIPTTYPES::PAUSESCRIPT] = new Collection<PauseScript>(SCRIPTTYPES::PAUSESCRIPT);
-                }
-                Collection<PauseScript> *coli = dynamic_cast<Collection<PauseScript>*>((*col)[SCRIPTTYPES::PAUSESCRIPT]);
-                if(coli != nullptr){
-                    unsigned result = coli->addItem(PauseScript(), own->getId(), n);
-                    if(result){
-                        std::string compN = coli->getCollection()[result-1].getName();
-                        own->getComponents().emplace_back(SCRIPTTYPES::PAUSESCRIPT, compN, result-1);
-                        coli->getCollection()[result-1].setEnabled(isEn);
-                        coli->getCollection()[result-1].setOwnerId(own->getId());
-                        coli->getCollection()[result-1].setOwnerPos(ownPos);
-                    }
-                }
-                coli = nullptr;
-            }
-            else if(n == "PlayerScript"){
-                if(col->count(SCRIPTTYPES::PLAYERSCRIPT) == 0){
-                    (*col)[SCRIPTTYPES::PLAYERSCRIPT] = new Collection<PlayerScript>(SCRIPTTYPES::PLAYERSCRIPT);
-                }
-                Collection<PlayerScript> *coli = dynamic_cast<Collection<PlayerScript>*>((*col)[SCRIPTTYPES::PLAYERSCRIPT]);
-                if(coli != nullptr){
-                    unsigned result = coli->addItem(PlayerScript(), own->getId(), n);
-                    if(result){
-                        std::string compN = coli->getCollection()[result-1].getName();
-                        own->getComponents().emplace_back(SCRIPTTYPES::PLAYERSCRIPT, compN, result-1);
-                        coli->getCollection()[result-1].setEnabled(isEn);
-                        coli->getCollection()[result-1].setOwnerId(own->getId());
-                        coli->getCollection()[result-1].setOwnerPos(ownPos);
-                    }
-                }
-                coli = nullptr;
-            }
-            else if(n == "GameScript"){
-                if(col->count(SCRIPTTYPES::GAMESCRIPT) == 0){
-                    (*col)[SCRIPTTYPES::GAMESCRIPT] = new Collection<GameScript>(SCRIPTTYPES::GAMESCRIPT);
-                }
-                Collection<GameScript> *coli = dynamic_cast<Collection<GameScript>*>((*col)[SCRIPTTYPES::GAMESCRIPT]);
-                if(coli != nullptr){
-                    unsigned result = coli->addItem(GameScript(), own->getId(), n);
-                    if(result){
-                        std::string compN = coli->getCollection()[result-1].getName();
-                        own->getComponents().emplace_back(SCRIPTTYPES::GAMESCRIPT, compN, result-1);
-                        coli->getCollection()[result-1].setEnabled(isEn);
-                        coli->getCollection()[result-1].setOwnerId(own->getId());
-                        coli->getCollection()[result-1].setOwnerPos(ownPos);
-                    }
-                }
-                coli = nullptr;
-            }
-            else if(n == "MenuScript"){
-                if(col->count(SCRIPTTYPES::MENUSCRIPT) == 0){
-                    (*col)[SCRIPTTYPES::MENUSCRIPT] = new Collection<MenuScript>(SCRIPTTYPES::MENUSCRIPT);
-                }
-                Collection<MenuScript> *coli = dynamic_cast<Collection<MenuScript>*>((*col)[SCRIPTTYPES::MENUSCRIPT]);
-                if(coli != nullptr){
-                    unsigned result = coli->addItem(MenuScript(), own->getId(), n);
-                    if(result){
-                        std::string compN = coli->getCollection()[result-1].getName();
-                        own->getComponents().emplace_back(SCRIPTTYPES::MENUSCRIPT, compN, result-1);
-                        coli->getCollection()[result-1].setEnabled(isEn);
-                        coli->getCollection()[result-1].setOwnerId(own->getId());
-                        coli->getCollection()[result-1].setOwnerPos(ownPos);
-                    }
-                }
-                coli = nullptr;
-            }
     }
 
     void ScriptsInterface::update(double dt){
@@ -623,96 +383,6 @@ namespace WishEngine{
                 }
                 col = nullptr;
             }**/
-            if((*components).count(SCRIPTTYPES::TITLESCRIPT) > 0){
-                Collection<TitleScript> *col = dynamic_cast<Collection<TitleScript>*>((*components)[SCRIPTTYPES::TITLESCRIPT]);
-                if(col != nullptr){
-                    for(unsigned j=0; j<col->getCollection().size(); j++){
-                        col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
-                    }
-                }
-                col = nullptr;
-            }
-            if((*components).count(SCRIPTTYPES::CAMERASCRIPTFOLLOWING) > 0){
-                Collection<CameraScriptFollowing> *col = dynamic_cast<Collection<CameraScriptFollowing>*>((*components)[SCRIPTTYPES::CAMERASCRIPTFOLLOWING]);
-                if(col != nullptr){
-                    for(unsigned j=0; j<col->getCollection().size(); j++){
-                        col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
-                    }
-                }
-                col = nullptr;
-            }
-            if((*components).count(SCRIPTTYPES::DIALOGUEMANAGERSCRIPT) > 0){
-                Collection<DialogueManagerScript> *col = dynamic_cast<Collection<DialogueManagerScript>*>((*components)[SCRIPTTYPES::DIALOGUEMANAGERSCRIPT]);
-                if(col != nullptr){
-                    for(unsigned j=0; j<col->getCollection().size(); j++){
-                        col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
-                    }
-                }
-                col = nullptr;
-            }
-            if((*components).count(SCRIPTTYPES::MAPMANAGERSCRIPT) > 0){
-                Collection<MapManagerScript> *col = dynamic_cast<Collection<MapManagerScript>*>((*components)[SCRIPTTYPES::MAPMANAGERSCRIPT]);
-                if(col != nullptr){
-                    for(unsigned j=0; j<col->getCollection().size(); j++){
-                        col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
-                    }
-                }
-                col = nullptr;
-            }
-            if((*components).count(SCRIPTTYPES::MENUSCRIPT) > 0){
-                Collection<MenuScript> *col = dynamic_cast<Collection<MenuScript>*>((*components)[SCRIPTTYPES::MENUSCRIPT]);
-                if(col != nullptr){
-                    for(unsigned j=0; j<col->getCollection().size(); j++){
-                        col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
-                    }
-                }
-                col = nullptr;
-            }
-            if((*components).count(SCRIPTTYPES::NPCSCRIPT) > 0){
-                Collection<NPCScript> *col = dynamic_cast<Collection<NPCScript>*>((*components)[SCRIPTTYPES::NPCSCRIPT]);
-                if(col != nullptr){
-                    for(unsigned j=0; j<col->getCollection().size(); j++){
-                        col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
-                    }
-                }
-                col = nullptr;
-            }
-            if((*components).count(SCRIPTTYPES::OPTIONSSCRIPT) > 0){
-                Collection<OptionsScript> *col = dynamic_cast<Collection<OptionsScript>*>((*components)[SCRIPTTYPES::OPTIONSSCRIPT]);
-                if(col != nullptr){
-                    for(unsigned j=0; j<col->getCollection().size(); j++){
-                        col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
-                    }
-                }
-                col = nullptr;
-            }
-            if((*components).count(SCRIPTTYPES::PLAYERSCRIPT) > 0){
-                Collection<PlayerScript> *col = dynamic_cast<Collection<PlayerScript>*>((*components)[SCRIPTTYPES::PLAYERSCRIPT]);
-                if(col != nullptr){
-                    for(unsigned j=0; j<col->getCollection().size(); j++){
-                        col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
-                    }
-                }
-                col = nullptr;
-            }
-            if((*components).count(SCRIPTTYPES::PAUSESCRIPT) > 0){
-                Collection<PauseScript> *col = dynamic_cast<Collection<PauseScript>*>((*components)[SCRIPTTYPES::PAUSESCRIPT]);
-                if(col != nullptr){
-                    for(unsigned j=0; j<col->getCollection().size(); j++){
-                        col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
-                    }
-                }
-                col = nullptr;
-            }
-            if((*components).count(SCRIPTTYPES::GAMESCRIPT) > 0){
-                Collection<GameScript> *col = dynamic_cast<Collection<GameScript>*>((*components)[SCRIPTTYPES::GAMESCRIPT]);
-                if(col != nullptr){
-                    for(unsigned j=0; j<col->getCollection().size(); j++){
-                        col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
-                    }
-                }
-                col = nullptr;
-            }
         }
     }
 
