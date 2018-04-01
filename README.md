@@ -11,10 +11,6 @@ as the multimedia library.
 It works on Linux and Windows, I haven't tested it on Mac since I don't have access to one. It's also free software so feel free to do whatever you want with 
 the code.
 
-Last tested on Linux: 08/03/2018 (Linux Mint)
-
-I pretty much test it everyday on Windows so.
-
 ## Documentation
 
 I've created a Wiki for the project for you to have access to everything you need to know about Wish Engine, you'll find the wiki [here](https://github.com/StrellyN/WishEngine/wiki). But if you don't 
@@ -22,6 +18,7 @@ want to explore all the pages I'll leave some of the most useful links here so y
 
  - [Compilation](https://github.com/StrellyN/WishEngine/wiki/Compilation)
  - [Usage](https://github.com/StrellyN/WishEngine/wiki/Usage)
+ - [Example Games](https://github.com/StrellyN/WishEngine/wiki/Games)
  - [Contributing](https://github.com/StrellyN/WishEngine/wiki/Contributing)
  - [Credits](https://github.com/StrellyN/WishEngine/wiki/Credits)
  - [Devblog](https://github.com/StrellyN/WishEngine/wiki/Devblog)
