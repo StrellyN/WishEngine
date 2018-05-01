@@ -987,49 +987,51 @@ namespace WishEngine{
         if(objects != nullptr && graphics != nullptr && cameras != nullptr && dimensions != nullptr){
             for(unsigned i=0; i<cameras->size(); i++){
                 GameObject *cameraObj = &((*objects)[(*cameras)[i].getOwnerPos()]);
-                if(cameraObj != nullptr && cameraObj->hasComponent(COMPONENTTYPES::DIMENSION)){
+                if(cameraObj != nullptr && cameraObj->getEnabled() && cameraObj->hasComponent(COMPONENTTYPES::DIMENSION)){
                     DimensionComponent *camDim = &(*dimensions)[cameraObj->getComponentPosition(COMPONENTTYPES::DIMENSION)];
                     //CameraComponent *camCam = (*cameras)[i];
-                    for(unsigned j=0; j<graphics->size(); j++){
-                        GameObject *currentObject = &(*objects)[(*graphics)[j].getOwnerPos()];
-                        if(currentObject != nullptr && currentObject->getId() != cameraObj->getId()){
-                            if(currentObject->hasComponent(COMPONENTTYPES::DIMENSION)){
-                                DimensionComponent *objDim = &(*dimensions)[currentObject->getComponentPosition(COMPONENTTYPES::DIMENSION)];
-                                AnimationComponent *objAni = nullptr;
-                                if(animations != nullptr && currentObject->hasComponent(COMPONENTTYPES::ANIMATION)){
-                                    objAni = &(*animations)[currentObject->getComponentPosition(COMPONENTTYPES::ANIMATION)];
-                                }
-                                if((*graphics)[j].getIsText()){
-                                    if((*graphics)[j].getText().getIsPlain()){
-                                        renderPlainText(&(*graphics)[j], objDim, objAni, interpolation, camDim, &(*cameras)[i], "mainWindow");
+                    if(camDim != nullptr && camDim->getEnabled() && (*cameras)[i].getEnabled()){
+                        for(unsigned j=0; j<graphics->size(); j++){
+                            GameObject *currentObject = &(*objects)[(*graphics)[j].getOwnerPos()];
+                            if(currentObject != nullptr && currentObject->getEnabled() && currentObject->getId() != cameraObj->getId()){
+                                if(currentObject->hasComponent(COMPONENTTYPES::DIMENSION)){
+                                    DimensionComponent *objDim = &(*dimensions)[currentObject->getComponentPosition(COMPONENTTYPES::DIMENSION)];
+                                    AnimationComponent *objAni = nullptr;
+                                    if(animations != nullptr && currentObject->hasComponent(COMPONENTTYPES::ANIMATION)){
+                                        objAni = &(*animations)[currentObject->getComponentPosition(COMPONENTTYPES::ANIMATION)];
+                                    }
+                                    if((*graphics)[j].getIsText()){
+                                        if((*graphics)[j].getText().getIsPlain()){
+                                            renderPlainText(&(*graphics)[j], objDim, objAni, interpolation, camDim, &(*cameras)[i], "mainWindow");
+                                        }
+                                        else{
+                                            renderText(&(*graphics)[j], objDim, objAni, interpolation, camDim, &(*cameras)[i], "mainWindow");
+                                        }
                                     }
                                     else{
-                                        renderText(&(*graphics)[j], objDim, objAni, interpolation, camDim, &(*cameras)[i], "mainWindow");
+                                        render(&(*graphics)[j], objDim, objAni, interpolation, camDim, &(*cameras)[i], "mainWindow");
                                     }
-                                }
-                                else{
-                                    render(&(*graphics)[j], objDim, objAni, interpolation, camDim, &(*cameras)[i], "mainWindow");
-                                }
 
-                                objDim = nullptr;
-                                objAni = nullptr;
+                                    objDim = nullptr;
+                                    objAni = nullptr;
+                                }
                             }
                         }
+
+                        /**
+                            This part down here is for not having to set a new position to the cameras each frame for them to not do
+                            the shake if you pause or whatever, it's been done with objects in the render function too.
+
+                            It just updates the last position to the new one calculated with the interpolation, that way, even when
+                            the object/camera is not receiving position updates, the last position is going to catch up with the current
+                            one, avoiding the "shake" effect of rendering the camera/objects in the last position and current one, when
+                            they are too far apart.
+                        **/
+                        camDim->setX((nearbyint(camDim->getX()*(interpolation) + camDim->getpX()*(1-interpolation))));
+                        camDim->setX(camDim->getpX());
+                        camDim->setY((nearbyint(camDim->getY()*(interpolation) + camDim->getpY()*(1-interpolation))));
+                        camDim->setY(camDim->getpY());
                     }
-
-                    /**
-                        This part down here is for not having to set a new position to the cameras each frame for them to not do
-                        the shake if you pause or whatever, it's been done with objects in the render function too.
-
-                        It just updates the last position to the new one calculated with the interpolation, that way, even when
-                        the object/camera is not receiving position updates, the last position is going to catch up with the current
-                        one, avoiding the "shake" effect of rendering the camera/objects in the last position and current one, when
-                        they are too far apart.
-                    **/
-                    camDim->setX((nearbyint(camDim->getX()*(interpolation) + camDim->getpX()*(1-interpolation))));
-                    camDim->setX(camDim->getpX());
-                    camDim->setY((nearbyint(camDim->getY()*(interpolation) + camDim->getpY()*(1-interpolation))));
-                    camDim->setY(camDim->getpY());
                     camDim = nullptr;
                 }
                 cameraObj = nullptr;
