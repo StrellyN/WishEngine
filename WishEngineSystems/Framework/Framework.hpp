@@ -24,8 +24,6 @@
 #ifndef FRAMEWORK_H
 #define FRAMEWORK_H
 
-#define JOYSTICK_DEADZONE 8000
-
 #include "FrameHeader.hpp"
 #include "../CommonIncludes/Event.hpp"
 #include "../CommonIncludes/Collection.hpp"
@@ -38,6 +36,7 @@
 #include "../CommonIncludes/CreateWindowMessage.hpp"
 #include "../CommonIncludes/AudioMessage.hpp"
 #include "../CommonIncludes/NetworkMessage.hpp"
+#include "../CommonIncludes/VectorMessage.hpp"
 
 #include "../CommonIncludes/NetworkComponent.hpp"
 #include "../CommonIncludes/GraphicComponent.hpp"
@@ -48,7 +47,7 @@
 namespace WishEngine{
     typedef struct JoystickStruct{
         SDL_Joystick *pad;
-        int id;
+        int id, joystickDeadzone = 8000;
     };
 
     class Framework : public GameSystem{
@@ -101,6 +100,8 @@ namespace WishEngine{
             void setFrameCapFlag(bool frameCap);
             bool getFrameCapFlag();
             int getMaxFPS();
+            int getJoystickDeadzone(int joyId);
+            void setJoystickDeadzone(int joyId, int joyDeadzone);
 
             void deleteNet(NetworkComponent *netComp); //Search a way to avoid having network components here
             void updateNet(NetworkComponent *netComp);

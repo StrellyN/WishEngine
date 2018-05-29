@@ -35,11 +35,12 @@ namespace WishEngine{
             int priority;
             bool isTexture, isText, isUi;
             TextComponent text;
+            FlipAndRotation flipRotate;
         public:
             GraphicComponent(bool isU);
             GraphicComponent(bool isU, int r, int g, int b, int a, int pr);
-            GraphicComponent(bool isU, std::string tFile, int a, int pr);
-            GraphicComponent(bool isU, std::string t, std::string font, int maxLines, int lineSpacing, int fontSize, int r, int g, int b, int a, int pr, bool isPlain);
+            GraphicComponent(bool isU, std::string tFile, int a, int pr, int fl = 0, int xOffset = 0, int yOffset = 0, double degrees = 0);
+            GraphicComponent(bool isU, std::string t, std::string font, int maxLines, int lineSpacing, int fontSize, int r, int g, int b, int a, int pr, bool isPlain, int fl = 0, int xOffset = 0, int yOffset = 0, double degrees = 0);
             virtual ~GraphicComponent();
             std::string &getTextureFile();
             void setTextureFile(std::string file);
@@ -62,6 +63,15 @@ namespace WishEngine{
             void setText(TextComponent t);
             bool getIsUi();
             void setIsUi(bool isU);
+            //Rotation getters and setters
+            int getFlip();
+            void setFlip(int fl);
+            int getRotXOffset();
+            void setRotXOffset(int offset);
+            int getRotYOffset();
+            void setRotYOffset(int offset);
+            double getRotationDegrees();
+            void setRotationDegrees(double degrees);
     };
 }
 #endif // GRAPHICCOMPONENT

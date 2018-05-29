@@ -35,7 +35,7 @@
 #include "../CommonIncludes/System.hpp"
 
 namespace WishEngine{
-    class ObjectFactory : public GameSystem{ //This class is also the interface scripts use to communicate with the engine.
+    class ObjectFactory : public GameSystem{
         private:
             std::vector<GameObject> objects;
             std::vector<unsigned> availableObjects;

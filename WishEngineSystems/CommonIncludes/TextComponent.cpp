@@ -30,7 +30,7 @@ namespace WishEngine{
         isPlain = false;
     }
 
-    TextComponent::TextComponent(std::string t, std::string fName, int r, int g, int b, int a, int tSize, int maxL, int lSpace, bool plain){
+    TextComponent::TextComponent(std::string t, std::string fName, int r, int g, int b, int a, int tSize, int maxL, int lSpace, bool plain, FlipAndRotation flipRot){
         text = t;
         font = fName;
         maxLines = maxL;
@@ -40,6 +40,7 @@ namespace WishEngine{
             individualCharacterColor.push_back(Color(r,g,b,a));
             individualCharacterSize.push_back(tSize);
             individualCharacterSizeString.push_back(Utils::intToString(tSize));
+            individualCharacterFlipRotation.push_back(flipRot);
         }
     }
 
@@ -54,17 +55,20 @@ namespace WishEngine{
         individualCharacterColor.clear();
         individualCharacterSize.clear();
         individualCharacterSizeString.clear();
+        individualCharacterFlipRotation.clear();
     }
 
-    void TextComponent::setText(std::string t, int r, int g, int b, int a, int fSize){
+    void TextComponent::setText(std::string t, int r, int g, int b, int a, int fSize, FlipAndRotation flipRot){
         individualCharacterColor.clear();
         individualCharacterSize.clear();
         individualCharacterSizeString.clear();
+        individualCharacterFlipRotation.clear();
         text = t;
         for(std::string::iterator it=text.begin(); it!=text.end(); ++it){
             individualCharacterColor.push_back(Color(r,g,b,a));
             individualCharacterSize.push_back(fSize);
             individualCharacterSizeString.push_back(Utils::intToString(fSize));
+            individualCharacterFlipRotation.push_back(flipRot);
         }
     }
 
@@ -77,6 +81,7 @@ namespace WishEngine{
         individualCharacterColor.clear();
         individualCharacterSize.clear();
         individualCharacterSizeString.clear();
+        individualCharacterFlipRotation.clear();
     }
 
     char TextComponent::getCharacter(int position){
@@ -86,11 +91,12 @@ namespace WishEngine{
         return text[0];
     }
 
-    void TextComponent::addCharacter(char ch, int chSize, int r, int g, int b, int a){
+    void TextComponent::addCharacter(char ch, int chSize, int r, int g, int b, int a, FlipAndRotation flipRot){
         text.push_back(ch);
         individualCharacterColor.push_back(Color(r,g,b,a));
         individualCharacterSize.push_back(chSize);
         individualCharacterSizeString.push_back(Utils::intToString(chSize));
+        individualCharacterFlipRotation.push_back(flipRot);
     }
 
     void TextComponent::deleteCharacter(int position){
@@ -142,6 +148,10 @@ namespace WishEngine{
 
     std::vector<std::string> &TextComponent::getIndividualCharacterSizeString(){
         return individualCharacterSizeString;
+    }
+
+    std::vector<FlipAndRotation> &TextComponent::getIndividualCharacterFlipRotation(){
+        return individualCharacterFlipRotation;
     }
 
     int TextComponent::getStartingLine(){

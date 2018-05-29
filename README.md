@@ -18,7 +18,6 @@ want to explore all the pages I'll leave some of the most useful links here so y
 
  - [Compilation](https://github.com/StrellyN/WishEngine/wiki/Compilation)
  - [Usage](https://github.com/StrellyN/WishEngine/wiki/Usage)
- - [Example Games](https://github.com/StrellyN/WishEngine/wiki/Games)
  - [Contributing](https://github.com/StrellyN/WishEngine/wiki/Contributing)
  - [Credits](https://github.com/StrellyN/WishEngine/wiki/Credits)
  - [Devblog](https://github.com/StrellyN/WishEngine/wiki/Devblog)

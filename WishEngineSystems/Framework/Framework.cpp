@@ -52,6 +52,13 @@ namespace WishEngine{
         else if(msg->getType() == MESSAGETYPES::FULLSCREEN){
             fullScreen(msg->getValue());
         }
+        else if(msg->getType() == MESSAGETYPES::SETJOYSTICKDEADZONE){
+            VectorMessage* rmes = dynamic_cast<VectorMessage*>(msg);
+            if(rmes != nullptr){
+                setJoystickDeadzone(rmes->getNumberVector()[0], rmes->getNumberVector()[1]);
+            }
+            rmes = nullptr;
+        }
         else if(msg->getType() == MESSAGETYPES::OBJECTLIST){
             ObjectListMessage* rmes = dynamic_cast<ObjectListMessage*>(msg);
             if(rmes != nullptr){
@@ -184,7 +191,6 @@ namespace WishEngine{
         else if(msg->getType() == MESSAGETYPES::SETFRAMECAPFLAG){
             setFrameCapFlag(Utils::stringToInt(msg->getValue()));
         }
-        //Create a message for each shit like render text, render texture, music,window, network, input, etc...
     }
 
     void Framework::fullScreen(std::string windowName){
@@ -224,6 +230,22 @@ namespace WishEngine{
 
     int Framework::getMaxFPS(){
         return maxFPS;
+    }
+
+    int Framework::getJoystickDeadzone(int joyId){
+        for(unsigned i=0; i<joysticks.size(); i++){
+            if(joysticks[i].id == joyId){
+                return joysticks[i].joystickDeadzone;
+            }
+        }
+    }
+
+    void Framework::setJoystickDeadzone(int joyId, int joyDeadzone){
+        for(unsigned i=0; i<joysticks.size(); i++){
+            if(joysticks[i].id == joyId){
+                joysticks[i].joystickDeadzone = joyDeadzone;
+            }
+        }
     }
 
     void Framework::deleteNet(NetworkComponent *netComp){
@@ -1080,7 +1102,25 @@ namespace WishEngine{
                             SDL_SetTextureBlendMode(texturePool[tFile], SDL_BLENDMODE_BLEND);
                         }
                         SDL_SetTextureAlphaMod(texturePool[tFile], graphComp->getAlpha());
-                        SDL_RenderCopy(renderPool[window], texturePool[tFile], cut, &rect);
+                        if(graphComp->getFlip() != 0 || graphComp->getRotationDegrees() > 0){
+                            SDL_RendererFlip toFlip = SDL_FLIP_NONE;
+                            SDL_Point offset = {graphComp->getRotXOffset(), graphComp->getRotYOffset()};
+                            switch(graphComp->getFlip()){
+                                case 1:
+                                    toFlip = SDL_FLIP_HORIZONTAL;
+                                    break;
+                                case 2:
+                                    toFlip = SDL_FLIP_VERTICAL;
+                                    break;
+                                case 3:
+                                    toFlip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+                                    break;
+                            }
+                            SDL_RenderCopyEx(renderPool[window], texturePool[tFile], cut, &rect, graphComp->getRotationDegrees(), &offset, toFlip);
+                        }
+                        else{
+                            SDL_RenderCopy(renderPool[window], texturePool[tFile], cut, &rect);
+                        }
                     }
                     else{
                         if(!texturePool.count(tFile)){
@@ -1088,11 +1128,28 @@ namespace WishEngine{
                             SDL_SetTextureBlendMode(texturePool[tFile], SDL_BLENDMODE_BLEND);
                         }
                         SDL_SetTextureAlphaMod(texturePool[tFile], graphComp->getAlpha());
-                        SDL_RenderCopy(renderPool.begin()->second, texturePool[tFile], cut, &rect);
+                        if(graphComp->getFlip() != 0 || graphComp->getRotationDegrees() > 0){
+                            SDL_RendererFlip toFlip = SDL_FLIP_NONE;
+                            SDL_Point offset = {graphComp->getRotXOffset(), graphComp->getRotYOffset()};
+                            switch(graphComp->getFlip()){
+                                case 1:
+                                    toFlip = SDL_FLIP_HORIZONTAL;
+                                    break;
+                                case 2:
+                                    toFlip = SDL_FLIP_VERTICAL;
+                                    break;
+                                case 3:
+                                    toFlip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+                                    break;
+                            }
+                            SDL_RenderCopyEx(renderPool.begin()->second, texturePool[tFile], cut, &rect, graphComp->getRotationDegrees(), &offset, toFlip);
+                        }
+                        else{
+                            SDL_RenderCopy(renderPool.begin()->second, texturePool[tFile], cut, &rect);
+                        }
                     }
                 }
                 else{
-
                     if(window == "" || renderPool.count(window) == 0){ //If windows wasn't passed or it doesn't exist, draw to the first one
                         SDL_SetRenderDrawColor(renderPool.begin()->second, graphComp->getR(), graphComp->getG(), graphComp->getB(), graphComp->getAlpha());
                         SDL_RenderFillRect(renderPool.begin()->second, &rect);
@@ -1107,7 +1164,6 @@ namespace WishEngine{
                 delete cut;
                 cut = nullptr;
             }
-
 
             dimComp->setX((nearbyint(dimComp->getX()*(interpolation) + dimComp->getpX()*(1-interpolation))));
             dimComp->setX(dimComp->getpX());
@@ -1191,10 +1247,46 @@ namespace WishEngine{
                             SDL_SetTextureColorMod(texturePool[textureName], color.getR(), color.getG(), color.getB());
                             SDL_SetTextureAlphaMod(texturePool[textureName], color.getA());
                             if(renderPool.count(window) != 0 && window != ""){
-                                SDL_RenderCopy(renderPool[window], texturePool[textureName], NULL, &letter);
+                                if(graphComp->getFlip() != 0 || graphComp->getRotationDegrees() > 0){
+                                    SDL_RendererFlip toFlip = SDL_FLIP_NONE;
+                                    SDL_Point offset = {text.getIndividualCharacterFlipRotation()[i].rotateXOffset, text.getIndividualCharacterFlipRotation()[i].rotateYOffset};
+                                    switch(text.getIndividualCharacterFlipRotation()[i].flip){
+                                        case 1:
+                                            toFlip = SDL_FLIP_HORIZONTAL;
+                                            break;
+                                        case 2:
+                                            toFlip = SDL_FLIP_VERTICAL;
+                                            break;
+                                        case 3:
+                                            toFlip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+                                            break;
+                                    }
+                                    SDL_RenderCopyEx(renderPool[window], texturePool[textureName], NULL, &letter, text.getIndividualCharacterFlipRotation()[i].rotationDegrees, &offset, toFlip);
+                                }
+                                else{
+                                    SDL_RenderCopy(renderPool[window], texturePool[textureName], NULL, &letter);
+                                }
                             }
                             else{
-                                SDL_RenderCopy(renderPool.begin()->second, texturePool[textureName], NULL, &letter);
+                                if(graphComp->getFlip() != 0 || graphComp->getRotationDegrees() > 0){
+                                    SDL_RendererFlip toFlip = SDL_FLIP_NONE;
+                                    SDL_Point offset = {text.getIndividualCharacterFlipRotation()[i].rotateXOffset, text.getIndividualCharacterFlipRotation()[i].rotateYOffset};
+                                    switch(text.getIndividualCharacterFlipRotation()[i].flip){
+                                        case 1:
+                                            toFlip = SDL_FLIP_HORIZONTAL;
+                                            break;
+                                        case 2:
+                                            toFlip = SDL_FLIP_VERTICAL;
+                                            break;
+                                        case 3:
+                                            toFlip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+                                            break;
+                                    }
+                                    SDL_RenderCopyEx(renderPool.begin()->second, texturePool[textureName], NULL, &letter, text.getIndividualCharacterFlipRotation()[i].rotationDegrees, &offset, toFlip);
+                                }
+                                else{
+                                    SDL_RenderCopy(renderPool.begin()->second, texturePool[textureName], NULL, &letter);
+                                }
                             }
                         }
                     }
@@ -1275,10 +1367,46 @@ namespace WishEngine{
                 SDL_SetTextureColorMod(texturePool[textureName], color.getR(), color.getG(), color.getB());
                 SDL_SetTextureAlphaMod(texturePool[textureName], color.getA());
                 if(renderPool.count(window) != 0 && window != ""){
-                    SDL_RenderCopy(renderPool[window], texturePool[textureName], NULL, &letter);
+                    if(graphComp->getFlip() != 0 || graphComp->getRotationDegrees() > 0){
+                        SDL_RendererFlip toFlip = SDL_FLIP_NONE;
+                        SDL_Point offset = {graphComp->getRotXOffset(), graphComp->getRotYOffset()};
+                        switch(graphComp->getFlip()){
+                            case 1:
+                                toFlip = SDL_FLIP_HORIZONTAL;
+                                break;
+                            case 2:
+                                toFlip = SDL_FLIP_VERTICAL;
+                                break;
+                            case 3:
+                                toFlip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+                                break;
+                        }
+                        SDL_RenderCopyEx(renderPool[window], texturePool[textureName], NULL, &letter, graphComp->getRotationDegrees(), &offset, toFlip);
+                    }
+                    else{
+                        SDL_RenderCopy(renderPool[window], texturePool[textureName], NULL, &letter);
+                    }
                 }
                 else{
-                    SDL_RenderCopy(renderPool.begin()->second, texturePool[textureName], NULL, &letter);
+                    if(graphComp->getFlip() != 0 || graphComp->getRotationDegrees() > 0){
+                        SDL_RendererFlip toFlip = SDL_FLIP_NONE;
+                        SDL_Point offset = {graphComp->getRotXOffset(), graphComp->getRotYOffset()};
+                        switch(graphComp->getFlip()){
+                            case 1:
+                                toFlip = SDL_FLIP_HORIZONTAL;
+                                break;
+                            case 2:
+                                toFlip = SDL_FLIP_VERTICAL;
+                                break;
+                            case 3:
+                                toFlip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+                                break;
+                        }
+                        SDL_RenderCopyEx(renderPool.begin()->second, texturePool[textureName], NULL, &letter, graphComp->getRotationDegrees(), &offset, toFlip);
+                    }
+                    else{
+                        SDL_RenderCopy(renderPool.begin()->second, texturePool[textureName], NULL, &letter);
+                    }
                 }
             }
             textureName.clear();
@@ -1334,7 +1462,8 @@ namespace WishEngine{
         while(SDL_PollEvent(&fEvent)){
             Event ev;
             EVENTTYPES type = EVENTTYPES::NULLEVENT;
-            int mX = 0, mY = 0;
+            int mX = 0, mY = 0, deadZone = 0;
+            JoystickStruct joyAux;
             switch(fEvent.type){
                 case SDL_KEYDOWN:
                     type = EVENTTYPES::KEYBOARD_PRESS;
@@ -1400,10 +1529,9 @@ namespace WishEngine{
                     type = EVENTTYPES::GAMEPAD_ADDED;
                     ev.setTimeStamp(fEvent.jdevice.timestamp);
                     ev.setDeviceID(fEvent.jdevice.which);
-                    JoystickStruct aux;
-                    aux.pad = SDL_JoystickOpen(fEvent.jdevice.which);
-                    aux.id = SDL_JoystickInstanceID(aux.pad);
-                    joysticks.push_back(aux);
+                    joyAux.pad = SDL_JoystickOpen(fEvent.jdevice.which);
+                    joyAux.id = SDL_JoystickInstanceID(joyAux.pad);
+                    joysticks.push_back(joyAux);
                     break;
                 case SDL_JOYDEVICEREMOVED:
                     type = EVENTTYPES::GAMEPAD_REMOVED;
@@ -1432,10 +1560,11 @@ namespace WishEngine{
                 case SDL_JOYAXISMOTION:
                     type = EVENTTYPES::GAMEPAD_AXIS; //which axis, direction and value
                     ev.setTimeStamp(fEvent.jaxis.timestamp);
+                    deadZone = getJoystickDeadzone(fEvent.jaxis.which);
                     if(fEvent.jaxis.axis == 0){ //If axis != 1 it's the X axis
-                        if(fEvent.jaxis.value < -JOYSTICK_DEADZONE)
+                        if(fEvent.jaxis.value < -deadZone)
                             ev.setValue("Joystick X Left");
-                        else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
+                        else if(fEvent.jaxis.value > deadZone)
                             ev.setValue("Joystick X Right");
                         else{
                             type = EVENTTYPES::GAMEPAD_RELEASE;
@@ -1448,9 +1577,9 @@ namespace WishEngine{
                         ev.setXPos(fEvent.jaxis.value);
                     }
                     else if(fEvent.jaxis.axis == 1){ //If == 1 it's the Y axis
-                        if(fEvent.jaxis.value < -JOYSTICK_DEADZONE)
+                        if(fEvent.jaxis.value < -deadZone)
                             ev.setValue("Joystick Y Up");
-                        else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
+                        else if(fEvent.jaxis.value > deadZone)
                             ev.setValue("Joystick Y Down");
                         else{
                             type = EVENTTYPES::GAMEPAD_RELEASE;
@@ -1463,9 +1592,9 @@ namespace WishEngine{
                         ev.setYPos(fEvent.jaxis.value);
                     }
                     else if(fEvent.jaxis.axis == 2){ //If == 1 it's the Y axis
-                        if(fEvent.jaxis.value < -JOYSTICK_DEADZONE)
+                        if(fEvent.jaxis.value < -deadZone)
                             ev.setValue("Joystick X2 Up");
-                        else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
+                        else if(fEvent.jaxis.value > deadZone)
                             ev.setValue("Joystick X2 Down");
                         else{
                             type = EVENTTYPES::GAMEPAD_RELEASE;
@@ -1478,9 +1607,9 @@ namespace WishEngine{
                         ev.setYPos(fEvent.jaxis.value);
                     }
                     else if(fEvent.jaxis.axis == 3){ //If == 1 it's the Y axis
-                        if(fEvent.jaxis.value < -JOYSTICK_DEADZONE)
+                        if(fEvent.jaxis.value < -deadZone)
                             ev.setValue("Joystick Y2 Up");
-                        else if(fEvent.jaxis.value > JOYSTICK_DEADZONE)
+                        else if(fEvent.jaxis.value > deadZone)
                             ev.setValue("Joystick Y2 Down");
                         else{
                             type = EVENTTYPES::GAMEPAD_RELEASE;

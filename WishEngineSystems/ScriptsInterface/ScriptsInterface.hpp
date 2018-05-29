@@ -32,6 +32,7 @@
 #include "../CommonIncludes/AvailableObjectsMessage.hpp"
 #include "../CommonIncludes/ComponentListMessage.hpp"
 #include "../CommonIncludes/CreateWindowMessage.hpp"
+#include "../CommonIncludes/VectorMessage.hpp"
 #include "../CommonIncludes/ScriptComponent.hpp"
 
 #include "../CommonIncludes/ComponentHeaders.hpp"
@@ -81,6 +82,7 @@ namespace WishEngine{
             static void setFrameCapFlag(bool frameCap);
             static void quit();
             static void fullScreen(std::string window);
+            static void setJoystickDeadzone(int joyId, int joyDeadzone);
             //static bool getFrameCapFlag();
             //static int getMaxFPS();
     };

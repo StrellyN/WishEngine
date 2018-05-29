@@ -32,6 +32,10 @@ namespace WishEngine{
         isText = false;
         color = Color();
         textureFile = "";
+        flipRotate.rotateXOffset = 0;
+        flipRotate.rotateYOffset = 0;
+        flipRotate.rotationDegrees = 0;
+        flipRotate.flip = 0;
     }
 
     GraphicComponent::GraphicComponent(bool isU, int r, int g, int b, int a, int pr){
@@ -42,9 +46,13 @@ namespace WishEngine{
         isTexture = false;
         isText = false;
         textureFile = "";
+        flipRotate.rotateXOffset = 0;
+        flipRotate.rotateYOffset = 0;
+        flipRotate.rotationDegrees = 0;
+        flipRotate.flip = 0;
     }
 
-    GraphicComponent::GraphicComponent(bool isU, std::string tFile, int a, int pr){
+    GraphicComponent::GraphicComponent(bool isU, std::string tFile, int a, int pr, int fl, int xOffset, int yOffset, double degrees){
         setType(COMPONENTTYPES::GRAPHIC);
         isUi = isU;
         color = Color(0,0,0,a);
@@ -52,18 +60,26 @@ namespace WishEngine{
         isTexture = true;
         isText = false;
         textureFile = tFile;
+        flipRotate.rotateXOffset = xOffset;
+        flipRotate.rotateYOffset = yOffset;
+        flipRotate.rotationDegrees = degrees;
+        flipRotate.flip = fl;
     }
 
-    GraphicComponent::GraphicComponent(bool isU, std::string t, std::string font, int maxLines, int lineSpacing, int fontSize, int r, int g, int b, int a, int pr, bool isPlain){
+    GraphicComponent::GraphicComponent(bool isU, std::string t, std::string font, int maxLines, int lineSpacing, int fontSize, int r, int g, int b, int a, int pr, bool isPlain, int fl, int xOffset, int yOffset, double degrees){
         setType(COMPONENTTYPES::GRAPHIC);
         isUi = isU;
         priority = pr;
         isTexture = false;
         isText = true;
+        flipRotate.rotateXOffset = xOffset;
+        flipRotate.rotateYOffset = yOffset;
+        flipRotate.rotationDegrees = degrees;
+        flipRotate.flip = fl;
         if(t != ""){
             text = TextComponent(font, maxLines, lineSpacing, isPlain);
             for(std::string::iterator it=t.begin(); it!=t.end(); ++it) {
-                text.addCharacter(*it, fontSize, r, g, b, a);
+                text.addCharacter(*it, fontSize, r, g, b, a, flipRotate);
             }
         }
         else{
@@ -158,5 +174,43 @@ namespace WishEngine{
 
     void GraphicComponent::setIsUi(bool isU){
         isUi = isU;
+    }
+
+    int GraphicComponent::getFlip(){
+        return flipRotate.flip;
+    }
+
+    void GraphicComponent::setFlip(int fl){
+        flipRotate.flip = fl;
+    }
+
+    int GraphicComponent::getRotXOffset(){
+        return flipRotate.rotateXOffset;
+    }
+
+    void GraphicComponent::setRotXOffset(int offset){
+        flipRotate.rotateXOffset = offset;
+    }
+
+    int GraphicComponent::getRotYOffset(){
+        return flipRotate.rotateYOffset;
+    }
+
+    void GraphicComponent::setRotYOffset(int offset){
+        flipRotate.rotateYOffset = offset;
+    }
+
+    double GraphicComponent::getRotationDegrees(){
+        return flipRotate.rotationDegrees;
+    }
+
+    void GraphicComponent::setRotationDegrees(double degrees){
+        if(degrees >= 360){
+            degrees = std::fmod(degrees, 360);
+        }
+        if(degrees < 0){
+            degrees = 0;
+        }
+        flipRotate.rotationDegrees = degrees;
     }
 }

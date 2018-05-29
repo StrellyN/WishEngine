@@ -23,7 +23,7 @@
 
 #include "ScriptsInterface.hpp"
 
-//Here I include all the scripts source files
+//Here I include all the scripts.cpps
 
 namespace WishEngine{
     std::unordered_map<int, BaseCollection*> *ScriptsInterface::components = nullptr;
@@ -98,8 +98,9 @@ namespace WishEngine{
                             dynamic_cast<Collection<YourScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
                         }
                         **/
+                        
                         //End of custom scripts
-                        if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
+                        else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
                             dynamic_cast<Collection<AnimationComponent>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
                         }
                         else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::CAMERA){
@@ -156,8 +157,9 @@ namespace WishEngine{
                             dynamic_cast<Collection<YourScript>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
                         }
                         **/
+                        
                         //End of custom scripts
-                        if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
+                        else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
                             dynamic_cast<Collection<AnimationComponent>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
                         }
                         else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::CAMERA){
@@ -332,6 +334,14 @@ namespace WishEngine{
 
     void ScriptsInterface::fullScreen(std::string window){
         postedM->push_back(new Message(MESSAGETYPES::FULLSCREEN, window));
+    }
+
+    void ScriptsInterface::setJoystickDeadzone(int joyId, int joyDeadzone){
+        VectorMessage *toPost = new VectorMessage(MESSAGETYPES::SETJOYSTICKDEADZONE);
+        toPost->getNumberVector().push_back(joyId);
+        toPost->getNumberVector().push_back(joyDeadzone);
+        postedM->push_back(toPost);
+        toPost = nullptr;
     }
 
     void ScriptsInterface::createSaveState(){

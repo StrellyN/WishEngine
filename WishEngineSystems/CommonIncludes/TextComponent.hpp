@@ -27,6 +27,11 @@
 #include "Utils.hpp"
 
 namespace WishEngine{
+    struct FlipAndRotation{
+        int flip = 0, rotateXOffset = 0, rotateYOffset = 0;
+        double rotationDegrees = 0;
+    };
+
     class TextComponent{
         private:
             int maxLines, lineSpacing; //Max lines the text is going to have and the spacing between lines (taking the first character height)
@@ -34,18 +39,19 @@ namespace WishEngine{
             std::vector<int> individualCharacterSize; //Font size for each character
             std::vector<std::string> individualCharacterSizeString; //String of size to improve performance
             std::vector<Color> individualCharacterColor; //Color for each character
+            std::vector<FlipAndRotation> individualCharacterFlipRotation;
             int startingLine = 0;
             bool isPlain;
         public:
             TextComponent();
-            TextComponent(std::string t, std::string fName, int r, int g, int b, int a, int tSize, int maxL, int lSpace, bool plain);
+            TextComponent(std::string t, std::string fName, int r, int g, int b, int a, int tSize, int maxL, int lSpace, bool plain, FlipAndRotation flipRot = FlipAndRotation());
             TextComponent(std::string fName, int maxL, int lSpace, bool plain);
             ~TextComponent();
-            void setText(std::string t, int r, int g, int b, int a, int fSize);
+            void setText(std::string t, int r, int g, int b, int a, int fSize, FlipAndRotation flipRot = FlipAndRotation());
             std::string &getText();
             void clearText();
             char getCharacter(int position);
-            void addCharacter(char ch, int chSize, int r, int g, int b, int a);
+            void addCharacter(char ch, int chSize, int r, int g, int b, int a, FlipAndRotation flipRot = FlipAndRotation());
             void deleteCharacter(int position);
             void deleteCharacters(char toDelete);
             int getMaxLines();
@@ -57,6 +63,7 @@ namespace WishEngine{
             std::vector<int> &getIndividualCharacterSize();
             std::vector<Color> &getIndividualCharacterColor();
             std::vector<std::string> &getIndividualCharacterSizeString();
+            std::vector<FlipAndRotation> &getIndividualCharacterFlipRotation();
             int getStartingLine();
             void setStartingLine(int sL);
             bool getIsPlain();

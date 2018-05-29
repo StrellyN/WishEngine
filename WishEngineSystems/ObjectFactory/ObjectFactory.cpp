@@ -361,15 +361,20 @@ namespace WishEngine{
                             }
                             else if(type == 3){
                                 std::string textureFile;
-                                int a, pr;
+                                int a, pr, flip, offX, offY;
+                                double degrees;
                                 objectStream >> textureFile;
                                 objectStream >> a;
                                 objectStream >> pr;
+                                objectStream >> flip;
+                                objectStream >> offX;
+                                objectStream >> offY;
+                                objectStream >> degrees;
                                 if(componentCollections.count(COMPONENTTYPES::GRAPHIC) == 0){
                                     componentCollections[COMPONENTTYPES::GRAPHIC] = new Collection<GraphicComponent>(COMPONENTTYPES::GRAPHIC);
                                 }
                                 Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections[COMPONENTTYPES::GRAPHIC]);
-                                unsigned result = col->addItem(GraphicComponent(isU, textureFile, a, pr), objId);
+                                unsigned result = col->addItem(GraphicComponent(isU, textureFile, a, pr, flip, offX, offY, degrees), objId);
                                 if(result){
                                     unsigned compPos = result-1;
                                     std::string compN = col->getCollection()[compPos].getName();
@@ -383,7 +388,8 @@ namespace WishEngine{
                             else if(type == 4){
                                 std::string text, font;
                                 bool isPlain;
-                                int maxlines, linespacing, fontsize, r, g, b, a, priority;
+                                int maxlines, linespacing, fontsize, r, g, b, a, priority, flip, offX, offY;
+                                double degrees;
                                 std::string command;
                                 objectStream >> command;
                                 if(command == "BEGIN"){
@@ -406,11 +412,15 @@ namespace WishEngine{
                                 objectStream >> a;
                                 objectStream >> priority;
                                 objectStream >> isPlain;
+                                objectStream >> flip;
+                                objectStream >> offX;
+                                objectStream >> offY;
+                                objectStream >> degrees;
                                 if(componentCollections.count(COMPONENTTYPES::GRAPHIC) == 0){
                                     componentCollections[COMPONENTTYPES::GRAPHIC] = new Collection<GraphicComponent>(COMPONENTTYPES::GRAPHIC);
                                 }
                                 Collection<GraphicComponent> *col = dynamic_cast<Collection<GraphicComponent>*>(componentCollections[COMPONENTTYPES::GRAPHIC]);
-                                unsigned result = col->addItem(GraphicComponent(isU, text, font, maxlines, linespacing, fontsize, r, g, b, a, priority, isPlain), objId);
+                                unsigned result = col->addItem(GraphicComponent(isU, text, font, maxlines, linespacing, fontsize, r, g, b, a, priority, isPlain, flip, offX, offY, degrees), objId);
                                 if(result){
                                     unsigned compPos = result-1;
                                     std::string compN = col->getCollection()[compPos].getName();
