@@ -26,6 +26,8 @@
 //Here I include all the scripts.cpps
 
 namespace WishEngine{
+    std::unordered_map<int, BaseCollection*> ScriptsInterface::scripts;
+
     std::unordered_map<int, BaseCollection*> *ScriptsInterface::components = nullptr;
 
     std::vector<GameObject> *ScriptsInterface::objects = nullptr;
@@ -40,6 +42,11 @@ namespace WishEngine{
     }
 
     ScriptsInterface::~ScriptsInterface(){
+        for(std::unordered_map<int, BaseCollection*>::iterator it = scripts.begin(); it != scripts.end(); it++){
+            delete it->second;
+            it->second = nullptr;
+        }
+        scripts.clear();
         components = nullptr;
         objects = nullptr;
         postedM = nullptr;
@@ -91,7 +98,7 @@ namespace WishEngine{
             if((*objects)[i].getName() == name && !(*objects)[i].getDeleted()){
                 (*objects)[i].setDeleted(true);
                 for(unsigned j=0; j<(*objects)[i].getComponents().size(); j++){
-                    if(components != nullptr && (*components).count((*objects)[i].getComponents()[j].componentType) > 0){
+                    if(scripts.count((*objects)[i].getComponents()[j].componentType) > 0){
                         //Check for each script
                         /** TEMPLATE:
                         if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::YOURSCRIPT){
@@ -100,7 +107,9 @@ namespace WishEngine{
                         **/
                         
                         //End of custom scripts
-                        else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
+                    }
+                    if(components != nullptr && (*components).count((*objects)[i].getComponents()[j].componentType) > 0){
+                        if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
                             dynamic_cast<Collection<AnimationComponent>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
                         }
                         else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::CAMERA){
@@ -150,7 +159,7 @@ namespace WishEngine{
             if((*objects)[i].getId() == id && !(*objects)[i].getDeleted()){
                 (*objects)[i].setDeleted(true);
                 for(unsigned j=0; j<(*objects)[i].getComponents().size(); j++){
-                    if(components != nullptr && (*components).count((*objects)[i].getComponents()[j].componentType) > 0){
+                    if(scripts.count((*objects)[i].getComponents()[j].componentType) > 0){
                         //Check for each script
                         /** TEMPLATE:
                         if((*objects)[i].getComponents()[j].componentType == SCRIPTTYPES::YOURSCRIPT){
@@ -159,7 +168,9 @@ namespace WishEngine{
                         **/
                         
                         //End of custom scripts
-                        else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
+                    }
+                    if(components != nullptr && (*components).count((*objects)[i].getComponents()[j].componentType) > 0){
+                        if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::ANIMATION){
                             dynamic_cast<Collection<AnimationComponent>*>((*components)[(*objects)[i].getComponents()[j].componentType])->deleteByPos((*objects)[i].getComponents()[j].componentPosition);
                         }
                         else if((*objects)[i].getComponents()[j].componentType == COMPONENTTYPES::CAMERA){
@@ -232,24 +243,43 @@ namespace WishEngine{
 
     template <class T>
     unsigned ScriptsInterface::insertComponent(std::string oName, T component, std::string name){
-        if(objects != nullptr && components != nullptr){
+        if(objects != nullptr){
             for(unsigned i=0; i<objects->size(); i++){
                 if((*objects)[i].getName() == oName && !(*objects)[i].getDeleted() && !(*objects)[i].hasComponent(component.getType(), name)){
-                    if(components->count(component.getType()) == 0){
+                    if(component.getType() < COMPONENTTYPES::CAMOUNT && components != nullptr && components->count(component.getType()) == 0){
                         (*components)[component.getType()] = new Collection<T>(component.getType());
                     }
-                    Collection<T> *col = dynamic_cast<Collection<T>*>((*components)[component.getType()]);
-                    unsigned result = col->addItem(component, (*objects)[i].getId(), name);
-                    if(result > 0){
-                        unsigned compPos = result - 1;
-                        col->getCollection()[compPos].setOwnerId((*objects)[i].getId());
-                        col->getCollection()[compPos].setOwnerPos(i);
-                        (*objects)[i].getComponents().emplace_back(col->getCollection()[compPos].getType(), col->getCollection()[compPos].getName(), compPos);
-                        col = nullptr;
-                        return 1;
+                    else if(component.getType() >= COMPONENTTYPES::CAMOUNT && scripts.count(component.getType()) == 0){
+                        scripts[component.getType()] = new Collection<T>(component.getType());
                     }
-                    col = nullptr;
-                    return 0;
+                    if(component.getType() < COMPONENTTYPES::CAMOUNT){
+                        Collection<T> *col = dynamic_cast<Collection<T>*>((*components)[component.getType()]);
+                        unsigned result = col->addItem(component, (*objects)[i].getId(), name);
+                        if(result > 0){
+                            unsigned compPos = result - 1;
+                            col->getCollection()[compPos].setOwnerId((*objects)[i].getId());
+                            col->getCollection()[compPos].setOwnerPos(i);
+                            (*objects)[i].getComponents().emplace_back(col->getCollection()[compPos].getType(), col->getCollection()[compPos].getName(), compPos);
+                            col = nullptr;
+                            return 1;
+                        }
+                        col = nullptr;
+                        return 0;
+                    }
+                    else{
+                        Collection<T> *col = dynamic_cast<Collection<T>*>(scripts[component.getType()]);
+                        unsigned result = col->addItem(component, (*objects)[i].getId(), name);
+                        if(result > 0){
+                            unsigned compPos = result - 1;
+                            col->getCollection()[compPos].setOwnerId((*objects)[i].getId());
+                            col->getCollection()[compPos].setOwnerPos(i);
+                            (*objects)[i].getComponents().emplace_back(col->getCollection()[compPos].getType(), col->getCollection()[compPos].getName(), compPos);
+                            col = nullptr;
+                            return 1;
+                        }
+                        col = nullptr;
+                        return 0;
+                    }
                 }
             }
         }
@@ -258,24 +288,43 @@ namespace WishEngine{
 
     template <class T>
     unsigned ScriptsInterface::insertComponent(unsigned oId, T component, std::string name){
-        if(objects != nullptr && components != nullptr){
+        if(objects != nullptr){
             for(unsigned i=0; i<objects->size(); i++){
                 if((*objects)[i].getId() == oId && !(*objects)[i].getDeleted() && !(*objects)[i].hasComponent(component.getType(), name)){
-                    if(components->count(component.getType()) == 0){
+                    if(component.getType() < COMPONENTTYPES::CAMOUNT && components != nullptr && components->count(component.getType()) == 0){
                         (*components)[component.getType()] = new Collection<T>(component.getType());
                     }
-                    Collection<T> *col = dynamic_cast<Collection<T>*>((*components)[component.getType()]);
-                    unsigned result = col->addItem(component, oId, name);
-                    if(result > 0){
-                        unsigned compPos = result - 1;
-                        col->getCollection()[compPos].setOwnerId(oId);
-                        col->getCollection()[compPos].setOwnerPos(i);
-                        (*objects)[i].getComponents().emplace_back(col->getCollection()[compPos].getType(), col->getCollection()[compPos].getName(), compPos);
-                        col = nullptr;
-                        return 1;
+                    else if(component.getType() >= COMPONENTTYPES::CAMOUNT && scripts.count(component.getType()) == 0){
+                        scripts[component.getType()] = new Collection<T>(component.getType());
                     }
-                    col = nullptr;
-                    return 0;
+                    if(component.getType() < COMPONENTTYPES::CAMOUNT){
+                        Collection<T> *col = dynamic_cast<Collection<T>*>((*components)[component.getType()]);
+                        unsigned result = col->addItem(component, oId, name);
+                        if(result > 0){
+                            unsigned compPos = result - 1;
+                            col->getCollection()[compPos].setOwnerId(oId);
+                            col->getCollection()[compPos].setOwnerPos(i);
+                            (*objects)[i].getComponents().emplace_back(col->getCollection()[compPos].getType(), col->getCollection()[compPos].getName(), compPos);
+                            col = nullptr;
+                            return 1;
+                        }
+                        col = nullptr;
+                        return 0;
+                    }
+                    else{
+                        Collection<T> *col = dynamic_cast<Collection<T>*>(scripts[component.getType()]);
+                        unsigned result = col->addItem(component, oId, name);
+                        if(result > 0){
+                            unsigned compPos = result - 1;
+                            col->getCollection()[compPos].setOwnerId(oId);
+                            col->getCollection()[compPos].setOwnerPos(i);
+                            (*objects)[i].getComponents().emplace_back(col->getCollection()[compPos].getType(), col->getCollection()[compPos].getName(), compPos);
+                            col = nullptr;
+                            return 1;
+                        }
+                        col = nullptr;
+                        return 0;
+                    }
                 }
             }
         }
@@ -284,9 +333,17 @@ namespace WishEngine{
 
     template <class T>
     T *ScriptsInterface::getComponent(GameObject *obj, int type, std::string name){
-        if(components != nullptr && components->count(type) > 0 && !obj->getDeleted()){
+        if(components != nullptr && components->count(type) > 0){
             if(!obj->getDeleted() && obj->hasComponent(type, name)){
                 T *aux = &dynamic_cast<Collection<T>*>((*components)[type])->getCollection()[obj->getComponentPosition(type, name)];
+                if(!aux->getDeleted()){
+                    return aux;
+                }
+            }
+        }
+        else if(scripts.count(type) > 0){
+            if(!obj->getDeleted() && obj->hasComponent(type, name)){
+                T *aux = &dynamic_cast<Collection<T>*>(scripts[type])->getCollection()[obj->getComponentPosition(type, name)];
                 if(!aux->getDeleted()){
                     return aux;
                 }
@@ -309,8 +366,15 @@ namespace WishEngine{
                 }
             }
         }
-        else{
-            return 0;
+        else if(!obj->getDeleted() && scripts.count(type) > 0){
+            unsigned result = dynamic_cast<Collection<T>*>(scripts[type])->deleteItem(obj->getId(), name);
+            if(result){
+                for(unsigned i=0; i<obj->getComponents().size(); i++){
+                    if(obj->getComponents()[i].componentType == type && obj->getComponents()[i].componentName == name){
+                        obj->getComponents().erase(obj->getComponents().begin() + i);
+                    }
+                }
+            }
         }
         return 0;
     }
@@ -363,10 +427,10 @@ namespace WishEngine{
     void ScriptsInterface::createScript(std::unordered_map<int, BaseCollection*> *col, GameObject *own, unsigned ownPos, bool isEn, std::string n, std::string ar){
         /** TEMPLATE:
             if(n == "YourScriptName"){
-                if(col->count(SCRIPTTYPES::YOURSCRIPT) == 0){
-                    (*col)[SCRIPTTYPES::YOURSCRIPT] = new Collection<YourScript>(SCRIPTTYPES::YOURSCRIPT);
+                if(scripts.count(SCRIPTTYPES::YOURSCRIPT) == 0){
+                    scripts[SCRIPTTYPES::YOURSCRIPT] = new Collection<YourScript>(SCRIPTTYPES::YOURSCRIPT);
                 }
-                Collection<YourScript> *coli = dynamic_cast<Collection<YourScript>*>((*col)[SCRIPTTYPES::YOURSCRIPT]);
+                Collection<YourScript> *coli = dynamic_cast<Collection<YourScript>*>(scripts[SCRIPTTYPES::YOURSCRIPT]);
                 if(coli != nullptr){
                     unsigned result = coli->addItem(YourScript(), own->getId(), n);
                     if(result){
@@ -382,18 +446,16 @@ namespace WishEngine{
     }
 
     void ScriptsInterface::update(double dt){
-        if(components != nullptr){
-            /** TEMPLATE:
-            if((*components).count(SCRIPTTYPES::YOURSCRIPT) > 0){
-                Collection<YourScript> *col = dynamic_cast<Collection<YourScript>*>((*components)[SCRIPTTYPES::YOURSCRIPT]);
-                if(col != nullptr){
-                    for(unsigned j=0; j<col->getCollection().size(); j++){
-                        col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
-                    }
+        /** TEMPLATE:
+        if(scripts.count(SCRIPTTYPES::YOURSCRIPT) > 0){
+            Collection<YourScript> *col = dynamic_cast<Collection<YourScript>*>(scripts[SCRIPTTYPES::YOURSCRIPT]);
+            if(col != nullptr){
+                for(unsigned j=0; j<col->getCollection().size(); j++){
+                    col->getCollection()[j].execute((*objects)[col->getCollection()[j].getOwnerPos()], dt);
                 }
-                col = nullptr;
-            }**/
-        }
+            }
+            col = nullptr;
+        }**/
     }
 
     void ScriptsInterface::handleMessage(Message* mes){
@@ -426,6 +488,11 @@ namespace WishEngine{
             rmes = nullptr;
         }
         else if(mes->getType() == MESSAGETYPES::DELETEEVERYTHING){
+            for(std::unordered_map<int, BaseCollection*>::iterator it = scripts.begin(); it != scripts.end(); it++){
+                delete it->second;
+                it->second = nullptr;
+            }
+            scripts.clear();
             destroySystem();
         }
     }

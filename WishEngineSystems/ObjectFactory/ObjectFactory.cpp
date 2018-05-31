@@ -46,14 +46,15 @@ namespace WishEngine{
     }
 
     ObjectFactory::~ObjectFactory(){
-        clearData();
+	    clearData();
         destroySystem();
     }
 
     void ObjectFactory::clearData(){
         objects.clear();
+	    availableObjects.clear();
         for(std::unordered_map<int, BaseCollection*>::iterator it = componentCollections.begin(); it != componentCollections.end(); it++){
-            delete it->second;
+	        delete it->second;
             it->second = nullptr;
         }
         componentCollections.clear();

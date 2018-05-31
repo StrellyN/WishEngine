@@ -37,7 +37,8 @@ namespace WishEngine{
     class AudioSystem : public GameSystem{
         private:
             unsigned listenerId;
-            AudioComponent* currentSong = nullptr; //To be able to modify the volume dynamically each frame if its 3d sound
+            std::vector<AudioComponent> *audios = nullptr;
+            int currentSong;
             double songTimer;
             bool isMusicPlaying, isMusicPaused;
             std::unordered_map<int, BaseCollection*> *components = nullptr;
@@ -48,8 +49,8 @@ namespace WishEngine{
             ~AudioSystem();
             void update(double dt);
             void handleMessage(Message* msg);
-            void play(AudioComponent* comp, int volume, int loops, bool fadeIn, int duration);
-            void crossFadeInto(AudioComponent* comp, int volume, int loops, bool fadeIn, int duration);
+            void play(AudioComponent* comp, int songPos, int volume, int loops, bool fadeIn, int duration);
+            void crossFadeInto(AudioComponent* comp, int songPos, int volume, int loops, bool fadeIn, int duration);
             void setVolume(AudioComponent* comp, int volume);
             void stopMusic();
             void fadeOutMusic(int duration);

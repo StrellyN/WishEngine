@@ -40,6 +40,7 @@ namespace WishEngine{
                 if(ProcAdd){
                     ProcAdd();
                 }
+                ProcAdd = nullptr;
                 FreeLibrary(systemsDLL[i]);
             }
             systemsDLL.clear();
@@ -50,6 +51,7 @@ namespace WishEngine{
                 if(fn){
                     fn();
                 }
+                fn = nullptr;
                 dlclose(systemsDLL[i]);
             }
             systemsDLL.clear();
@@ -76,6 +78,7 @@ namespace WishEngine{
                         addSystem(ProcAdd());
                         systemsDLL.push_back(temp);
                     }
+                    ProcAdd = nullptr;
                 }
             }while (FindNextFile(fileHandle, &fileData));
         #elif defined(__unix__) || defined(__linux__)
@@ -93,10 +96,14 @@ namespace WishEngine{
                             addSystem(fn());
                             systemsDLL.push_back(lib_handle);
                         }
+                        fn = nullptr;
                     }
                 }
                 closedir (dir);
             }
+            dir = nullptr;
+            delete ent;
+            ent = nullptr;
         #endif
     }
 
@@ -110,11 +117,11 @@ namespace WishEngine{
         Made looking at: https://gafferongames.com/post/fix_your_timestep/
     **/
     void State::update(){
-        if(systems.empty()){
+        if(getSystems().empty()){
             quit = true;
         }
         else{
-            std::sort(systems.begin(), systems.end(), systemPrioritySorting);
+            std::sort(getSystems().begin(), getSystems().end(), systemPrioritySorting);
         }
 
         double dt = 0.01, accumulator = 0; //Sets some variables for the timing of the loop, like the current ms
@@ -176,17 +183,17 @@ namespace WishEngine{
         Method that collects all the messages posted by the systems and handles them.
     **/
     void State::handleMessages(){
-        for(unsigned i=0; i<systems.size(); i++){
-            while(systems[i]->getMessagesAmount() > 0){
-                Message *aux = systems[i]->getMessage(0);
+        for(unsigned i=0; i<getSystems().size(); i++){
+            while(getSystems()[i]->getMessagesAmount() > 0){
+                Message *aux = getSystems()[i]->getMessage(0);
                 if(aux != nullptr){
                     sendMessage(*aux);
                 }
                 aux = nullptr;
-                if(getQuit() || systems[i]->getMessagesAmount() == 0){
+                if(getQuit() || getSystems()[i]->getMessagesAmount() == 0){
                     break;
                 }
-                systems[i]->deleteMessage(0);
+                getSystems()[i]->deleteMessage(0);
             }
             if(getQuit())
                 break;
@@ -250,7 +257,7 @@ namespace WishEngine{
     **/
     void State::addSystem(GameSystem *nSystem){
         if(!hasSystemType(nSystem->getSystemType())){
-            systems.push_back(nSystem);
+            getSystems().push_back(nSystem);
         }
     }
 

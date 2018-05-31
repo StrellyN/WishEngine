@@ -38,10 +38,12 @@
 #include "../CommonIncludes/ComponentHeaders.hpp"
 
 namespace WishEngine{
-    enum SCRIPTTYPES{};
+    enum SCRIPTTYPES{CAMERASCRIPTFOLLOWING = COMPONENTTYPES::CAMOUNT, DIALOGUEMANAGERSCRIPT, MAPMANAGERSCRIPT, MENUSCRIPT,
+                     NPCSCRIPT, PLAYERSCRIPT, PAUSESCRIPT, OPTIONSSCRIPT, GAMESCRIPT, TITLESCRIPT};
 
     class ScriptsInterface : public GameSystem{
         private:
+	    	static std::unordered_map<int, BaseCollection*> scripts;
             static std::unordered_map<int, BaseCollection*> *components;
             static std::vector<GameObject> *objects;
             static std::vector<unsigned> *availableObjects;

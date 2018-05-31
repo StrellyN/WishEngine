@@ -30,12 +30,12 @@ namespace WishEngine{
         listenerId = -1;
         isMusicPlaying = false;
         isMusicPaused = false;
+        currentSong = -1;
     }
 
     AudioSystem::~AudioSystem(){
         destroySystem();
         stopMusic();
-        currentSong = nullptr;
         components = nullptr;
         objects = nullptr;
     }
@@ -43,7 +43,7 @@ namespace WishEngine{
     /**
         Plays a song starting from the beginning, this resets the song timer back to 0.
     **/
-    void AudioSystem::play(AudioComponent* comp, int volume, int loops, bool fadeIn, int duration){
+    void AudioSystem::play(AudioComponent* comp, int songPos, int volume, int loops, bool fadeIn, int duration){
         if(comp != nullptr && comp->getEnabled()){
             if(comp->getIsDynamic() && objects != nullptr){ //You'll see this code in other places in this system, its for dynamic volume music (changes volume depending on distance)
                 GameObject *emitter = nullptr, *listener = nullptr;
@@ -86,7 +86,9 @@ namespace WishEngine{
             }
             if(comp->getIsSong()){ //If its a song
                 songTimer = 0; //Reset the timer
-                currentSong->setIsCurrentSong(false);
+                if(audios != nullptr && currentSong > -1 && currentSong < audios->size()){
+                    (*audios)[currentSong].setIsCurrentSong(false);
+                }
                 if(fadeIn){ //And fadein is active
                     //Send a MusicMessage
                     //Framework::getFramework()->fadeInMusic(comp->getAudioFile(), volume, loops, duration); //Fade in the music
@@ -97,8 +99,10 @@ namespace WishEngine{
                     //Framework::getFramework()->playMusic(comp->getAudioFile(), volume, loops); //If not, just play it normally
                     postMessage(new AudioMessage(MESSAGETYPES::PLAYMUSIC, comp->getAudioFile(), volume, loops, 0, 0));
                 }
-                currentSong = comp; //Set the current song to the new one for volume updates in case of dynamic song
-                currentSong->setIsCurrentSong(false);
+                currentSong = songPos; //Set the current song to the new one for volume updates in case of dynamic song
+                if(audios != nullptr && currentSong > -1 && currentSong < audios->size()){
+                    (*audios)[currentSong].setIsCurrentSong(false);
+                }
             }
             else{ //If its not a song
                 //Send a MusicMessage
@@ -121,7 +125,7 @@ namespace WishEngine{
         the original volume and then transition into the new song making the fadein a bit
         faster.
     **/
-    void AudioSystem::crossFadeInto(AudioComponent* comp, int volume, int loops, bool fadeIn, int duration){
+    void AudioSystem::crossFadeInto(AudioComponent* comp, int songPos, int volume, int loops, bool fadeIn, int duration){
         if(comp != nullptr && comp->getEnabled()){
             if(comp->getIsDynamic() && objects != nullptr){ //You'll see this code in other places in this system, its for dynamic volume music (changes volume depending on distance)
                 GameObject *emitter = nullptr, *listener = nullptr;
@@ -163,7 +167,9 @@ namespace WishEngine{
                 listener = nullptr;
             }
             if(comp->getIsSong()){ //If its a song
-                currentSong->setIsCurrentSong(false);
+                if(audios != nullptr && currentSong > -1 && currentSong < audios->size()){
+                    (*audios)[currentSong].setIsCurrentSong(false);
+                }
                 if(fadeIn){ //And fadein is active
                     //Send a MusicMessage
                     //Framework::getFramework()->fadeInMusicPos(comp->getAudioFile(), volume, loops, duration, songTimer); //Fade in the music
@@ -176,8 +182,10 @@ namespace WishEngine{
                     //Framework::getFramework()->setMusicPos(songTimer);
                     postMessage(new AudioMessage(MESSAGETYPES::SETMUSICPOS, "", 0, 0, 0, songTimer));
                 }
-                currentSong = comp; //Set the current song to the new one for volume updates in case of dynamic song
-                currentSong->setIsCurrentSong(false);
+                currentSong = songPos; //Set the current song to the new one for volume updates in case of dynamic song
+                if(audios != nullptr && currentSong > -1 && currentSong < audios->size()){
+                    (*audios)[currentSong].setIsCurrentSong(false);
+                }
             }
             else{ //If its not a song
                 //Send a MusicMessage
@@ -212,8 +220,10 @@ namespace WishEngine{
         //Send a MusicMessage
         //Framework::getFramework()->fadeOutMusic(duration);
         postMessage(new AudioMessage(MESSAGETYPES::FADEOUTMUSIC, "", 0, 0, duration, 0));
-        currentSong->setIsCurrentSong(false);
-        currentSong = nullptr;
+        if(audios != nullptr && currentSong > -1 && currentSong < audios->size()){
+            (*audios)[currentSong].setIsCurrentSong(false);
+        }
+        currentSong = -1;
         songTimer = 0;
     }
 
@@ -258,10 +268,10 @@ namespace WishEngine{
         //Send a MusicMessage
         //Framework::getFramework()->stopMusic();
         postMessage(new Message(MESSAGETYPES::STOPMUSIC));
-        if(currentSong != nullptr){
-            currentSong->setIsCurrentSong(false);
+        if(audios != nullptr && currentSong > -1 && currentSong < audios->size()){
+            (*audios)[currentSong].setIsCurrentSong(false);
         }
-        currentSong = nullptr;
+        currentSong = -1;
         songTimer = 0;
     }
 
@@ -287,129 +297,136 @@ namespace WishEngine{
         It also now controls everything depending on the settings of the audio components of the game.
     **/
     void AudioSystem::update(double dt){
-        if(currentSong != nullptr){
-            bool done = false;
-            if(!done && currentSong->getStop()){
-                currentSong->setIsPlaying(false);
-                stopMusic();
-                done = true;
-            }
-            if(!done && currentSong->getFadeOut()){
-                currentSong->setIsPlaying(false);
-                fadeOutMusic(currentSong->getFadeDuration());
-                done = true;
-            }
-            if(!done && getIsMusicPlaying() && currentSong->getPaused()){
-                pauseMusic();
-                done = true;
-            }
-            if(!done && getIsMusicPaused() && currentSong->getResume()){
-                resumeMusic();
-                done = true;
-            }
-        }
-
         if(components != nullptr && objects != nullptr){
-            std::vector<AudioComponent> *audios = nullptr;
             if(components->find(COMPONENTTYPES::AUDIO) != components->end()){
                 audios = &dynamic_cast<Collection<AudioComponent>*>(components->at(COMPONENTTYPES::AUDIO))->getCollection();
             }
             if(audios != nullptr){
+                if(currentSong > -1 && currentSong < audios->size()){
+                    bool done = false;
+                    if(!done && (*audios)[currentSong].getStop()){
+                        (*audios)[currentSong].setIsPlaying(false);
+                        stopMusic();
+                        done = true;
+                    }
+                    if(!done && (*audios)[currentSong].getFadeOut()){
+                        (*audios)[currentSong].setIsPlaying(false);
+                        fadeOutMusic((*audios)[currentSong].getFadeDuration());
+                        done = true;
+                    }
+                    if(!done && getIsMusicPlaying() && (*audios)[currentSong].getPaused()){
+                        pauseMusic();
+                        done = true;
+
+                    }
+
+                    if(!done && getIsMusicPaused() && (*audios)[currentSong].getResume()){
+                        resumeMusic();
+                        done = true;
+
+                    }
+
+                }
+
                 for(unsigned i=0; i<audios->size(); i++){
                     if((*audios)[i].getEnabled()){
                         if((*audios)[i].getIsPlaying()){
                             if((*audios)[i].getIsSong()){
-                                if(currentSong == nullptr){ //In case there's no current song being played
-                                    currentSong = &(*audios)[i];
+                                if(currentSong == -1){ //In case there's no current song being played
+                                    currentSong = i;
                                 }
                                 bool justPlay = true;
                                 if((*audios)[i].getCrossFade()){
                                     if((*audios)[i].getFadeIn()){
-                                        currentSong->setIsPlaying(false);
-                                        crossFadeInto(&(*audios)[i], (*audios)[i].getMaxVolume(), (*audios)[i].getLoops(), true, (*audios)[i].getFadeDuration());
+                                        if(currentSong > -1 && currentSong < audios->size())
+                                            (*audios)[currentSong].setIsPlaying(false);
+                                        crossFadeInto(&(*audios)[i], i, (*audios)[i].getMaxVolume(), (*audios)[i].getLoops(), true, (*audios)[i].getFadeDuration());
                                     }
                                     else{
-                                        currentSong->setIsPlaying(false);
-                                        crossFadeInto(&(*audios)[i], (*audios)[i].getMaxVolume(), (*audios)[i].getLoops(), false, (*audios)[i].getFadeDuration());
+                                        if(currentSong > -1 && currentSong < audios->size())
+                                            (*audios)[currentSong].setIsPlaying(false);
+                                        crossFadeInto(&(*audios)[i], i, (*audios)[i].getMaxVolume(), (*audios)[i].getLoops(), false, (*audios)[i].getFadeDuration());
                                     }
                                     justPlay = false;
                                 }
                                 if(justPlay){
                                     if((*audios)[i].getFadeIn()){
-                                        currentSong->setIsPlaying(false);
-                                        play(&(*audios)[i], (*audios)[i].getMaxVolume(), (*audios)[i].getLoops(), true, (*audios)[i].getFadeDuration());
+                                        if(currentSong > -1 && currentSong < audios->size())
+                                            (*audios)[currentSong].setIsPlaying(false);
+                                        play(&(*audios)[i], i, (*audios)[i].getMaxVolume(), (*audios)[i].getLoops(), true, (*audios)[i].getFadeDuration());
                                     }
                                     else{
-                                        currentSong->setIsPlaying(false);
-                                        play(&(*audios)[i], (*audios)[i].getMaxVolume(), (*audios)[i].getLoops(), false, (*audios)[i].getFadeDuration());
+                                        if(currentSong > -1 && currentSong < audios->size())
+                                            (*audios)[currentSong].setIsPlaying(false);
+                                        play(&(*audios)[i], i, (*audios)[i].getMaxVolume(), (*audios)[i].getLoops(), false, (*audios)[i].getFadeDuration());
                                     }
                                 }
                             }
                             else{
-                                play(&(*audios)[i], (*audios)[i].getMaxVolume(), (*audios)[i].getLoops(), (*audios)[i].getFadeIn(), (*audios)[i].getFadeDuration());
+                                play(&(*audios)[i], i, (*audios)[i].getMaxVolume(), (*audios)[i].getLoops(), (*audios)[i].getFadeIn(), (*audios)[i].getFadeDuration());
                             }
                         }
                     }
                 }
-            }
-            audios = nullptr;
 
-            if(!getIsMusicPaused() && getIsMusicPlaying() && currentSong != nullptr){
-                listenerId = currentSong->listener;
-                GameObject *listener = nullptr, *emitter = nullptr;
-                for(unsigned j=0; j<objects->size(); j++){
-                    if((*objects)[j].getId() == listenerId){
-                        listener = &(*objects)[j];
-                    }
-                    if((*objects)[j].getId() == currentSong->getEmitterId()){
-                        emitter = &(*objects)[j];
-                    }
-                }
-
-                songTimer += 1*dt; //Multiplying delta time by 1 makes it so the song timer advances a second each real second that passes, making it reliable.
-                std::vector<DimensionComponent> *dimensions = nullptr;
-                if(components->find(COMPONENTTYPES::DIMENSION) != components->end()){
-                    dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at(COMPONENTTYPES::DIMENSION))->getCollection();
-                }
-                if(currentSong->getIsDynamic() && listener != nullptr && dimensions != nullptr){ //The usefulness of saving the current song! Calculate the volume depending on the distance of the emitter
-                    int newVolume = 0;           //and the listener!
-                    DimensionComponent* listenerDim = &(*dimensions)[listener->getComponentPosition(COMPONENTTYPES::DIMENSION)];
-                    DimensionComponent* emitterDim = &(*dimensions)[emitter->getComponentPosition(COMPONENTTYPES::DIMENSION)];
-                    if(listenerDim != nullptr && emitterDim != nullptr){
-                        DirectionVector listener(listenerDim->getX(), listenerDim->getY());
-                        DirectionVector emitter(emitterDim->getX(), emitterDim->getY());
-                        DirectionVector offset(currentSong->getOffset().getX(), currentSong->getOffset().getY());
-                        double distance = Utils::getDistanceForAudio(listener, emitter, offset);
-                        if(fabs(distance) <= currentSong->getMinRadius()){
-                            newVolume = currentSong->getMaxVolume();
+                if(!getIsMusicPaused() && getIsMusicPlaying() && currentSong > -1 && currentSong < audios->size()){
+                    listenerId = (*audios)[currentSong].listener;
+                    GameObject *listener = nullptr, *emitter = nullptr;
+                    for(unsigned j=0; j<objects->size(); j++){
+                        if((*objects)[j].getId() == listenerId){
+                            listener = &(*objects)[j];
                         }
-                        else if(fabs(distance) >= currentSong->getMaxRadius()){
-                            newVolume = 0;
+                        if((*objects)[j].getId() == (*audios)[currentSong].getEmitterId()){
+                            emitter = &(*objects)[j];
+                        }
+                    }
+
+                    songTimer += 1*dt; //Multiplying delta time by 1 makes it so the song timer advances a second each real second that passes, making it reliable.
+                    std::vector<DimensionComponent> *dimensions = nullptr;
+                    if(components->find(COMPONENTTYPES::DIMENSION) != components->end()){
+                        dimensions = &dynamic_cast<Collection<DimensionComponent>*>(components->at(COMPONENTTYPES::DIMENSION))->getCollection();
+                    }
+                    if((*audios)[currentSong].getIsDynamic() && listener != nullptr && dimensions != nullptr){ //The usefulness of saving the current song! Calculate the volume depending on the distance of the emitter
+                        int newVolume = 0;           //and the listener!
+                        DimensionComponent* listenerDim = &(*dimensions)[listener->getComponentPosition(COMPONENTTYPES::DIMENSION)];
+                        DimensionComponent* emitterDim = &(*dimensions)[emitter->getComponentPosition(COMPONENTTYPES::DIMENSION)];
+                        if(listenerDim != nullptr && emitterDim != nullptr){
+                            DirectionVector listener(listenerDim->getX(), listenerDim->getY());
+                            DirectionVector emitter(emitterDim->getX(), emitterDim->getY());
+                            DirectionVector offset((*audios)[currentSong].getOffset().getX(), (*audios)[currentSong].getOffset().getY());
+                            double distance = Utils::getDistanceForAudio(listener, emitter, offset);
+                            if(fabs(distance) <= (*audios)[currentSong].getMinRadius()){
+                                newVolume = (*audios)[currentSong].getMaxVolume();
+                            }
+                            else if(fabs(distance) >= (*audios)[currentSong].getMaxRadius()){
+                                newVolume = 0;
+                            }
+                            else{
+                                newVolume = Utils::getVolumeFromDistance((*audios)[currentSong].getMinRadius(), (*audios)[currentSong].getMaxRadius(), (*audios)[currentSong].getMaxVolume(), distance);
+                            }
+                            listenerDim = nullptr;
+                            emitterDim = nullptr;
+                            //Send MusicMessage
+                            //Framework::getFramework()->setMusicVolume(newVolume);
+                            postMessage(new AudioMessage(MESSAGETYPES::SETMUSICVOLUME, "", newVolume, 0, 0, 0));
                         }
                         else{
-                            newVolume = Utils::getVolumeFromDistance(currentSong->getMinRadius(), currentSong->getMaxRadius(), currentSong->getMaxVolume(), distance);
+                            //Send MusicMessage
+                            //Framework::getFramework()->setMusicVolume(currentSong->getMaxVolume());
+                            postMessage(new AudioMessage(MESSAGETYPES::SETMUSICVOLUME, "", (*audios)[currentSong].getMaxVolume(), 0, 0, 0));
                         }
-                        listenerDim = nullptr;
-                        emitterDim = nullptr;
-                        //Send MusicMessage
-                        //Framework::getFramework()->setMusicVolume(newVolume);
-                        postMessage(new AudioMessage(MESSAGETYPES::SETMUSICVOLUME, "", newVolume, 0, 0, 0));
                     }
                     else{
                         //Send MusicMessage
                         //Framework::getFramework()->setMusicVolume(currentSong->getMaxVolume());
-                        postMessage(new AudioMessage(MESSAGETYPES::SETMUSICVOLUME, "", currentSong->getMaxVolume(), 0, 0, 0));
+                        postMessage(new AudioMessage(MESSAGETYPES::SETMUSICVOLUME, "", (*audios)[currentSong].getMaxVolume(), 0, 0, 0));
                     }
+                    dimensions = nullptr;
+                    listener = nullptr;
+                    emitter = nullptr;
                 }
-                else{
-                    //Send MusicMessage
-                    //Framework::getFramework()->setMusicVolume(currentSong->getMaxVolume());
-                    postMessage(new AudioMessage(MESSAGETYPES::SETMUSICVOLUME, "", currentSong->getMaxVolume(), 0, 0, 0));
-                }
-                dimensions = nullptr;
-                listener = nullptr;
-                emitter = nullptr;
             }
+            audios = nullptr;
         }
         if(!getIsMusicPlaying()){
             songTimer = 0;
@@ -435,6 +452,11 @@ namespace WishEngine{
             rmes = nullptr;
         }
         else if(msg->getType() == MESSAGETYPES::DELETEEVERYTHING){
+            currentSong = -1;
+            listenerId = -1;
+            songTimer = 0;
+            isMusicPlaying = false;
+            isMusicPaused = false;
             destroySystem();
         }
     }
