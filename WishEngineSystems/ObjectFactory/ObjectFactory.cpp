@@ -99,6 +99,9 @@ namespace WishEngine{
             deleteEverything();
             loadObjects(msg->getValue());
         }
+        else if(msg->getType() == MESSAGETYPES::QUIT){
+            deleteEverything();
+        }
     }
 
     /**
